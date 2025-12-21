@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build cache (but NOT dist/ - we version that)
+.vite/
+*.tsbuildinfo
+
+# Lock files (we use bun)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml

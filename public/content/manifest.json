@@ -1,0 +1,19 @@
+{
+  "articles": [
+    {
+      "id": "hello-world-building-an-mcp-native-blog",
+      "title": "Hello World: Building an MCP-Native Blog",
+      "description": "Welcome to vibegui.com — a personal blog built entirely through MCP, served at the edge with sub-100KB payloads.",
+      "date": "2025-12-21",
+      "tags": [
+        "hello-world",
+        "mcp",
+        "architecture",
+        "edge",
+        "performance"
+      ],
+      "status": "published"
+    }
+  ],
+  "generatedAt": "2025-12-21T14:34:32.415Z"
+}

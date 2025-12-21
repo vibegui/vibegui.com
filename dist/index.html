@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Personal blog of Guilherme Rodrigues - technology, entrepreneurship, and Brazil's tech future" />
+
+    <title>vibegui.com</title>
+
+    <!-- Preload critical fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Theme initialization (prevent flash) -->
+    <script>
+      (function () {
+        const stored = localStorage.getItem("theme");
+        const system = window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light";
+        const theme = stored === "dark" || stored === "light" ? stored : system;
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index.D1pOTaSY.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index.CAilJRfF.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
+

@@ -1,0 +1,3 @@
+# Research collection
+# Generate research using: RESEARCH_TOPIC({ topic: "...", questions: [...] })
+
