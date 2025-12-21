@@ -112,37 +112,47 @@ export function Article({ slug }: { slug: string }) {
     );
   }
 
-  // Render markdown to HTML
-  const htmlContent = marked(article.content, { async: false }) as string;
+  // Render markdown to HTML, removing the first H1 if it matches the title
+  let bodyContent = article.content.trim();
+  // Remove leading H1 that duplicates the frontmatter title
+  bodyContent = bodyContent.replace(/^#\s+.+\n+/, "");
+  const htmlContent = marked(bodyContent, { async: false }) as string;
 
   return (
     <article className="container py-8 md:py-12">
-      <Link
-        href="/"
-        className="text-sm text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)] hover:text-[var(--color-fg)] dark:hover:text-[var(--color-dark-fg)]"
-      >
-        ← Back to home
-      </Link>
-
-      <header className="mt-6 mb-8">
-        <time
-          dateTime={article.date}
-          className="text-sm text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]"
+      {/* Constrain content to prose width for consistent alignment */}
+      <div className="prose">
+        <Link
+          href="/"
+          className="text-sm no-underline"
+          style={{ color: "var(--color-fg-muted)" }}
         >
-          {formatDate(article.date)}
-        </time>
-        <h1 className="mt-2 text-3xl md:text-4xl font-bold">{article.title}</h1>
-        {article.description && (
-          <p className="mt-4 text-xl text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]">
-            {article.description}
-          </p>
-        )}
-      </header>
+          ← Back to home
+        </Link>
 
-      <div
-        className="prose mx-auto"
-        dangerouslySetInnerHTML={{ __html: htmlContent }}
-      />
+        <header className="mt-6 mb-8">
+          <time
+            dateTime={article.date}
+            className="text-sm"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            {formatDate(article.date)}
+          </time>
+          <h1 className="mt-2 text-3xl md:text-4xl font-bold">
+            {article.title}
+          </h1>
+          {article.description && (
+            <p
+              className="mt-4 text-xl"
+              style={{ color: "var(--color-fg-muted)" }}
+            >
+              {article.description}
+            </p>
+          )}
+        </header>
+
+        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+      </div>
     </article>
   );
 }

@@ -20,7 +20,95 @@ import { z } from "zod";
 import { readdir, readFile, writeFile, unlink, mkdir } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
+
+// ============================================================================
+// Package.json Script Tools Generator
+// ============================================================================
+
+interface PackageJson {
+  scripts?: Record<string, string>;
+  mcp?: {
+    scripts?: Record<
+      string,
+      {
+        description?: string;
+        expose?: boolean;
+      }
+    >;
+  };
+}
+
+/**
+ * Read package.json and generate MCP tools for exposed scripts
+ */
+function loadPackageJson(): PackageJson {
+  const pkgPath = join(process.cwd(), "package.json");
+  if (!existsSync(pkgPath)) return {};
+  // Synchronous read for initialization
+  const pkg = JSON.parse(readFileSync(pkgPath, "utf-8")) as PackageJson;
+  return pkg;
+}
+
+const pkg = loadPackageJson();
+
+/**
+ * Generate tools for each exposed script in package.json
+ */
+function createScriptTools() {
+  const scripts = pkg.scripts ?? {};
+  const mcpConfig = pkg.mcp?.scripts ?? {};
+  const tools: ReturnType<typeof createTool>[] = [];
+
+  for (const [name, command] of Object.entries(scripts)) {
+    const config = mcpConfig[name];
+
+    // Skip scripts not explicitly exposed
+    if (!config?.expose) continue;
+
+    // Convert script name to tool ID: "test:e2e" -> "SCRIPT_TEST_E2E"
+    const toolId = `SCRIPT_${name.toUpperCase().replace(/[:-]/g, "_")}`;
+
+    tools.push(
+      createTool({
+        id: toolId,
+        description: config.description ?? `Run 'bun run ${name}'`,
+        inputSchema: z.object({}),
+        outputSchema: z.object({
+          success: z.boolean(),
+          output: z.string(),
+          exitCode: z.number(),
+        }),
+        execute: async () => {
+          try {
+            const output = execSync(`bun run ${name}`, {
+              cwd: process.cwd(),
+              encoding: "utf-8",
+              stdio: ["pipe", "pipe", "pipe"],
+            });
+            return { success: true, output, exitCode: 0 };
+          } catch (error) {
+            const execError = error as { stdout?: string; status?: number };
+            return {
+              success: false,
+              output: execError.stdout ?? String(error),
+              exitCode: execError.status ?? 1,
+            };
+          }
+        },
+      }),
+    );
+  }
+
+  return tools;
+}
+
+// Generate script tools from package.json
+const scriptTools = createScriptTools();
+console.log(
+  `[MCP] Generated ${scriptTools.length} script tools:`,
+  scriptTools.map((t) => t.id),
+);
 
 // ============================================================================
 // Configuration Schema - Bindings
@@ -465,12 +553,12 @@ const researchTools = [
 ];
 
 // ============================================================================
-// Development Tools
+// Interactive Development Tools (not auto-generated from package.json)
 // ============================================================================
 
 let devServerProcess: ChildProcess | null = null;
 
-const devTools = [
+const interactiveTools = [
   createTool({
     id: "DEV_SERVER_START",
     description: "Start the Vite development server",
@@ -484,7 +572,7 @@ const devTools = [
       if (devServerProcess) {
         return {
           success: true,
-          url: "http://localhost:4000",
+          url: "http://localhost:4001",
           message: "Dev server already running",
         };
       }
@@ -500,7 +588,7 @@ const devTools = [
 
       return {
         success: true,
-        url: "http://localhost:4000",
+        url: "http://localhost:4001",
         message: "Dev server started",
       };
     },
@@ -523,30 +611,6 @@ const devTools = [
       devServerProcess = null;
 
       return { success: true, message: "Dev server stopped" };
-    },
-  }),
-
-  createTool({
-    id: "BUILD",
-    description: "Run production build",
-    inputSchema: z.object({}),
-    outputSchema: z.object({
-      success: z.boolean(),
-      output: z.string(),
-    }),
-    execute: async () => {
-      try {
-        const output = execSync("bun run build", {
-          cwd: process.cwd(),
-          encoding: "utf-8",
-        });
-        return { success: true, output };
-      } catch (error) {
-        return {
-          success: false,
-          output: error instanceof Error ? error.message : String(error),
-        };
-      }
     },
   }),
 
@@ -647,24 +711,31 @@ const devTools = [
 const wrapTools = (tools: ReturnType<typeof createTool>[]) =>
   tools.map((tool) => () => tool);
 
+const allTools = [
+  // Content collections
+  ...wrapTools(createCollectionTools("ideas")),
+  ...wrapTools(createCollectionTools("research")),
+  ...wrapTools(createCollectionTools("drafts")),
+  ...wrapTools(createCollectionTools("articles")),
+
+  // Research tools
+  ...wrapTools(researchTools),
+
+  // Auto-generated script tools from package.json
+  ...wrapTools(scriptTools),
+
+  // Interactive tools (dev server, git)
+  ...wrapTools(interactiveTools),
+];
+
+console.log(`[MCP] Registering ${allTools.length} total tools`);
+
 const runtime = withRuntime({
   configuration: {
     state: StateSchema,
     scopes: [],
   },
-  tools: [
-    // Content collections
-    ...wrapTools(createCollectionTools("ideas")),
-    ...wrapTools(createCollectionTools("research")),
-    ...wrapTools(createCollectionTools("drafts")),
-    ...wrapTools(createCollectionTools("articles")),
-
-    // Research tools (uses Perplexity)
-    ...wrapTools(researchTools),
-
-    // Development tools
-    ...wrapTools(devTools),
-  ],
+  tools: allTools,
 });
 
 export default runtime;
