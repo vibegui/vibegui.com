@@ -17,7 +17,7 @@ pre-commit:
       run: bun run check
 
     build:
-      run: bun run build && git add dist/
+      run: bun run build && git add dist/ public/content/manifest.json
 
     constraints:
       run: bun run test:constraints

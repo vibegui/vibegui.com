@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "pages:build": "cp -r content dist/ && cp -r context dist/",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",

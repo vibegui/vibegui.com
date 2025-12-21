@@ -151,6 +151,7 @@ export function Article({ slug }: { slug: string }) {
           )}
         </header>
 
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
         <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
       </div>
     </article>

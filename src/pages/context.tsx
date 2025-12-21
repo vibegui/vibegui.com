@@ -296,6 +296,7 @@ export function ContextDoc({ path }: { path: string }) {
           </div>
         )}
 
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
         <div className="mt-8" dangerouslySetInnerHTML={{ __html: content }} />
       </div>
     </article>

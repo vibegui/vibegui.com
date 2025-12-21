@@ -30,3 +30,7 @@ yarn.lock
 pnpm-lock.yaml
 
 .claude
+
+# Copied by pages:build, no need to version twice
+dist/content/
+dist/context/
