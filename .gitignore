@@ -34,3 +34,7 @@ pnpm-lock.yaml
 # Copied by pages:build, no need to version twice
 dist/content/
 dist/context/
+
+# Test results
+test-results/
+playwright-report/
