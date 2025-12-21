@@ -148,12 +148,37 @@ export default defineConfig({
         entryFileNames: "assets/[name].[hash].js",
         chunkFileNames: "assets/[name].[hash].js",
         assetFileNames: "assets/[name].[hash].[ext]",
+        // Split vendor chunks for better caching
+        manualChunks(id) {
+          // React ecosystem - changes rarely
+          if (id.includes("node_modules/react-dom")) {
+            return "react-dom";
+          }
+          if (id.includes("node_modules/react")) {
+            return "react";
+          }
+          // Markdown rendering
+          if (id.includes("node_modules/marked")) {
+            return "markdown";
+          }
+        },
+      },
+      // Suppress chunk size warnings for known large vendor chunks
+      onwarn(warning, warn) {
+        if (
+          warning.code === "CHUNK_SIZE_WARNING" &&
+          warning.message?.includes("react-dom")
+        ) {
+          return; // Ignore react-dom size warning - it's expected
+        }
+        warn(warning);
       },
     },
     // Target modern browsers only
     target: "esnext",
-    // Keep chunks reasonable for caching
-    chunkSizeWarningLimit: 100,
+    // react-dom is ~185KB minified, so set limit above that
+    // Our constraint tests enforce actual limits
+    chunkSizeWarningLimit: 200,
   },
 
   server: {

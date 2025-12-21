@@ -10,17 +10,16 @@ import { Header } from "./components/header";
 import { Home } from "./pages/home";
 import { Article } from "./pages/article";
 import { Commitment } from "./pages/commitment";
-import { Integrity } from "./pages/integrity";
-import { Alignment } from "./pages/alignment";
-import { Deco } from "./pages/deco";
+import { Content } from "./pages/content";
+import { Context, ContextDoc } from "./pages/context";
 
 type Route =
   | { type: "home" }
   | { type: "article"; slug: string }
   | { type: "commitment" }
-  | { type: "integrity" }
-  | { type: "alignment" }
-  | { type: "deco" }
+  | { type: "content" }
+  | { type: "context" }
+  | { type: "context-doc"; path: string }
   | { type: "not-found" };
 
 function parseRoute(pathname: string): Route {
@@ -30,14 +29,17 @@ function parseRoute(pathname: string): Route {
   if (pathname === "/commitment") {
     return { type: "commitment" };
   }
-  if (pathname === "/integrity") {
-    return { type: "integrity" };
+  if (pathname === "/content") {
+    return { type: "content" };
   }
-  if (pathname === "/alignment") {
-    return { type: "alignment" };
+  if (pathname === "/context") {
+    return { type: "context" };
   }
-  if (pathname === "/deco") {
-    return { type: "deco" };
+  if (pathname.startsWith("/context/")) {
+    const path = pathname.slice("/context/".length);
+    if (path) {
+      return { type: "context-doc", path };
+    }
   }
   if (pathname.startsWith("/article/")) {
     const slug = pathname.slice("/article/".length);
@@ -120,12 +122,12 @@ function RouteContent({ route }: { route: Route }) {
       return <Article slug={route.slug} />;
     case "commitment":
       return <Commitment />;
-    case "integrity":
-      return <Integrity />;
-    case "alignment":
-      return <Alignment />;
-    case "deco":
-      return <Deco />;
+    case "content":
+      return <Content />;
+    case "context":
+      return <Context />;
+    case "context-doc":
+      return <ContextDoc path={route.path} />;
     case "not-found":
       return (
         <div className="container py-16 text-center">

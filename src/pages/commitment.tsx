@@ -8,14 +8,47 @@
 export function Commitment() {
   return (
     <article className="container py-8 md:py-12">
-      <header className="mb-12">
-        <h1 className="text-3xl md:text-4xl font-bold">Commitment</h1>
-        <p className="mt-4 text-xl text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]">
-          Brazil as a global technology protagonist
-        </p>
-      </header>
+      <div className="prose">
+        {/* About Section */}
+        <section
+          className="mb-12 p-6 rounded-lg"
+          style={{ backgroundColor: "var(--color-bg-secondary)" }}
+        >
+          <h2 className="text-lg font-semibold mb-3">About the Author</h2>
+          <p className="text-sm" style={{ color: "var(--color-fg-muted)" }}>
+            <strong>Guilherme Rodrigues</strong> is an entrepreneur and software
+            engineer from Rio de Janeiro. Co-founder and CEO of{" "}
+            <a
+              href="https://decocms.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              deco CMS
+            </a>
+            , the open-source platform for AI-powered internal tools. Former
+            Staff Engineer at VTEX (9 years), where he helped build the platform
+            from early stage to NYSE IPO. Co-founder of{" "}
+            <a
+              href="https://movimentotech.org.br"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Movimento Tech 2030
+            </a>
+            , a coalition that has impacted 3M+ students and created 7,000+ tech
+            jobs in Brazil. Founding donor of Rio Endowment. PUC-Rio alumni.
+          </p>
+        </section>
 
-      <div className="prose mx-auto">
+        <header className="mb-12">
+          <h1 className="text-3xl md:text-4xl font-bold">Commitment</h1>
+          <p
+            className="mt-4 text-xl"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            Brazil as a global technology protagonist
+          </p>
+        </header>
         <p>
           At 25, I was living in Sweden—one of the most organized, stable, and
           predictable countries in the world. I worked at Tictail (later

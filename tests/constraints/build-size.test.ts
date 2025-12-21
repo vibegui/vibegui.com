@@ -123,4 +123,32 @@ describe("Build Size Constraints", () => {
 
     expect(totalCssSize).toBeLessThan(MAX_CSS_SIZE);
   });
+
+  test("app code (non-vendor) < 50KB", () => {
+    if (!distExists) return;
+
+    // Vendor chunks are: react, react-dom, markdown
+    const vendorPatterns = ["react.", "react-dom.", "markdown."];
+    const jsFiles = files.filter((f) => extname(f) === ".js");
+
+    let appCodeSize = 0;
+
+    for (const file of jsFiles) {
+      const fileName = file.split("/").pop() ?? "";
+      const isVendor = vendorPatterns.some((p) => fileName.startsWith(p));
+
+      if (!isVendor) {
+        const content = readFileSync(file);
+        appCodeSize += content.length;
+        console.log(
+          `App chunk: ${fileName} (${(content.length / 1024).toFixed(2)}KB)`,
+        );
+      }
+    }
+
+    console.log(`Total app code: ${(appCodeSize / 1024).toFixed(2)}KB`);
+
+    // App code should stay lean - 50KB max
+    expect(appCodeSize).toBeLessThan(50 * 1024);
+  });
 });

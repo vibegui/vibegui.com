@@ -14,9 +14,8 @@ import { ThemeToggle } from "./theme-toggle";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/commitment", label: "Commitment" },
-  { href: "/integrity", label: "Integrity" },
-  { href: "/alignment", label: "Alignment" },
-  { href: "/deco", label: "deco" },
+  { href: "/content", label: "Content" },
+  { href: "/context", label: "Context" },
 ];
 
 export function Header() {

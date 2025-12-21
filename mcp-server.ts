@@ -60,7 +60,7 @@ function createScriptTools() {
   const mcpConfig = pkg.mcp?.scripts ?? {};
   const tools: ReturnType<typeof createTool>[] = [];
 
-  for (const [name, command] of Object.entries(scripts)) {
+  for (const name of Object.keys(scripts)) {
     const config = mcpConfig[name];
 
     // Skip scripts not explicitly exposed
