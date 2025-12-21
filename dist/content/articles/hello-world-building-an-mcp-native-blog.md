@@ -21,7 +21,7 @@ This isn't just another static blog. It's a fully MCP-native publishing platform
 │                     MCP Mesh (Self-Hosted)                  │
 ├─────────────────────────────────────────────────────────────┤
 │   vibegui.com MCP Server                                    │
-│   ├── Collections: Ideas → Research → Drafts → Articles    │
+│   ├── Collections: Ideas → Research → Drafts → Articles     │
 │   ├── Dev Tools: build, commit, push                        │
 │   └── Research Tools: topic research stubs                  │
 └─────────────────────────────────────────────────────────────┘
