@@ -32,26 +32,34 @@ export function ArticleCard({
 }: ArticleCardProps) {
   return (
     <article
-      className={`group ${featured ? "py-8 border-b border-[var(--color-border)] dark:border-[var(--color-dark-border)]" : "py-6"}`}
+      className={`group ${featured ? "pb-6 border-b border-[var(--color-border)]" : "py-4"}`}
     >
       <Link href={`/article/${slug}`} className="block hover:no-underline">
         <time
           dateTime={date}
-          className="text-sm text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]"
+          className="text-sm"
+          style={{ color: "var(--color-fg-muted)" }}
         >
           {formatDate(date)}
         </time>
         <h2
-          className={`mt-1 font-semibold group-hover:text-[var(--color-accent)] dark:group-hover:text-[var(--color-dark-accent)] transition-colors ${featured ? "text-2xl" : "text-xl"}`}
+          className={`mt-1 font-semibold transition-colors ${featured ? "text-2xl" : "text-xl"}`}
+          style={{ color: "var(--color-fg)" }}
         >
           {title}
         </h2>
         {description && (
-          <p className="mt-2 text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)] line-clamp-2">
+          <p
+            className="mt-2 line-clamp-2"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
             {description}
           </p>
         )}
-        <span className="mt-3 inline-block text-sm text-[var(--color-accent)] dark:text-[var(--color-dark-accent)]">
+        <span
+          className="mt-3 inline-block text-sm"
+          style={{ color: "var(--color-accent)" }}
+        >
           Read more →
         </span>
       </Link>

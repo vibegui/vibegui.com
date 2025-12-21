@@ -47,10 +47,10 @@ export function Home() {
   const [featured, ...rest] = articles;
 
   return (
-    <div className="container py-8 md:py-12">
+    <div className="container py-6 md:py-8">
       {/* Banner */}
       <div
-        className="mb-12 inline-block px-4 py-2 rounded-full text-sm"
+        className="mb-6 inline-block px-4 py-2 rounded-full text-sm"
         style={{
           backgroundColor: "var(--color-bg-secondary)",
           color: "var(--color-fg)",
