@@ -32,7 +32,7 @@ export function ArticleCard({
 }: ArticleCardProps) {
   return (
     <article
-      className={`group ${featured ? "pb-6 border-b border-[var(--color-border)]" : "py-4"}`}
+      className={`group ${featured ? "pb-5 border-[var(--color-border)]" : "py-3"}`}
     >
       <Link href={`/article/${slug}`} className="block hover:no-underline">
         <time
@@ -43,14 +43,14 @@ export function ArticleCard({
           {formatDate(date)}
         </time>
         <h2
-          className={`mt-1 font-semibold transition-colors ${featured ? "text-2xl" : "text-xl"}`}
+          className={`mt-1 font-semibold transition-colors ${featured ? "text-xl" : "text-lg"}`}
           style={{ color: "var(--color-fg)" }}
         >
           {title}
         </h2>
         {description && (
           <p
-            className="mt-2 line-clamp-2"
+            className="mt-2 text-sm line-clamp-2"
             style={{ color: "var(--color-fg-muted)" }}
           >
             {description}

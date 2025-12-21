@@ -7,7 +7,6 @@
 
 import { useState, useEffect } from "react";
 import { Header } from "./components/header";
-import { Home } from "./pages/home";
 import { Article } from "./pages/article";
 import { Commitment } from "./pages/commitment";
 import { Content } from "./pages/content";
@@ -15,23 +14,19 @@ import { Context, ContextDoc } from "./pages/context";
 import { updateCanonical } from "./hooks/use-canonical";
 
 type Route =
-  | { type: "home" }
+  | { type: "content" }
   | { type: "article"; slug: string }
   | { type: "commitment" }
-  | { type: "content" }
   | { type: "context" }
   | { type: "context-doc"; path: string }
   | { type: "not-found" };
 
 function parseRoute(pathname: string): Route {
-  if (pathname === "/" || pathname === "") {
-    return { type: "home" };
+  if (pathname === "/" || pathname === "" || pathname === "/content") {
+    return { type: "content" };
   }
   if (pathname === "/commitment") {
     return { type: "commitment" };
-  }
-  if (pathname === "/content") {
-    return { type: "content" };
   }
   if (pathname === "/context") {
     return { type: "context" };
@@ -122,14 +117,12 @@ export function Link({
 
 function RouteContent({ route }: { route: Route }) {
   switch (route.type) {
-    case "home":
-      return <Home />;
+    case "content":
+      return <Content />;
     case "article":
       return <Article slug={route.slug} />;
     case "commitment":
       return <Commitment />;
-    case "content":
-      return <Content />;
     case "context":
       return <Context />;
     case "context-doc":
@@ -140,7 +133,7 @@ function RouteContent({ route }: { route: Route }) {
           <h1 className="text-4xl font-bold mb-4">404</h1>
           <p style={{ color: "var(--color-fg-muted)" }}>Page not found</p>
           <Link href="/" className="mt-4 inline-block">
-            ← Back to home
+            ← Back to content
           </Link>
         </div>
       );

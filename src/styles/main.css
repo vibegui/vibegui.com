@@ -166,6 +166,15 @@ a:hover {
   margin-block: 0.5em;
 }
 
+/* Green bullet points */
+.green-bullets {
+  list-style-type: disc;
+}
+
+.green-bullets li::marker {
+  color: var(--color-accent);
+}
+
 .prose img {
   max-width: 100%;
   height: auto;

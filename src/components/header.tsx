@@ -7,19 +7,36 @@
  * - Theme toggle
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "../app";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
-  { href: "/commitment", label: "Commitment" },
-  { href: "/content", label: "Content" },
+  { href: "/", label: "Content" },
   { href: "/context", label: "Context" },
+  { href: "/commitment", label: "Commitment" },
 ];
+
+function useCurrentPath() {
+  const [path, setPath] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const handlePopState = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  return path;
+}
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const currentPath = useCurrentPath();
+
+  const isActive = (href: string) => {
+    if (href === "/") return currentPath === "/" || currentPath === "";
+    return currentPath === href || currentPath.startsWith(href + "/");
+  };
 
   return (
     <header
@@ -45,8 +62,14 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className="text-sm transition-colors"
-              style={{ color: "var(--color-fg-muted)" }}
+              className={`text-sm transition-colors ${isActive(link.href) ? "font-medium" : ""}`}
+              style={{
+                color: isActive(link.href)
+                  ? "var(--color-fg)"
+                  : "var(--color-fg-muted)",
+                textDecoration: isActive(link.href) ? "underline" : "none",
+                textUnderlineOffset: "4px",
+              }}
             >
               {link.label}
             </Link>
@@ -101,7 +124,12 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm py-2"
+                className={`text-sm py-2 ${isActive(link.href) ? "font-medium" : ""}`}
+                style={{
+                  color: isActive(link.href)
+                    ? "var(--color-fg)"
+                    : "var(--color-fg-muted)",
+                }}
                 onClick={() => setMenuOpen(false)}
               >
                 {link.label}

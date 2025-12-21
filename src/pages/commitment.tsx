@@ -14,15 +14,18 @@ export function Commitment() {
           className="mb-6 p-6 rounded-lg"
           style={{ backgroundColor: "var(--color-bg-secondary)" }}
         >
-          <h2 className="text-2xl font-semibold mb-4">About the Author</h2>
+          <h2 className="text-2xl font-semibold mb-4">About the author</h2>
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             <img
               src="/images/profile-2025-12.png"
               alt="Guilherme Rodrigues"
-              className="w-64 h-64 rounded-md object-cover flex-shrink-0"
+              className="w-64 h-64 rounded-md object-cover shrink-0"
               style={{ border: "1px solid var(--color-border)" }}
             />
-            <p className="prose" style={{ color: "var(--color-fg-muted)" }}>
+            <p
+              className="prose pl-2"
+              style={{ color: "var(--color-fg-muted)" }}
+            >
               <strong>Guilherme Rodrigues</strong> is a software engineer and
               entrepreneur from Rio de Janeiro, Brazil. Co-founder and CEO of{" "}
               <a
@@ -51,7 +54,7 @@ export function Commitment() {
               >
                 RIO Endowment
               </a>
-              . PUC-Rio alumni.
+              . PUC-Rio alumni. <br /> <em>Alis Grave Nil.</em>
             </p>
           </div>
         </section>
@@ -68,8 +71,8 @@ export function Commitment() {
 
         <div className="prose">
           <p>
-            At 25, I was living in Sweden—one of the most organized, stable, and
-            predictable countries in the world. I worked at Tictail (later
+            At 25, I was living in Sweden — one of the most organized, stable,
+            and predictable countries in the world. I worked at Tictail (later
             acquired by Shopify), a Swedish e-commerce startup, surrounded by
             cutting-edge technology, mature institutions, and an almost absolute
             sense of security.
@@ -91,7 +94,7 @@ export function Commitment() {
 
           <p>
             <strong>
-              I wanted to return to Brazil—not because it was easier, but
+              I wanted to return to Brazil — not because it was easier, but
               because it was more important.
             </strong>
           </p>
@@ -109,22 +112,23 @@ export function Commitment() {
 
           <p>
             It was at VTEX that I understood something fundamental: Brazil
-            doesn't just need to consume technology from abroad—we can create
+            doesn't just need to consume technology from abroad — we can create
             technology that the whole world uses.
           </p>
 
           <p>
             But it also became clear that no one changes a country alone. The
             transformation I sought didn't depend only on a successful company,
-            but on creating technological capacity at scale—training people,
+            but on creating technological capacity at scale — training people,
             opening opportunities, democratizing access to the knowledge that
             transforms careers.
           </p>
 
-          <h2>The Turn: Understanding That Purpose Is Collective</h2>
+          <h2>Understanding That Purpose Is Collective</h2>
 
           <p>
-            This realization led us to found{" "}
+            This realization led me and a team of similarly-committed people to
+            found{" "}
             <a
               href="https://www.movtech.org"
               target="_blank"
@@ -132,9 +136,8 @@ export function Commitment() {
             >
               Movimento Tech
             </a>{" "}
-            in 2022, alongside leaders and entrepreneurs who shared the same
-            vision: making technology a lever for productive inclusion in
-            Brazil.
+            in 2022, where we united for a future worth building: making
+            technology a lever for productive inclusion in Brazil.
           </p>
 
           <p>
@@ -147,7 +150,7 @@ export function Commitment() {
           </p>
 
           <p>
-            One of our main projects is Maratona Tech—Brazil's largest
+            One of our main projects is Maratona Tech — Brazil's largest
             technology olympiad, created to spark students' interest in
             technology. It's not just a competition, it's a gateway to a
             universe of possibilities that previously seemed unattainable for
@@ -164,61 +167,77 @@ export function Commitment() {
           <h2>Building deco CMS</h2>
 
           <p>
-            Over the past years, building my company, product, and team, I
-            understood that my purpose is not just in creating technology—but in
-            creating technological capacity in Brazil.
+            Over the past years, I understood that my purpose was not just
+            creating technology — but helping unlock Brazil's full creative
+            potential through technology.
           </p>
 
           <p>
-            And that's the vision behind{" "}
+            That's a main goal of{" "}
             <a
-              href="https://decocms.com"
+              href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment-body"
               target="_blank"
               rel="noopener noreferrer"
             >
               deco CMS
-            </a>
-            —a platform that democratizes software creation through artificial
-            intelligence.
+            </a>{" "}
+            — a platform that democratizes software creation through artificial
+            intelligence, in Brazil and everywhere else.
           </p>
 
           <p>
-            We're building the AI application production platform that allows
-            anyone—developers, operators, entrepreneurs—to build complete
+            We're building the AI application platform that allows anyone —
+            developers, operators, entrepreneurs — to build complete LLM-powered
             applications quickly and professionally. We're not talking about
             prototypes or demos that never go to production. We're talking about
-            autonomous companies created with real software, running in
+            autonomous companies created with real AI software, running in
             production, with governance, security, and scalability.
           </p>
 
           <h3>deco is based on principles I believe are fundamental:</h3>
 
-          <ol>
+          <ul className="green-bullets">
             <li>
-              <strong>Open standards, not vendor lock-in.</strong> We use MCP
-              (Model Context Protocol), React, TypeScript—technologies the whole
-              world uses. Our users aren't locked into a proprietary platform.
-              They build knowledge and capacity that lasts forever.
+              <strong>Agent-first, MCP-native.</strong> Built from the ground up
+              for autonomous companies. Every feature is designed to optimize
+              the context and tools available to AI agents — because your agents
+              are only as good as the context and tools they have.
             </li>
             <li>
               <strong>Deploy anywhere.</strong> Our platform runs on the
-              infrastructure you choose—cloud, edge, on-premise. You bring your
-              own keys, your own AI models. You own your code and your data.
+              infrastructure you choose — cloud, edge, on-premise. You bring
+              your own keys, your own AI models. Own your code, your data and
+              your Context.
             </li>
             <li>
-              <strong>From prototyping to production.</strong> We didn't create
-              another "no-code" tool that hits a ceiling. We created a platform
-              that allows going from an idea to a production application in
-              days, not months—with the quality and governance that real
-              companies need.
+              <strong>Open source.</strong> We're starting by{" "}
+              <a
+                href="https://decocms.com/mesh?utm_source=vibegui.com&utm_campaign=commitment-mesh"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                open-sourcing our MCP Mesh
+              </a>{" "}
+              — a secure control plane to manage all your MCPs and optimize your
+              production agents. It handles auth, policy, observability, and
+              traffic routing so you can deploy AI agents with enterprise-grade
+              governance. Interested? Star us on{" "}
+              <a
+                href="https://github.com/decocms/mesh"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                GitHub
+              </a>{" "}
+              and deploy your own MCP Mesh in 5 minutes.
             </li>
-          </ol>
+          </ul>
 
           <h2>The Game Worth Playing</h2>
 
           <p>
-            When I look back—from Tictail in Sweden to VTEX in Brazil, from
-            Movimento Tech to deco CMS—I see a common thread:
+            When I look back — from Tictail in Sweden to VTEX in Brazil, from
+            Movimento Tech to deco CMS — I see a common thread:
           </p>
 
           <p>
@@ -236,12 +255,12 @@ export function Commitment() {
           <p>
             And this goes far beyond me. It's a movement involving founders,
             engineers, designers, educators, investors, communities, and
-            institutions—all seeking to transform Brazil into a global
+            institutions — all seeking to transform Brazil into a global
             protagonist, not a supporting actor.
           </p>
 
           <p>
-            Brazil has everything to be a global technological power—we have
+            Brazil has everything to be a global technological power — we have
             talent, creativity, scale. What's often missing is opportunity and
             infrastructure.
           </p>
@@ -257,6 +276,13 @@ export function Commitment() {
               the kind of game worth playing.
             </strong>
           </p>
+
+          <small>
+            <em>
+              If you want to build this future together, email us at{" "}
+              <a href="mailto:builders@decocms.com">builders@decocms.com</a>
+            </em>
+          </small>
         </div>
       </div>
     </article>

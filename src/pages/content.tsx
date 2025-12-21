@@ -1,12 +1,12 @@
 /**
- * Content Page
+ * Content Page (Home)
  *
- * Displays a list of all published articles.
+ * The main landing page displaying published articles.
  */
 
 import { useState, useEffect } from "react";
-import { Link } from "../app";
 import { ArticleCard } from "../components/article-card";
+import { PageHeader } from "../components/page-header";
 
 interface ArticleMeta {
   id: string;
@@ -40,51 +40,34 @@ export function Content() {
   }, []);
 
   return (
-    <div className="container py-8 md:py-12">
-      <div className="prose">
-        <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold">Content</h1>
-          <p className="mt-4" style={{ color: "var(--color-fg-muted)" }}>
-            Articles, essays, and thoughts on technology, leadership, and
-            building in Brazil.
+    <div className="container py-6">
+      <PageHeader />
+
+      {loading ? (
+        <p style={{ color: "var(--color-fg-muted)" }}>Loading articles...</p>
+      ) : articles.length === 0 ? (
+        <div
+          className="p-6 rounded-lg text-center"
+          style={{ backgroundColor: "var(--color-bg-secondary)" }}
+        >
+          <p style={{ color: "var(--color-fg-muted)" }}>
+            No articles yet. Check back soon!
           </p>
-        </header>
-
-        {loading ? (
-          <p style={{ color: "var(--color-fg-muted)" }}>Loading articles...</p>
-        ) : articles.length === 0 ? (
-          <div
-            className="p-6 rounded-lg text-center"
-            style={{ backgroundColor: "var(--color-bg-secondary)" }}
-          >
-            <p style={{ color: "var(--color-fg-muted)" }}>
-              No articles yet. Check back soon!
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {articles.map((article) => (
-              <ArticleCard
-                key={article.id}
-                slug={article.id}
-                title={article.title}
-                date={article.date}
-                description={article.description}
-              />
-            ))}
-          </div>
-        )}
-
-        <div className="mt-12">
-          <Link
-            href="/"
-            className="text-sm"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            ← Back to home
-          </Link>
         </div>
-      </div>
+      ) : (
+        <>
+          {articles.map((article, index) => (
+            <ArticleCard
+              key={article.id}
+              slug={article.id}
+              title={article.title}
+              date={article.date}
+              description={article.description}
+              featured={index === 0}
+            />
+          ))}
+        </>
+      )}
     </div>
   );
 }

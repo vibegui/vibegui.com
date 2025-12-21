@@ -78,65 +78,42 @@ const COLLECTIONS: ContextCollection[] = [
 
 export function Context() {
   return (
-    <div className="container py-8 md:py-12">
+    <div className="container py-6">
       <div className="prose">
-        <header className="mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold">Context</h1>
-          <p className="mt-4" style={{ color: "var(--color-fg-muted)" }}>
-            Reference materials that inform my thinking and writing.
-          </p>
-        </header>
-
-        {/* Notice Card */}
-        <div
-          className="p-6 rounded-lg mb-12"
-          style={{
-            backgroundColor: "var(--color-bg-secondary)",
-            borderLeft: "4px solid var(--color-accent)",
-          }}
-        >
-          <h2 className="text-lg font-semibold mb-3">About These Documents</h2>
-          <p
-            className="text-sm mb-4"
-            style={{ color: "var(--color-fg-muted)" }}
+        {/* Intro section */}
+        <div className="mb-6">
+          <div
+            className="inline-block px-4 py-3 rounded-2xl text-sm"
+            style={{
+              backgroundColor: "var(--color-bg-secondary)",
+              color: "var(--color-fg)",
+            }}
           >
-            These are <strong>LLM-generated summaries</strong> from works that
-            inspire my thinking. They serve as context for AI-assisted writing
-            and are created for educational and personal creative purposes only.
-          </p>
-          <p
-            className="text-sm mb-4"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            <strong>These are not reproductions of original works.</strong> They
-            are interpretive summaries intended to help me internalize concepts
-            and apply them in my own writing. If you find these ideas valuable,
-            I strongly encourage you to read the original papers linked below.
-          </p>
-          <p className="text-xs" style={{ color: "var(--color-fg-muted)" }}>
-            The original materials are the intellectual property of their
-            respective authors. These summaries are not endorsed by, affiliated
-            with, or a substitute for the original works.
-          </p>
+            <div>
+              <strong>LLM-generated summaries</strong> from works that inspire
+              my thinking, used as context for AI-assisted writing.
+            </div>
+            <div style={{ color: "var(--color-fg-muted)" }} className="mt-2">
+              These are not reproductions of original works — they are
+              interpretive summaries intended to help me internalize concepts
+              and apply them in my own writing.
+            </div>
+            <div style={{ color: "var(--color-fg-muted)" }} className="mt-2">
+              If you find these ideas valuable, I strongly encourage you to read
+              the original papers linked below.
+            </div>
+          </div>
         </div>
 
         {/* Collections */}
         {COLLECTIONS.map((collection) => (
-          <section key={collection.name} className="mb-12">
-            <h2 className="text-2xl font-bold mb-2">{collection.name}</h2>
-            <p
-              className="text-sm mb-4"
-              style={{ color: "var(--color-fg-muted)" }}
-            >
-              {collection.description}
-            </p>
-
+          <section key={collection.name} className="mb-6">
+            <h2 className="text-base font-bold mb-1">{collection.name}</h2>
             <div
-              className="text-xs mb-6 p-4 rounded"
+              className="text-xs mb-3 p-3 rounded"
               style={{ backgroundColor: "var(--color-bg-secondary)" }}
             >
-              <p>
-                <strong>Source:</strong>{" "}
+              <p style={{ color: "var(--color-fg-muted)" }}>
                 <a
                   href={collection.sourceUrl}
                   target="_blank"
@@ -144,18 +121,17 @@ export function Context() {
                 >
                   {collection.source}
                 </a>
-              </p>
-              <p className="mt-1">
-                <strong>Authors:</strong> {collection.authors}
+                {" · "}
+                {collection.authors}
               </p>
             </div>
 
-            <ul className="space-y-2">
+            <ul className="space-y-1 text-sm">
               {collection.documents.map((doc) => (
                 <li key={doc.path}>
                   <Link
                     href={`/context/${doc.path}`}
-                    className="text-base hover:underline"
+                    className="hover:underline"
                   >
                     {doc.title}
                   </Link>
@@ -164,16 +140,6 @@ export function Context() {
             </ul>
           </section>
         ))}
-
-        <div className="mt-12">
-          <Link
-            href="/"
-            className="text-sm"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            ← Back to home
-          </Link>
-        </div>
       </div>
     </div>
   );
@@ -260,7 +226,7 @@ export function ContextDoc({ path }: { path: string }) {
   );
 
   return (
-    <article className="container py-8 md:py-12">
+    <article className="container py-4">
       <div className="prose">
         <Link
           href="/context"
@@ -273,7 +239,7 @@ export function ContextDoc({ path }: { path: string }) {
         {/* Source Attribution */}
         {collection && (
           <div
-            className="mt-6 p-4 rounded text-xs"
+            className="mt-4 p-3 rounded text-xs"
             style={{ backgroundColor: "var(--color-bg-secondary)" }}
           >
             <p style={{ color: "var(--color-fg-muted)" }}>
@@ -288,16 +254,13 @@ export function ContextDoc({ path }: { path: string }) {
               <br />
               <strong>Authors:</strong> {collection.authors}
               <br />
-              <em>
-                This is an LLM-generated summary for educational purposes, not a
-                reproduction of the original work.
-              </em>
+              <em>LLM-generated summary for educational purposes.</em>
             </p>
           </div>
         )}
 
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
-        <div className="mt-8" dangerouslySetInnerHTML={{ __html: content }} />
+        <div className="mt-4" dangerouslySetInnerHTML={{ __html: content }} />
       </div>
     </article>
   );
