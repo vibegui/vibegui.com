@@ -18,7 +18,7 @@
     "test:e2e": "playwright test",
     "test:constraints": "bun test tests/constraints/",
     "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints && bun run test:e2e",
-    "prepare": "lefthook install"
+    "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true"
   },
   "mcp": {
     "scripts": {
