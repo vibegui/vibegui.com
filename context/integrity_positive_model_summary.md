@@ -1,4 +1,4 @@
-# 10‑Page Summary — *Integrity: A Positive Model that Incorporates the Normative Phenomena of Morality, Ethics, and Legality (Abridged)*
+# *Integrity: A Positive Model that Incorporates the Normative Phenomena of Morality, Ethics, and Legality (Abridged)* — a summary in 10 parts.
 
 **Source:** https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1542759  
 **Document version referenced:** “Revised 4 July 2017” (abridged version)
@@ -7,7 +7,7 @@
 
 ---
 
-## Page 1 — What the paper is trying to do
+## Part 1 — What the paper is trying to do
 
 The authors argue that “integrity” has been conceptually muddled by being treated as a virtue concept (i.e., something about being “good,” “honest,” or “upright”). Their core move is to **redefine integrity as a *positive* phenomenon**: a descriptive property of a thing (object, system, person, organization) that is either *whole and complete* or not. On this view, integrity is not inherently “good” or “bad”—it is more like *gravity*: it has consequences whether you like it or not.
 
@@ -17,7 +17,7 @@ The paper’s promise is practical: by separating these concepts clearly, it off
 
 ---
 
-## Page 2 — Two realms: positive integrity vs. normative virtues
+## Part 2 — Two realms: positive integrity vs. normative virtues
 
 A major structural claim is that four commonly confounded ideas belong to **two different realms**:
 
@@ -35,7 +35,7 @@ This separation is also meant to *strengthen* morality/ethics/legality: once int
 
 ---
 
-## Page 3 — The definition: integrity as wholeness and completeness
+## Part 3 — The definition: integrity as wholeness and completeness
 
 The authors anchor “integrity” in dictionary definitions emphasizing **wholeness and completeness**. They explicitly reject dictionary definitions that fold integrity into “sound moral principle,” because that creates conceptual overlap with morality and ethics. Instead:
 
@@ -49,7 +49,7 @@ This is the conceptual bridge: integrity as a “condition” becomes practical 
 
 ---
 
-## Page 4 — The cascade: integrity → workability → performance
+## Part 4 — The cascade: integrity → workability → performance
 
 A central explanatory mechanism is the “cascade”:
 
@@ -65,7 +65,7 @@ A strong claim is offered as an “Ontological Law of Integrity”: **to the deg
 
 ---
 
-## Page 5 — Integrity in objects and systems: design, implementation, and use
+## Part 5 — Integrity in objects and systems: design, implementation, and use
 
 For objects and systems, integrity depends on:
 - **Components and their relationships**
@@ -81,7 +81,7 @@ A subtle point: the paper separates the integrity of a *person’s body* (physic
 
 ---
 
-## Page 6 — Integrity for persons and organizations: integrity is about “word”
+## Part 6 — Integrity for persons and organizations: integrity is about “word”
 
 For people (and for groups/organizations), the model defines integrity in a specific way:
 
@@ -96,7 +96,7 @@ This sets the stage for the critical technical component of the model: a precise
 
 ---
 
-## Page 7 — What counts as “your word”: six components
+## Part 7 — What counts as “your word”: six components
 
 The paper defines “one’s word” as six categories:
 
@@ -114,7 +114,7 @@ The asymmetry is intentional: *your unexpressed expectations of others are not p
 
 ---
 
-## Page 8 — Integrity for persons: “honoring your word” (not always “keeping it”)
+## Part 8 — Integrity for persons: “honoring your word” (not always “keeping it”)
 
 With “word” defined, integrity for a person is defined as:
 
@@ -134,7 +134,7 @@ They also stress that integrity is an “and” proposition: honoring includes *
 
 ---
 
-## Page 9 — Why cost‑benefit analysis corrodes integrity (and trust)
+## Part 9 — Why cost‑benefit analysis corrodes integrity (and trust)
 
 A provocative argument in the paper is that **applying cost‑benefit analysis to honoring your word guarantees untrustworthiness**—because the other party learns your commitments are contingent on opportunistic recalculation.
 
@@ -146,7 +146,7 @@ This is one place where the paper’s language overlaps with organizational exec
 
 ---
 
-## Page 10 — Implications, applications, and how to use the model
+## Part 10 — Implications, applications, and how to use the model
 
 ### Practical implications the paper emphasizes
 - **Integrity is a production factor:** as fundamental as knowledge or technology, because it shapes how much performance is even available.

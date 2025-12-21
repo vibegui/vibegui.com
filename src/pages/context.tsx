@@ -69,8 +69,8 @@ const COLLECTIONS: ContextCollection[] = [
     authors: "Werner Erhard, Michael C. Jensen, Steve Zaffron",
     documents: [
       {
-        path: "integrity_positive_model_10page_summary",
-        title: "10-Page Summary",
+        path: "integrity_positive_model_summary",
+        title: "Integrity: A Positive Model - 10-Part Summary",
       },
     ],
   },
