@@ -119,18 +119,10 @@ export function Article({ slug }: { slug: string }) {
   const htmlContent = marked(bodyContent, { async: false }) as string;
 
   return (
-    <article className="container py-8 md:py-12">
+    <article className="container py-4">
       {/* Constrain content to prose width for consistent alignment */}
-      <div className="prose">
-        <Link
-          href="/"
-          className="text-sm no-underline"
-          style={{ color: "var(--color-fg-muted)" }}
-        >
-          ← Back to home
-        </Link>
-
-        <header className="mt-6 mb-8">
+      <div>
+        <header className="mt-4 mb-8">
           <time
             dateTime={article.date}
             className="text-sm"
@@ -138,7 +130,7 @@ export function Article({ slug }: { slug: string }) {
           >
             {formatDate(article.date)}
           </time>
-          <h1 className="mt-2 text-3xl md:text-4xl font-bold">
+          <h1 className="mt-4 text-3xl md:text-4xl font-bold">
             {article.title}
           </h1>
           {article.description && (
@@ -152,7 +144,10 @@ export function Article({ slug }: { slug: string }) {
         </header>
 
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
-        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        <div
+          className="prose"
+          dangerouslySetInnerHTML={{ __html: htmlContent }}
+        />
       </div>
     </article>
   );
