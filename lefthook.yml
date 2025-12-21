@@ -17,7 +17,7 @@ pre-commit:
       run: bun run check
 
     build:
-      run: bun run build
+      run: bun run build && git add dist/
 
     constraints:
       run: bun run test:constraints
