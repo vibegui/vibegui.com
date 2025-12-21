@@ -1,0 +1,24 @@
+# Lefthook configuration for pre-commit hooks
+# https://github.com/evilmartians/lefthook
+
+pre-commit:
+  parallel: false
+  commands:
+    format:
+      glob: "*.{ts,tsx,js,json,css,md}"
+      run: bun run fmt
+      stage_fixed: true
+    
+    lint:
+      glob: "*.{ts,tsx}"
+      run: bun run lint
+    
+    typecheck:
+      run: bun run check
+    
+    build:
+      run: bun run build
+    
+    constraints:
+      run: bun run test:constraints
+

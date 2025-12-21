@@ -156,9 +156,13 @@ function serializeMarkdown(frontmatter: Frontmatter, body: string): string {
   const yaml = [
     "---",
     `title: "${frontmatter.title}"`,
-    frontmatter.description ? `description: "${frontmatter.description}"` : null,
+    frontmatter.description
+      ? `description: "${frontmatter.description}"`
+      : null,
     `date: ${frontmatter.date}`,
-    frontmatter.tags?.length ? `tags: ${JSON.stringify(frontmatter.tags)}` : null,
+    frontmatter.tags?.length
+      ? `tags: ${JSON.stringify(frontmatter.tags)}`
+      : null,
     `status: ${frontmatter.status}`,
     "---",
   ]
@@ -191,7 +195,7 @@ async function listMarkdownFiles(dir: string): Promise<string[]> {
  */
 async function readContentFile(
   dir: string,
-  filename: string
+  filename: string,
 ): Promise<ContentEntity | null> {
   const filepath = join(dir, filename);
   if (!existsSync(filepath)) return null;
@@ -267,12 +271,12 @@ function createCollectionTools(name: CollectionName) {
 
         // Sort by date descending
         items.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
         );
 
         const paginated = items.slice(
           context.offset,
-          context.offset + context.limit
+          context.offset + context.limit,
         );
 
         return {
@@ -448,7 +452,7 @@ const researchTools = [
       await writeFile(
         join(CONTENT_DIRS.research, `${slug}.md`),
         markdown,
-        "utf-8"
+        "utf-8",
       );
 
       return {

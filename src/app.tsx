@@ -50,7 +50,7 @@ function parseRoute(pathname: string): Route {
 
 function useRoute(): Route {
   const [route, setRoute] = useState<Route>(() =>
-    parseRoute(window.location.pathname)
+    parseRoute(window.location.pathname),
   );
 
   useEffect(() => {

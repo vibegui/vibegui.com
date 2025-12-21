@@ -24,8 +24,8 @@ export function Alignment() {
         </div>
 
         <p>
-          This page will explore the understanding that our actions always derive
-          from the future we're committed to—not from the past.
+          This page will explore the understanding that our actions always
+          derive from the future we're committed to—not from the past.
         </p>
 
         <h2>Coming Soon</h2>
@@ -46,4 +46,3 @@ export function Alignment() {
     </article>
   );
 }
-

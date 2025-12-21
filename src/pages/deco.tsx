@@ -24,11 +24,15 @@ export function Deco() {
         </div>
 
         <p>
-          <a href="https://decocms.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://decocms.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             deco CMS
           </a>{" "}
-          is a Context Management System—a complete suite to build and evolve MCP
-          servers. We're democratizing the creation of governable AI agents.
+          is a Context Management System—a complete suite to build and evolve
+          MCP servers. We're democratizing the creation of governable AI agents.
         </p>
 
         <h2>What We're Building</h2>
@@ -39,8 +43,8 @@ export function Deco() {
             traffic. Route, govern, and observe all your AI connections.
           </li>
           <li>
-            <strong>MCP Studio:</strong> Build MCP capabilities with no-code admin
-            and full SDK support.
+            <strong>MCP Studio:</strong> Build MCP capabilities with no-code
+            admin and full SDK support.
           </li>
           <li>
             <strong>MCP Store:</strong> Discover and install pre-built MCP apps.
@@ -55,8 +59,8 @@ export function Deco() {
             vendor lock-in. Your knowledge and code are yours forever.
           </li>
           <li>
-            <strong>Deploy anywhere.</strong> Cloud, edge, on-premise. Bring your
-            own keys and models.
+            <strong>Deploy anywhere.</strong> Cloud, edge, on-premise. Bring
+            your own keys and models.
           </li>
           <li>
             <strong>Production-grade.</strong> From idea to production in days,
@@ -67,8 +71,8 @@ export function Deco() {
         <h2>Join Us</h2>
 
         <p>
-          We're always looking for exceptional people who want to build the future
-          of AI applications.
+          We're always looking for exceptional people who want to build the
+          future of AI applications.
         </p>
 
         <div className="flex flex-wrap gap-4 mt-6">
@@ -101,4 +105,3 @@ export function Deco() {
     </article>
   );
 }
-

@@ -34,10 +34,7 @@ export function ArticleCard({
     <article
       className={`group ${featured ? "py-8 border-b border-[var(--color-border)] dark:border-[var(--color-dark-border)]" : "py-6"}`}
     >
-      <Link
-        href={`/article/${slug}`}
-        className="block hover:no-underline"
-      >
+      <Link href={`/article/${slug}`} className="block hover:no-underline">
         <time
           dateTime={date}
           className="text-sm text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]"
@@ -61,4 +58,3 @@ export function ArticleCard({
     </article>
   );
 }
-

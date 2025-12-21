@@ -131,9 +131,7 @@ export function Article({ slug }: { slug: string }) {
         >
           {formatDate(article.date)}
         </time>
-        <h1 className="mt-2 text-3xl md:text-4xl font-bold">
-          {article.title}
-        </h1>
+        <h1 className="mt-2 text-3xl md:text-4xl font-bold">{article.title}</h1>
         {article.description && (
           <p className="mt-4 text-xl text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]">
             {article.description}
@@ -148,4 +146,3 @@ export function Article({ slug }: { slug: string }) {
     </article>
   );
 }
-

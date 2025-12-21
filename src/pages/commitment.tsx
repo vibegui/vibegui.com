@@ -18,30 +18,30 @@ export function Commitment() {
       <div className="prose mx-auto">
         <p>
           At 25, I was living in Sweden—one of the most organized, stable, and
-          predictable countries in the world. I worked at Tictail (later acquired
-          by Shopify), a Swedish e-commerce startup, surrounded by cutting-edge
-          technology, mature institutions, and an almost absolute sense of
-          security.
+          predictable countries in the world. I worked at Tictail (later
+          acquired by Shopify), a Swedish e-commerce startup, surrounded by
+          cutting-edge technology, mature institutions, and an almost absolute
+          sense of security.
         </p>
 
         <p>
-          And it was precisely there, in the perfect center of the "first world,"
-          that I discovered this wasn't the game I wanted to play.
+          And it was precisely there, in the perfect center of the "first
+          world," that I discovered this wasn't the game I wanted to play.
         </p>
 
         <p>
           While everything seemed to work perfectly, something in me didn't. I
           realized that, as much as that environment offered comfort and
           predictability, it didn't offer the kind of purpose I was seeking. I
-          wanted to be where there was still much to be built. Where talent wasn't
-          just another brick in a ready-made structure, but a real force of
-          transformation.
+          wanted to be where there was still much to be built. Where talent
+          wasn't just another brick in a ready-made structure, but a real force
+          of transformation.
         </p>
 
         <p>
           <strong>
-            I wanted to return to Brazil—not because it was easier, but because it
-            was more important.
+            I wanted to return to Brazil—not because it was easier, but because
+            it was more important.
           </strong>
         </p>
 
@@ -51,9 +51,9 @@ export function Commitment() {
           When I returned, I rejoined VTEX as a software engineer. There, I
           experienced firsthand what it means to build technology at scale from
           Brazil. We helped create an e-commerce platform that today processes
-          billions in transactions and competes globally with the largest players
-          in the market. It was a long journey to the IPO on the New York Stock
-          Exchange, but it was worth every drop of sweat.
+          billions in transactions and competes globally with the largest
+          players in the market. It was a long journey to the IPO on the New
+          York Stock Exchange, but it was worth every drop of sweat.
         </p>
 
         <p>
@@ -64,10 +64,10 @@ export function Commitment() {
 
         <p>
           But it also became clear that no one changes a country alone. The
-          transformation I sought didn't depend only on a successful company, but
-          on creating technological capacity at scale—training people, opening
-          opportunities, democratizing access to the knowledge that transforms
-          careers.
+          transformation I sought didn't depend only on a successful company,
+          but on creating technological capacity at scale—training people,
+          opening opportunities, democratizing access to the knowledge that
+          transforms careers.
         </p>
 
         <h2>The Turn: Understanding That Purpose Is Collective</h2>
@@ -81,16 +81,17 @@ export function Commitment() {
           >
             Movimento Tech
           </a>{" "}
-          in 2022, alongside leaders and entrepreneurs who shared the same vision:
-          making technology a lever for productive inclusion in Brazil.
+          in 2022, alongside leaders and entrepreneurs who shared the same
+          vision: making technology a lever for productive inclusion in Brazil.
         </p>
 
         <p>
           Movimento Tech 2030 was born with a clear mission: to create real
-          opportunities for those who never had access to this type of trajectory.
-          Today, we are a coalition that has already impacted more than 3 million
-          young people, generated more than 7,000 jobs in the tech sector, and
-          moves hundreds of millions of reais in salaries and investments.
+          opportunities for those who never had access to this type of
+          trajectory. Today, we are a coalition that has already impacted more
+          than 3 million young people, generated more than 7,000 jobs in the
+          tech sector, and moves hundreds of millions of reais in salaries and
+          investments.
         </p>
 
         <p>
@@ -117,7 +118,11 @@ export function Commitment() {
 
         <p>
           And that's the vision behind{" "}
-          <a href="https://decocms.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://decocms.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             deco CMS
           </a>
           —a platform that democratizes software creation through artificial
@@ -129,29 +134,29 @@ export function Commitment() {
           anyone—developers, operators, entrepreneurs—to build complete
           applications quickly and professionally. We're not talking about
           prototypes or demos that never go to production. We're talking about
-          autonomous companies created with real software, running in production,
-          with governance, security, and scalability.
+          autonomous companies created with real software, running in
+          production, with governance, security, and scalability.
         </p>
 
         <h3>deco is based on principles I believe are fundamental:</h3>
 
         <ol>
           <li>
-            <strong>Open standards, not vendor lock-in.</strong> We use MCP (Model
-            Context Protocol), React, TypeScript—technologies the whole world
-            uses. Our users aren't locked into a proprietary platform. They build
-            knowledge and capacity that lasts forever.
+            <strong>Open standards, not vendor lock-in.</strong> We use MCP
+            (Model Context Protocol), React, TypeScript—technologies the whole
+            world uses. Our users aren't locked into a proprietary platform.
+            They build knowledge and capacity that lasts forever.
           </li>
           <li>
             <strong>Deploy anywhere.</strong> Our platform runs on the
-            infrastructure you choose—cloud, edge, on-premise. You bring your own
-            keys, your own AI models. You own your code and your data.
+            infrastructure you choose—cloud, edge, on-premise. You bring your
+            own keys, your own AI models. You own your code and your data.
           </li>
           <li>
             <strong>From prototyping to production.</strong> We didn't create
-            another "no-code" tool that hits a ceiling. We created a platform that
-            allows going from an idea to a production application in days, not
-            months—with the quality and governance that real companies need.
+            another "no-code" tool that hits a ceiling. We created a platform
+            that allows going from an idea to a production application in days,
+            not months—with the quality and governance that real companies need.
           </li>
         </ol>
 
@@ -177,13 +182,13 @@ export function Commitment() {
         <p>
           And this goes far beyond me. It's a movement involving founders,
           engineers, designers, educators, investors, communities, and
-          institutions—all seeking to transform Brazil into a global protagonist,
-          not a supporting actor.
+          institutions—all seeking to transform Brazil into a global
+          protagonist, not a supporting actor.
         </p>
 
         <p>
-          Brazil has everything to be a global technological power—we have talent,
-          creativity, scale. What's often missing is opportunity and
+          Brazil has everything to be a global technological power—we have
+          talent, creativity, scale. What's often missing is opportunity and
           infrastructure.
         </p>
 
@@ -202,4 +207,3 @@ export function Commitment() {
     </article>
   );
 }
-

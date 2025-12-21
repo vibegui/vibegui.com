@@ -21,7 +21,13 @@
     "baseUrl": ".",
     "types": ["bun-types"]
   },
-  "include": ["src", "mcp-server.ts", "main.ts"],
+  "include": [
+    "src",
+    "mcp-server.ts",
+    "main.ts",
+    "tests",
+    "playwright.config.ts",
+    "vite.config.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
-

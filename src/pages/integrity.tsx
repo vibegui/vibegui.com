@@ -24,8 +24,8 @@ export function Integrity() {
         </div>
 
         <p>
-          This page will explore Werner Erhard's powerful distinction of integrity
-          as a performance factor—not a moral or ethical issue.
+          This page will explore Werner Erhard's powerful distinction of
+          integrity as a performance factor—not a moral or ethical issue.
         </p>
 
         <h2>Coming Soon</h2>
@@ -40,11 +40,10 @@ export function Integrity() {
 
         <p>
           The key insight: when you honor your word as yourself, you gain access
-          to a whole new level of performance—not because you're being "good," but
-          because integrity creates workability.
+          to a whole new level of performance—not because you're being "good,"
+          but because integrity creates workability.
         </p>
       </div>
     </article>
   );
 }
-

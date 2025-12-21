@@ -2,7 +2,7 @@
  * MCP Server Entry Point
  *
  * This file starts the MCP server using Bun's built-in HTTP server.
- * 
+ *
  * Usage:
  *   bun run mcp:dev     # Development with hot reload
  *   bun run mcp:serve   # Production server
@@ -42,7 +42,7 @@ Bun.serve({
     try {
       // Create a mock env object (will be populated by runtime)
       const env = {} as Parameters<typeof runtime.fetch>[1];
-      
+
       // Call the runtime fetch handler
       return await runtime.fetch(req, env);
     } catch (error) {
@@ -54,11 +54,10 @@ Bun.serve({
         {
           status: 500,
           headers: { "Content-Type": "application/json" },
-        }
+        },
       );
     }
   },
 });
 
 console.log(`MCP server listening on port ${PORT}`);
-
