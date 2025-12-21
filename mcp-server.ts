@@ -553,6 +553,216 @@ const researchTools = [
 ];
 
 // ============================================================================
+// Search Tools - ripgrep/grep for finding references
+// ============================================================================
+
+/**
+ * Check if ripgrep (rg) is available, fall back to grep
+ */
+function getSearchCommand(): "rg" | "grep" {
+  try {
+    execSync("which rg", { encoding: "utf-8", stdio: "pipe" });
+    return "rg";
+  } catch {
+    return "grep";
+  }
+}
+
+const searchCommand = getSearchCommand();
+console.log(`[MCP] Using search command: ${searchCommand}`);
+
+/**
+ * Execute search with ripgrep or grep
+ */
+function executeSearch(
+  pattern: string,
+  directory: string,
+  contextLines: number,
+  caseSensitive: boolean,
+): string {
+  const caseFlag = caseSensitive ? "" : "-i";
+
+  try {
+    if (searchCommand === "rg") {
+      // ripgrep: faster, respects .gitignore, better output
+      const cmd = `rg ${caseFlag} -n --context ${contextLines} --color never "${pattern}" "${directory}"`;
+      return execSync(cmd, {
+        cwd: process.cwd(),
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    } else {
+      // grep fallback: -r recursive, -n line numbers, -C context
+      const cmd = `grep ${caseFlag} -rn -C ${contextLines} "${pattern}" "${directory}"`;
+      return execSync(cmd, {
+        cwd: process.cwd(),
+        encoding: "utf-8",
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+    }
+  } catch (error) {
+    // grep/rg return exit code 1 when no matches found
+    const execError = error as { stdout?: string; status?: number };
+    if (execError.status === 1) {
+      return ""; // No matches
+    }
+    throw error;
+  }
+}
+
+const searchTools = [
+  createTool({
+    id: "SEARCH_CONTEXT",
+    description:
+      "Search through context/ files for references, concepts, and quotes. Uses ripgrep if available, otherwise grep.",
+    inputSchema: z.object({
+      pattern: z.string().describe("Search pattern (regex supported)"),
+      contextLines: z
+        .number()
+        .default(5)
+        .describe("Lines of context before and after each match"),
+      caseSensitive: z
+        .boolean()
+        .default(false)
+        .describe("Case-sensitive search"),
+    }),
+    outputSchema: z.object({
+      matches: z
+        .string()
+        .describe("Search results with file paths and context"),
+      matchCount: z.number().describe("Approximate number of matches"),
+      searchEngine: z
+        .string()
+        .describe("Which search tool was used (rg or grep)"),
+    }),
+    execute: async ({ context }) => {
+      const results = executeSearch(
+        context.pattern,
+        "./context",
+        context.contextLines,
+        context.caseSensitive,
+      );
+
+      // Count matches (lines that contain the pattern, not context lines)
+      const matchCount = results
+        .split("\n")
+        .filter((line) => line.includes(":") && !line.startsWith("--")).length;
+
+      return {
+        matches: results || "No matches found",
+        matchCount,
+        searchEngine: searchCommand,
+      };
+    },
+  }),
+
+  createTool({
+    id: "SEARCH_CONTENT",
+    description:
+      "Search through content/ files (ideas, research, drafts, articles) for references and concepts. Uses ripgrep if available.",
+    inputSchema: z.object({
+      pattern: z.string().describe("Search pattern (regex supported)"),
+      contextLines: z
+        .number()
+        .default(5)
+        .describe("Lines of context before and after each match"),
+      caseSensitive: z
+        .boolean()
+        .default(false)
+        .describe("Case-sensitive search"),
+      collection: z
+        .enum(["all", "ideas", "research", "drafts", "articles"])
+        .default("all")
+        .describe("Which collection to search"),
+    }),
+    outputSchema: z.object({
+      matches: z
+        .string()
+        .describe("Search results with file paths and context"),
+      matchCount: z.number().describe("Approximate number of matches"),
+      searchEngine: z
+        .string()
+        .describe("Which search tool was used (rg or grep)"),
+    }),
+    execute: async ({ context }) => {
+      const dir =
+        context.collection === "all"
+          ? "./content"
+          : `./content/${context.collection}`;
+
+      const results = executeSearch(
+        context.pattern,
+        dir,
+        context.contextLines,
+        context.caseSensitive,
+      );
+
+      const matchCount = results
+        .split("\n")
+        .filter((line) => line.includes(":") && !line.startsWith("--")).length;
+
+      return {
+        matches: results || "No matches found",
+        matchCount,
+        searchEngine: searchCommand,
+      };
+    },
+  }),
+
+  createTool({
+    id: "SEARCH_ALL",
+    description:
+      "Search through all markdown files in both context/ and content/ directories at once.",
+    inputSchema: z.object({
+      pattern: z.string().describe("Search pattern (regex supported)"),
+      contextLines: z
+        .number()
+        .default(3)
+        .describe("Lines of context before and after each match"),
+      caseSensitive: z
+        .boolean()
+        .default(false)
+        .describe("Case-sensitive search"),
+    }),
+    outputSchema: z.object({
+      contextMatches: z.string(),
+      contentMatches: z.string(),
+      totalMatchCount: z.number(),
+      searchEngine: z.string(),
+    }),
+    execute: async ({ context }) => {
+      const contextResults = executeSearch(
+        context.pattern,
+        "./context",
+        context.contextLines,
+        context.caseSensitive,
+      );
+
+      const contentResults = executeSearch(
+        context.pattern,
+        "./content",
+        context.contextLines,
+        context.caseSensitive,
+      );
+
+      const countMatches = (results: string) =>
+        results
+          .split("\n")
+          .filter((line) => line.includes(":") && !line.startsWith("--"))
+          .length;
+
+      return {
+        contextMatches: contextResults || "No matches in context/",
+        contentMatches: contentResults || "No matches in content/",
+        totalMatchCount:
+          countMatches(contextResults) + countMatches(contentResults),
+        searchEngine: searchCommand,
+      };
+    },
+  }),
+];
+
+// ============================================================================
 // Interactive Development Tools (not auto-generated from package.json)
 // ============================================================================
 
@@ -720,6 +930,9 @@ const allTools = [
 
   // Research tools
   ...wrapTools(researchTools),
+
+  // Search tools (ripgrep/grep)
+  ...wrapTools(searchTools),
 
   // Auto-generated script tools from package.json
   ...wrapTools(scriptTools),

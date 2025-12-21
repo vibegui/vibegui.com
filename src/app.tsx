@@ -12,6 +12,7 @@ import { Article } from "./pages/article";
 import { Commitment } from "./pages/commitment";
 import { Content } from "./pages/content";
 import { Context, ContextDoc } from "./pages/context";
+import { updateCanonical } from "./hooks/use-canonical";
 
 type Route =
   | { type: "home" }
@@ -51,13 +52,17 @@ function parseRoute(pathname: string): Route {
 }
 
 function useRoute(): Route {
-  const [route, setRoute] = useState<Route>(() =>
-    parseRoute(window.location.pathname),
-  );
+  const [route, setRoute] = useState<Route>(() => {
+    // Update canonical on initial load
+    updateCanonical(window.location.pathname);
+    return parseRoute(window.location.pathname);
+  });
 
   useEffect(() => {
     const handlePopState = () => {
-      setRoute(parseRoute(window.location.pathname));
+      const pathname = window.location.pathname;
+      updateCanonical(pathname);
+      setRoute(parseRoute(pathname));
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -71,6 +76,7 @@ function useRoute(): Route {
  * Navigate programmatically (for link clicks)
  */
 export function navigate(to: string): void {
+  updateCanonical(to);
   window.history.pushState({}, "", to);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
