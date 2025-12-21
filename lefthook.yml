@@ -4,24 +4,27 @@
 pre-commit:
   parallel: false
   commands:
-    format:
+    1_format:
       glob: "*.{ts,tsx,js,json,css,md}"
       run: bun run fmt
       stage_fixed: true
 
-    lint:
+    2_lint:
       glob: "*.{ts,tsx}"
       run: bun run lint
 
-    typecheck:
+    3_typecheck:
       run: bun run check
 
-    build:
-      run: bun run build && git add dist/ public/content/manifest.json
+    4_build:
+      run: bun run build
 
-    constraints:
+    5_stage:
+      run: git add -f dist/ public/content/manifest.json
+
+    6_constraints:
       run: bun run test:constraints
 
-    e2e:
+    7_e2e:
       run: bun run test:e2e
 

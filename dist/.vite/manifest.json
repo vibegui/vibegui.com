@@ -1,0 +1,31 @@
+{
+  "_markdown.BaswSlok.js": {
+    "file": "assets/markdown.BaswSlok.js",
+    "name": "markdown"
+  },
+  "_react-dom.cI5JZyE8.js": {
+    "file": "assets/react-dom.cI5JZyE8.js",
+    "name": "react-dom",
+    "imports": [
+      "_react.5m7JIW5N.js"
+    ]
+  },
+  "_react.5m7JIW5N.js": {
+    "file": "assets/react.5m7JIW5N.js",
+    "name": "react"
+  },
+  "index.html": {
+    "file": "assets/index.BOmNAYoj.js",
+    "name": "index",
+    "src": "index.html",
+    "isEntry": true,
+    "imports": [
+      "_react.5m7JIW5N.js",
+      "_react-dom.cI5JZyE8.js",
+      "_markdown.BaswSlok.js"
+    ],
+    "css": [
+      "assets/index.BDOs3Vpl.css"
+    ]
+  }
+}
