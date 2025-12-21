@@ -16,8 +16,56 @@
     "test": "bun test",
     "test:e2e": "playwright test",
     "test:constraints": "bun test tests/constraints/",
-    "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints",
+    "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints && bun run test:e2e",
     "prepare": "lefthook install"
+  },
+  "mcp": {
+    "scripts": {
+      "dev": {
+        "description": "Start the Vite development server",
+        "expose": true
+      },
+      "build": {
+        "description": "Run production build",
+        "expose": true
+      },
+      "preview": {
+        "description": "Preview the production build locally",
+        "expose": true
+      },
+      "check": {
+        "description": "Run TypeScript type checking",
+        "expose": true
+      },
+      "lint": {
+        "description": "Run linter (oxlint)",
+        "expose": true
+      },
+      "fmt": {
+        "description": "Format code with Biome",
+        "expose": true
+      },
+      "fmt:check": {
+        "description": "Check code formatting without fixing",
+        "expose": true
+      },
+      "test": {
+        "description": "Run all unit tests",
+        "expose": true
+      },
+      "test:e2e": {
+        "description": "Run E2E browser tests with Playwright",
+        "expose": true
+      },
+      "test:constraints": {
+        "description": "Run constraint verification tests (build size, images, cache)",
+        "expose": true
+      },
+      "precommit": {
+        "description": "Run all pre-commit checks (format, lint, typecheck, build, tests)",
+        "expose": true
+      }
+    }
   },
   "dependencies": {
     "react": "^19.1.0",

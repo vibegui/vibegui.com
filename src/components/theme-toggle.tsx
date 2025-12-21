@@ -33,7 +33,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-md transition-colors"
+      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md transition-colors"
       style={{
         color: "var(--color-fg-muted)",
       }}

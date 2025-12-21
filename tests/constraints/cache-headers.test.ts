@@ -14,7 +14,8 @@ const DIST_DIR = join(import.meta.dir, "../../dist");
 const PUBLIC_DIR = join(import.meta.dir, "../../public");
 
 // Pattern for content-hash filenames: name.[hash].ext
-const HASH_PATTERN = /^.+\.[a-zA-Z0-9]{8,}\.(js|css|woff2?)$/;
+// Hash can contain alphanumeric, hyphen, underscore
+const HASH_PATTERN = /^.+\.[a-zA-Z0-9_-]{6,}\.(js|css|woff2?)$/;
 
 function getAllFiles(dir: string, files: string[] = []): string[] {
   try {

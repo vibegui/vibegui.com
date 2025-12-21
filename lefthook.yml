@@ -8,17 +8,20 @@ pre-commit:
       glob: "*.{ts,tsx,js,json,css,md}"
       run: bun run fmt
       stage_fixed: true
-    
+
     lint:
       glob: "*.{ts,tsx}"
       run: bun run lint
-    
+
     typecheck:
       run: bun run check
-    
+
     build:
       run: bun run build
-    
+
     constraints:
       run: bun run test:constraints
+
+    e2e:
+      run: bun run test:e2e
 

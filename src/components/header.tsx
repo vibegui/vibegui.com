@@ -60,7 +60,7 @@ export function Header() {
           <ThemeToggle />
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="p-2 -mr-2"
+            className="min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
             aria-label="Toggle menu"
             aria-expanded={menuOpen}
             style={{ color: "var(--color-fg)" }}
