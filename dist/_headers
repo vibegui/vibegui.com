@@ -13,8 +13,10 @@
   Cache-Control: public, max-age=31536000, immutable
 
 # Content (articles, manifest) - medium cache
+# Cloudflare-CDN-Cache-Control forces CF edge to cache JSON files
 /content/*
   Cache-Control: public, max-age=360, stale-while-revalidate=86400
+  Cloudflare-CDN-Cache-Control: max-age=360
 
 # Fonts - long cache
 /fonts/*
