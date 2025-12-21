@@ -1,3 +1,0 @@
-# Redirect www to naked domain
-https://www.vibegui.com/* https://vibegui.com/:splat 302
-
