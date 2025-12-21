@@ -76,15 +76,28 @@ bun run preview
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      MCP SERVER                                 │
-│   mcp-server.ts — running locally on your machine               │
+│   main.ts / mcp-server.ts — running locally                     │
 │                                                                 │
 │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
 │   │   IDEAS     │  │  RESEARCH   │  │   DRAFTS    │  ───────▶   │
 │   │ Collection  │  │  Collection │  │  Collection │   ARTICLES  │
 │   └─────────────┘  └─────────────┘  └─────────────┘             │
-│                                                                 │
+│         │                │                │              │      │
+│         ▼                ▼                ▼              ▼      │
 │   ┌─────────────────────────────────────────────────────────┐   │
-│   │  Bindings: OpenRouter (AI) + Filesystem (content)       │   │
+│   │  content/           (filesystem = database)             │   │
+│   │  ├── ideas/*.md     ← raw thoughts                      │   │
+│   │  ├── research/*.md  ← deep research                     │   │
+│   │  ├── drafts/*.md    ← work in progress                  │   │
+│   │  └── articles/*.md  ← published content                 │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  context/           (reference material for writing)    │   │
+│   │  ├── leadership/*.md   ← Erhard leadership model        │   │
+│   │  └── *.md              ← profile, integrity summary     │   │
+│   └─────────────────────────────────────────────────────────┘   │
+│   ┌─────────────────────────────────────────────────────────┐   │
+│   │  Search: SEARCH_CONTEXT, SEARCH_CONTENT, SEARCH_ALL     │   │
 │   └─────────────────────────────────────────────────────────┘   │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
@@ -461,7 +474,7 @@ See `CONSTRAINTS.md` for:
 
 **Guilherme Rodrigues** is a software engineer and entrepreneur from Rio de Janeiro. After 9 years at VTEX leading high-performance e-commerce projects (including their NYSE IPO), he founded [deco CMS](https://decocms.com) — a platform democratizing the creation of governable AI agents.
 
-He's also a co-founder of [Movimento Tech](https://movimentotech.org.br), a coalition that has impacted over 3 million young Brazilians in technology, including the Maratona Tech — Brazil's largest technology olympiad.
+He's also a co-founder of [Movimento Tech](https://www.movtech.org), a coalition that has impacted over 3 million young Brazilians in technology, including the Maratona Tech — Brazil's largest technology olympiad.
 
 ### Contact
 
@@ -519,6 +532,6 @@ Code (everything else) is MIT licensed.
 ---
 
 <p align="center">
-  <em>Built with MCP · Served by Cloudflare · Made in Brazil 🇧🇷</em>
+  <em>Built with decoCMS · Made in Brazil 🇧🇷</em>
 </p>
 

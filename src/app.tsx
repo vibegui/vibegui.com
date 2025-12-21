@@ -160,7 +160,17 @@ export function App() {
         className="container py-8 text-center text-sm"
         style={{ color: "var(--color-fg-muted)" }}
       >
-        <p>Built with MCP · Served by Cloudflare · Made in Brazil 🇧🇷</p>
+        <p>
+          Built with{" "}
+          <a
+            href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=footer"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            decoCMS
+          </a>{" "}
+          · Made in Brazil 🇧🇷
+        </p>
       </footer>
     </div>
   );

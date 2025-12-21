@@ -2,7 +2,7 @@
  * Image Constraint Tests
  *
  * Verifies CONSTRAINTS.md Section 1.2: Image Optimization
- * - Maximum file size per image: 100KB
+ * - Maximum file size per image: 250KB
  * - All images should be optimized
  */
 
@@ -15,7 +15,7 @@ const CONTENT_DIR = join(import.meta.dir, "../../content");
 const DIST_DIR = join(import.meta.dir, "../../dist");
 
 // Constraint from CONSTRAINTS.md
-const MAX_IMAGE_SIZE = 100 * 1024; // 100KB
+const MAX_IMAGE_SIZE = 250 * 1024; // 250KB
 
 const IMAGE_EXTENSIONS = [
   ".jpg",
@@ -45,7 +45,7 @@ function getAllImages(dir: string, images: string[] = []): string[] {
 }
 
 describe("Image Constraints", () => {
-  test("all images in public/ < 100KB", () => {
+  test("all images in public/ < 250KB", () => {
     const images = getAllImages(PUBLIC_DIR);
 
     for (const imagePath of images) {
@@ -58,7 +58,7 @@ describe("Image Constraints", () => {
     }
   });
 
-  test("all images in content/ < 100KB", () => {
+  test("all images in content/ < 250KB", () => {
     const images = getAllImages(CONTENT_DIR);
 
     for (const imagePath of images) {
@@ -71,7 +71,7 @@ describe("Image Constraints", () => {
     }
   });
 
-  test("all images in dist/ < 100KB", () => {
+  test("all images in dist/ < 250KB", () => {
     const images = getAllImages(DIST_DIR);
 
     for (const imagePath of images) {

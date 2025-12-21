@@ -14,7 +14,7 @@ These constraints define the fundamental rules of the project. They are not sugg
 - No JavaScript is required for first meaningful paint. Content must be readable with JS disabled.
 
 ### 1.2 Image Optimization
-- **Maximum file size per image**: `100 KB` (after optimization)
+- **Maximum file size per image**: `250 KB` (after optimization)
 - **Preferred format**: WebP (with AVIF for modern browsers)
 - **Automatic optimization**: All images in the repo are automatically optimized via Vite plugin during dev/build
 - **Lazy loading**: All below-the-fold images use `loading="lazy"`

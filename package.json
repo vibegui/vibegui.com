@@ -18,7 +18,8 @@
     "test:e2e": "playwright test",
     "test:constraints": "bun test tests/constraints/",
     "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints && bun run test:e2e",
-    "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true"
+    "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true",
+    "optimize:images": "bun scripts/optimize-images.ts"
   },
   "mcp": {
     "scripts": {
@@ -82,6 +83,7 @@
     "oxlint": "^0.16.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.1.3",
     "typescript": "^5.7.2",
     "vite": "^6.0.6",
