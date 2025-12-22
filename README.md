@@ -4,26 +4,29 @@
 
 A minimal, high-performance static site managed entirely through MCP (Model Context Protocol). This project serves as both a personal platform and an educational reference for building MCP-first applications.
 
+**Live at [vibegui.com](https://vibegui.com)**
+
 ---
 
-## Current Status 🚧
+## What's Been Built ✅
 
-**Phase 1 Complete** — Minimal working setup:
+- **MCP-Native Content Management** — Full content pipeline (ideas → research → drafts → articles) managed through MCP tools
+- **Content Hashing System** — All content files get content-hash URLs for immutable caching (1-year TTL)
+- **Context Library** — LLM-generated summaries from leadership papers (Werner Erhard et al.) used as context for AI-assisted writing
+- **Production Deployment** — Live on Cloudflare Pages with edge caching
+- **Comprehensive Testing** — E2E tests (Playwright), constraint tests, accessibility verification
+- **Pre-commit Pipeline** — Automated formatting, linting, type-checking, build, and testing
 
-- ✅ Vite + React + Tailwind v4 configured
-- ✅ Green theme (terminal green dark, forest green light)
-- ✅ Mobile-first responsive layout
-- ✅ Client-side routing (Home, Commitment, Integrity, Alignment, deco)
-- ✅ Dark/light theme toggle with persistence
-- ✅ MCP server with content collection tools
-- ✅ Bindings for OpenRouter, Perplexity, MCP Studio (configured, not yet connected)
-- ✅ Content directory structure ready
+### Tech Stack
 
-**Next Steps:**
-- Connect to MCP Mesh
-- Create first article using MCP tools
-- Configure Cloudflare Pages deployment
-- Add build manifest for article list
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Vite, Tailwind CSS v4 |
+| Content | Markdown with YAML frontmatter |
+| MCP Server | @decocms/runtime + custom tools |
+| Testing | Playwright (E2E), Bun test (unit/constraints) |
+| Deployment | Cloudflare Pages (edge) |
+| Quality | Biome (format), oxlint (lint), TypeScript strict |
 
 ---
 
@@ -33,35 +36,25 @@ A minimal, high-performance static site managed entirely through MCP (Model Cont
 # Install dependencies
 bun install
 
-# Start MCP server (for content management via AI)
-bun run mcp:dev
-
-# Start frontend dev server
+# Start development server
 bun run dev
 
-# Build for production
+# Build for production (includes content hashing)
 bun run build
 
-# Preview production build
-bun run preview
+# Run all checks (pre-commit)
+bun run precommit
 ```
 
----
+### MCP Server (for AI-assisted content management)
 
-## What This Is
+```bash
+# Development mode with hot reload
+bun run mcp:dev
 
-**vibegui.com** is:
-
-1. **A personal blog** — Articles about technology, entrepreneurship, and Brazil's tech future
-2. **An MCP showcase** — The entire content lifecycle (ideas → research → drafts → articles) is managed through MCP tools
-3. **A learning resource** — Simple, readable code that demonstrates modern web architecture
-
-### Key Principles
-
-- **MCP-first**: All content management happens through MCP tools, not direct file editing
-- **Static-first**: Pre-generated HTML for core pages, lazy-loaded MD for articles
-- **Minimal**: No unnecessary abstractions, no heavy frameworks
-- **Educational**: Every architectural decision is documented and explained
+# Production mode (for MCP clients)
+bun run mcp:serve
+```
 
 ---
 
@@ -76,7 +69,7 @@ bun run preview
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                      MCP SERVER                                 │
-│   main.ts / mcp-server.ts — running locally                     │
+│   main.ts — exposes tools for content lifecycle                 │
 │                                                                 │
 │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐             │
 │   │   IDEAS     │  │  RESEARCH   │  │   DRAFTS    │  ───────▶   │
@@ -96,42 +89,118 @@ bun run preview
 │   │  ├── leadership/*.md   ← Erhard leadership model        │   │
 │   │  └── *.md              ← profile, integrity summary     │   │
 │   └─────────────────────────────────────────────────────────┘   │
-│   ┌─────────────────────────────────────────────────────────┐   │
-│   │  Search: SEARCH_CONTEXT, SEARCH_CONTENT, SEARCH_ALL     │   │
-│   └─────────────────────────────────────────────────────────┘   │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    STATIC SITE (dist/)                          │
+│                    BUILD PIPELINE                               │
 │                                                                 │
-│   ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
-│   │  index   │  │ articles │  │   about  │  │   ...    │        │
-│   │  .html   │  │ [slug]   │  │  pages   │  │          │        │
-│   └──────────┘  └──────────┘  └──────────┘  └──────────┘        │
+│   vite build → hash-content.ts → dist/                          │
 │                                                                 │
-│   Assets: content-hash URLs, immutable cache                    │
+│   • Content files renamed with content-hash                     │
+│   • Manifest generated with hashed paths                        │
+│   • Manifest hash injected into index.html                      │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   CLOUDFLARE PAGES                              │
 │                                                                 │
-│   CDN-cached at edge, < 100KB initial payload                   │
-│   index.html: 30s cache, 1h stale-while-revalidate              │
-│   Assets: 1 year immutable cache                                │
+│   • index.html: 30s cache, 1h stale-while-revalidate            │
+│   • Assets/content: 1 year immutable cache                      │
+│   • Edge-cached worldwide, < 100KB initial payload              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Why This Architecture?
+---
 
-| Decision | Why |
-|----------|-----|
-| **MCP for content** | AI-assisted writing with full control. No vendor lock-in. Works with any MCP client (Cursor, Claude, etc.) |
-| **Static generation** | Instant loads, SEO-friendly, works without JavaScript |
-| **SPA for articles** | Templates are cached once; only MD content changes. Maximum cache efficiency |
-| **Local builds** | No CI build minutes. Full control. Versioned dist/ means reproducible deploys |
-| **Cloudflare Pages** | Free tier is generous. Edge caching. Simple push-to-deploy |
+## Content Hashing System
+
+All content is served with immutable, content-based URLs for optimal caching:
+
+```
+# Source files
+content/articles/hello-world.md
+context/leadership/05_future_as_context.md
+
+# After build (dist/)
+content/articles/hello-world.285bf264.md
+context/leadership/05_future_as_context.85ee9229.md
+content/manifest.fb504092.json
+```
+
+### How It Works
+
+1. **Vite build** generates the app with hashed JS/CSS assets
+2. **hash-content.ts** post-processes content files:
+   - Computes SHA-256 hash of each file's content
+   - Copies files with hash in filename
+   - Generates manifest mapping original → hashed paths
+   - Hashes the manifest itself
+   - Injects manifest path into `index.html`
+
+### Cache Headers (`_headers`)
+
+```
+/index.html
+  Cache-Control: public, max-age=30, stale-while-revalidate=3600
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/content/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/context/*
+  Cache-Control: public, max-age=31536000, immutable
+```
+
+---
+
+## Testing
+
+The project has comprehensive testing to verify constraints:
+
+### E2E Tests (Playwright)
+
+```bash
+bun run test:e2e
+```
+
+Tests run against **production build** to exercise the full pipeline:
+
+| Test Suite | What It Verifies |
+|------------|------------------|
+| `content.spec.ts` | All context/leadership pages load, articles render, manifest works |
+| `accessibility.spec.ts` | Semantic HTML, keyboard navigation, focus indicators |
+| `responsive.spec.ts` | No horizontal scroll, touch targets ≥44px, readable text |
+| `performance.spec.ts` | HTML < 100KB, DOM load < 3s, no layout shift |
+
+### Constraint Tests (Bun)
+
+```bash
+bun run test:constraints
+```
+
+| Test | Constraint |
+|------|------------|
+| `build-size.test.ts` | Total dist/ < 500KB, HTML < 100KB |
+| `image-size.test.ts` | Each image < 250KB |
+| `cache-efficiency.test.ts` | Content-hash URLs, immutable cache headers |
+
+### Pre-commit Pipeline
+
+```bash
+bun run precommit
+```
+
+Runs in order:
+1. `bun run fmt` — Biome formatting
+2. `bun run lint` — oxlint
+3. `bun run check` — TypeScript type-check
+4. `bun run build` — Production build with content hashing
+5. `bun run test:constraints` — Verify constraints
+6. `bun run test:e2e` — Full E2E verification
 
 ---
 
@@ -139,285 +208,49 @@ bun run preview
 
 ```
 vibegui.com/
-├── mcp-server.ts              # MCP server — the control plane
+├── mcp-server.ts              # MCP server entry point
+├── main.ts                    # MCP server with tool definitions
 ├── CONSTRAINTS.md             # Project axioms (read this first!)
-├── PLAN.md                    # Implementation roadmap
 │
-├── content/                   # All content lives here (managed via MCP)
-│   ├── ideas/                 # Raw thoughts and sparks
-│   │   └── *.md
-│   ├── research/              # Deep research documents
-│   │   └── *.md
-│   ├── drafts/                # Article outlines
-│   │   └── *.md
-│   └── articles/              # Published articles
-│       └── *.md
+├── content/                   # Content (managed via MCP)
+│   ├── ideas/*.md             # Raw thoughts
+│   ├── research/*.md          # Deep research
+│   ├── drafts/*.md            # Work in progress
+│   └── articles/*.md          # Published articles
+│
+├── context/                   # Reference material for AI writing
+│   ├── leadership/*.md        # 10 leadership summaries
+│   ├── integrity_*.md         # Integrity model summary
+│   └── LINKEDIN_PROFILE.md    # Author context
 │
 ├── src/                       # Frontend source
 │   ├── main.tsx               # Entry point
-│   ├── app.tsx                # Root component with routing
-│   ├── components/            # Shared UI components
-│   │   ├── header.tsx         # Top bar (logo, menu, theme)
-│   │   ├── theme-toggle.tsx   # Light/dark mode switch
-│   │   └── article-card.tsx   # Article preview card
-│   ├── pages/                 # Page components
-│   │   ├── home.tsx           # Home with article list
-│   │   ├── article.tsx        # Single article view
-│   │   ├── commitment.tsx     # Brazil tech vision
-│   │   ├── integrity.tsx      # Werner Erhard's integrity
-│   │   ├── alignment.tsx      # Actions from the future
-│   │   └── deco.tsx           # deco CMS journey
-│   ├── lib/                   # Utilities
-│   │   ├── markdown.ts        # MD parsing and rendering
-│   │   └── content.ts         # Content loading utilities
-│   └── styles/                # Global styles
-│       └── main.css           # Tailwind + custom CSS
+│   ├── app.tsx                # Router and layout
+│   ├── components/            # Header, theme toggle, etc.
+│   ├── pages/                 # Home, Article, Context, etc.
+│   ├── lib/                   # Utilities (manifest, markdown)
+│   └── styles/                # Tailwind + custom CSS
 │
-├── public/                    # Static assets (copied as-is)
-│   ├── fonts/
+├── scripts/
+│   ├── hash-content.ts        # Post-build content hashing
+│   └── optimize-images.ts     # Image optimization
+│
+├── tests/
+│   ├── e2e/                   # Playwright E2E tests
+│   └── constraints/           # Build constraint verification
+│
+├── public/                    # Static assets
+│   ├── _headers               # Cloudflare cache headers
 │   └── images/
 │
-├── dist/                      # Generated output (versioned!)
-│   ├── index.html
-│   ├── assets/
-│   └── content/               # Pre-processed article MD files
+├── dist/                      # Build output (partially versioned in git)
 │
-├── vite.config.ts             # Vite configuration
-├── tailwind.config.ts         # Tailwind v4 configuration
-├── tsconfig.json
-├── package.json
-└── _headers                   # Cloudflare Pages headers config
+├── vite.config.ts             # Vite + manifest plugin
+├── playwright.config.ts       # E2E test configuration
+├── biome.json                 # Code formatting
+├── lefthook.yml               # Git hooks
+└── package.json
 ```
-
----
-
-## MCP Server
-
-The heart of this project is `mcp-server.ts`. It's a single file that exposes all the tools needed to manage content and the development lifecycle.
-
-### Tools Overview
-
-#### Content Collections
-
-Each collection represents a stage in the content pipeline:
-
-| Collection | Purpose | Tools |
-|------------|---------|-------|
-| **Ideas** | Quick thoughts, sparks | `COLLECTION_IDEAS_*` |
-| **Research** | Deep AI-powered research | `COLLECTION_RESEARCH_*` |
-| **Drafts** | Article outlines | `COLLECTION_DRAFTS_*` |
-| **Articles** | Published content | `COLLECTION_ARTICLES_*` |
-
-Each collection has: `LIST`, `GET`, `CREATE`, `UPDATE`, `DELETE`
-
-#### Content Transformation Tools
-
-| Tool | Description |
-|------|-------------|
-| `IDEA_TO_DRAFT` | Transform an idea into a draft outline using AI |
-| `RESEARCH_TOPIC` | Deep research on a topic using Firecrawl/Apify |
-| `ENHANCE_DRAFT` | Improve draft with research and AI assistance |
-| `DRAFT_TO_ARTICLE` | Polish and publish a draft as article |
-
-#### Development Tools
-
-| Tool | Description |
-|------|-------------|
-| `DEV_SERVER_START` | Start Vite dev server |
-| `DEV_SERVER_STOP` | Stop dev server |
-| `BUILD` | Run production build |
-| `GENERATE_COMMIT` | AI-generated commit message |
-| `COMMIT` | Stage and commit changes |
-| `PUSH` | Push to remote |
-
-### Bindings
-
-The MCP server connects to external services through bindings:
-
-```typescript
-// OpenRouter for AI capabilities
-const OPENROUTER_BINDING = {
-  __type: "@deco/openrouter",
-  value: "openrouter-connection-id"
-};
-```
-
-### Example: Creating an Article
-
-```
-You: "I have an idea about how Brazil can become a tech powerhouse"
-
-AI (via MCP):
-1. COLLECTION_IDEAS_CREATE → Saves idea to content/ideas/brazil-tech-powerhouse.md
-2. RESEARCH_TOPIC → Fetches data about Brazil's tech ecosystem
-3. IDEA_TO_DRAFT → Creates outline in content/drafts/brazil-tech-powerhouse.md
-4. ENHANCE_DRAFT → Adds research insights, improves structure
-5. DRAFT_TO_ARTICLE → Polishes and moves to content/articles/
-
-You: "Looks good, let's publish"
-
-AI (via MCP):
-1. BUILD → Regenerates dist/
-2. GENERATE_COMMIT → "feat(article): add Brazil tech powerhouse article"
-3. COMMIT → Stages and commits
-4. PUSH → Deploys to Cloudflare
-```
-
----
-
-## Frontend Architecture
-
-### SPA Runtime for Articles
-
-The site uses a hybrid approach:
-
-1. **Static HTML shell**: `index.html` contains the app skeleton
-2. **Lazy templates**: React components for each page type
-3. **Dynamic content**: Article MD files fetched on navigation
-
-This means:
-- Template code changes rarely → long cache TTL
-- Article content changes often → separate cache
-- Most deploys only change 1-2 files
-
-### Routing
-
-Simple client-side routing:
-
-```
-/                    → Home (article list)
-/article/:slug       → Article view
-/commitment          → Brazil vision page
-/integrity           → Werner Erhard's integrity
-/alignment           → Actions from the future
-/deco               → deco CMS journey
-```
-
-### Theme System
-
-```typescript
-// Theme is stored in localStorage and synced to <html> attribute
-type Theme = 'light' | 'dark' | 'system';
-
-// CSS variables adapt to theme
-:root {
-  --bg: #F5F5F5;
-  --fg: #1a1a1a;
-  --accent: #1B4332;  /* Dark forest green */
-}
-
-[data-theme="dark"] {
-  --bg: #0D1117;
-  --fg: #e6edf3;
-  --accent: #00FF41;  /* Terminal green */
-}
-```
-
----
-
-## Content Format
-
-All content uses Markdown with YAML frontmatter:
-
-```markdown
----
-title: "Brazil as a Global Tech Protagonist"
-description: "Why I believe Brazil can lead the next wave of technology innovation"
-date: 2024-12-20
-tags: [brazil, technology, entrepreneurship]
-status: published
----
-
-# Brazil as a Global Tech Protagonist
-
-Article content here...
-```
-
-### Frontmatter Fields
-
-| Field | Required | Description |
-|-------|----------|-------------|
-| `title` | Yes | Article title |
-| `description` | No | Meta description for SEO |
-| `date` | Yes | Publication date (YYYY-MM-DD) |
-| `tags` | No | Array of topic tags |
-| `status` | Yes | `draft` or `published` |
-
----
-
-## Deployment
-
-### Local Build + Push
-
-1. Make changes (via MCP or direct edit)
-2. Run `bun run build`
-3. Commit everything including `dist/`
-4. Push to `main`
-5. Cloudflare Pages auto-deploys
-
-### Cloudflare Pages Setup
-
-1. Connect GitHub repo to Cloudflare Pages
-2. **Build command**: (empty — we don't build on CF)
-3. **Build output directory**: `dist`
-4. Add `_headers` file for cache control:
-
-```
-# _headers file for Cloudflare Pages
-
-/index.html
-  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
-
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/content/*
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
-```
-
-### Why No CI Build?
-
-- **Full control**: You see exactly what gets deployed
-- **Reproducibility**: Same build on any machine
-- **Speed**: No waiting for CI
-- **Cost**: Zero build minutes consumed
-
----
-
-## Development Workflow
-
-### Starting Development
-
-```bash
-# Terminal 1: MCP server (for AI-assisted content management)
-bun run mcp:dev
-
-# Terminal 2: Frontend dev server
-bun run dev
-```
-
-### Using with Cursor/Claude
-
-Add to your MCP client config:
-
-```json
-{
-  "mcpServers": {
-    "vibegui": {
-      "command": "bun",
-      "args": ["run", "mcp:server"],
-      "cwd": "/path/to/vibegui.com"
-    }
-  }
-}
-```
-
-Now you can manage your blog through natural conversation:
-
-- "Create an idea about [topic]"
-- "Research [topic] for my next article"
-- "Turn my latest draft into an article"
-- "Build and deploy the site"
 
 ---
 
@@ -425,48 +258,127 @@ Now you can manage your blog through natural conversation:
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start Vite dev server (port 4000) |
-| `bun run build` | Production build to dist/ |
+| `bun run dev` | Start Vite dev server (port 4001) |
+| `bun run build` | Production build + content hashing |
 | `bun run preview` | Preview production build |
-| `bun run mcp:dev` | Start MCP server (development) |
-| `bun run mcp:server` | Start MCP server (for clients) |
-| `bun run lint` | Run linter |
-| `bun run fmt` | Format code |
+| `bun run precommit` | Run all checks (format, lint, type, build, test) |
+| `bun run test:e2e` | Run Playwright E2E tests |
+| `bun run test:constraints` | Verify build constraints |
+| `bun run mcp:dev` | Start MCP server (dev mode) |
+| `bun run mcp:serve` | Start MCP server (production) |
+| `bun run fmt` | Format code with Biome |
+| `bun run lint` | Lint with oxlint |
+| `bun run check` | TypeScript type-check |
+| `bun run optimize:images` | Optimize images with Sharp |
 
 ---
 
-## Learning from This Codebase
+## MCP Tools
 
-This project is intentionally simple and documented. Here's what you can learn:
+The MCP server exposes tools for AI-assisted content management:
 
-### 1. MCP Server Development
+### Content Collections
 
-See `mcp-server.ts` for:
-- How to use `@decocms/runtime` to create an MCP server
-- Defining tools with Zod schemas
-- Implementing collection bindings
-- Connecting to external AI services
+Each collection has: `LIST`, `GET`, `CREATE`, `UPDATE`, `DELETE`
 
-### 2. Static Site Architecture
+| Collection | Purpose |
+|------------|---------|
+| **Ideas** | Quick thoughts, sparks |
+| **Research** | Deep AI-powered research |
+| **Drafts** | Article outlines |
+| **Articles** | Published content |
 
-See `vite.config.ts` and `src/` for:
-- Hybrid static + SPA approach
-- Content-hash based asset naming
-- Lazy loading strategies
+### Development Tools
 
-### 3. Modern CSS
+| Tool | Description |
+|------|-------------|
+| `DEV_SERVER_START/STOP` | Control Vite dev server |
+| `SCRIPT_BUILD` | Run production build |
+| `SCRIPT_PRECOMMIT` | Run all pre-commit checks |
+| `GIT_STATUS` | Show changed files |
+| `COMMIT` | Stage and commit changes |
+| `PUSH` | Push to remote |
 
-See `src/styles/` for:
-- Tailwind v4 usage
-- CSS custom properties for theming
-- Mobile-first responsive design
+### Search Tools
 
-### 4. Performance Optimization
+| Tool | Description |
+|------|-------------|
+| `SEARCH_CONTEXT` | Search reference materials |
+| `SEARCH_CONTENT` | Search content collections |
+| `SEARCH_ALL` | Search everything |
 
-See `CONSTRAINTS.md` for:
-- Image optimization strategy
-- Caching policies
-- Bundle size management
+---
+
+## Context Library
+
+The `context/` directory contains LLM-generated summaries used as context for AI-assisted writing:
+
+### Leadership (Werner Erhard et al.)
+
+10 summaries from "Being a Leader and the Effective Exercise of Leadership":
+
+1. Integrity
+2. Authenticity
+3. Committed to Something Bigger
+4. Being Cause in the Matter
+5. Future as Context
+6. Already-Always Listening
+7. Rackets
+8. Authentic Listening
+9. Contextual Framework
+10. Power
+
+### Integrity Model
+
+Summary of "Integrity: A Positive Model" — integrity as wholeness, separate from morality.
+
+---
+
+## Deployment
+
+### Local Build + Push
+
+```bash
+# 1. Make changes (via MCP or direct edit)
+# 2. Run pre-commit checks
+bun run precommit
+
+# 3. Commit and push
+git add -A && git commit -m "feat: your changes"
+git push origin main
+
+# 4. Cloudflare Pages auto-deploys from dist/
+```
+
+### Why No CI Build?
+
+- **Full control**: You see exactly what gets deployed
+- **Reproducibility**: Same build on any machine
+- **Speed**: No waiting for CI runners
+- **Cost**: Zero build minutes consumed
+
+---
+
+## Design Philosophy
+
+### Constraints-Driven Development
+
+Every feature must satisfy [CONSTRAINTS.md](./CONSTRAINTS.md):
+
+- **Performance**: < 100KB initial payload, content-hash caching
+- **UX**: Mobile-first, WCAG AA accessibility, dark/light themes
+- **Architecture**: Static-first, MCP-managed content, versioned builds
+- **Quality**: TypeScript strict, comprehensive testing
+
+### Why This Architecture?
+
+| Decision | Why |
+|----------|-----|
+| **MCP for content** | AI-assisted writing with full control. No vendor lock-in. |
+| **Content hashing** | Immutable URLs enable aggressive caching (1 year TTL) |
+| **Local builds** | No CI dependency, reproducible, instant feedback |
+| **Cloudflare Pages** | Free tier, edge caching, simple push-to-deploy |
+| **E2E on prod build** | Tests exercise the full pipeline, catch real issues |
 
 ---
 
@@ -480,46 +392,8 @@ He's also a co-founder of [Movimento Tech](https://www.movtech.org), a coalition
 
 - **Website**: [vibegui.com](https://vibegui.com)
 - **GitHub**: [@vibegui](https://github.com/vibegui)
-- **Twitter/X**: [@vibegui](https://twitter.com/vibegui)
+- **Twitter/X**: [@vibegui_](https://x.com/vibegui_)
 - **deco CMS**: [decocms.com](https://decocms.com)
-
----
-
-## Pages
-
-### Home (`/`)
-
-The home page shows:
-- A minimal banner: "Personal blog of Guilherme Rodrigues, co-founder of decocms.com, RJ ↔ NY"
-- Latest article prominently displayed with title, date, and excerpt
-- Scrolling list of older articles as cards
-
-### Commitment (`/commitment`)
-
-This page explains my top-level commitment: **making Brazil a global technology protagonist**. This means:
-- GDP growth through technology
-- Massive productive inclusion
-- Brazilians participating in the global creative economy
-
-*Full content explores the journey from Sweden back to Brazil, VTEX, Movimento Tech, Maratona Tech, and deco CMS.*
-
-### Integrity (`/integrity`)
-
-Based on Werner Erhard's distinction of integrity as a performance factor. 
-
-*TODO: Expand with full content*
-
-### Alignment (`/alignment`)
-
-My understanding that our actions derive from the future we're committed to.
-
-*TODO: Expand with full content*
-
-### deco (`/deco`)
-
-The journey of deco CMS — from founding to where we are today. An invitation to try our software or join us in building it.
-
-*TODO: Expand with full content*
 
 ---
 
@@ -534,4 +408,3 @@ Code (everything else) is MIT licensed.
 <p align="center">
   <em>Built with decoCMS · Made in Brazil 🇧🇷</em>
 </p>
-
