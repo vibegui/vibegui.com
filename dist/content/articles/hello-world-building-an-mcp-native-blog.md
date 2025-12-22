@@ -134,25 +134,25 @@ test("app code (non-vendor) < 50KB", async () => {
 
 Every image in `public/` and `content/` must be under 250KB. A pre-commit optimization script runs Sharp to resize and compress.
 
-### Content-Hash Caching
+### Content-Hash Everything
 
-Every JS and CSS file is named with a content hash: `index.A1B2C3D4.js`. If the content doesn't change, the hash doesn't change, and the filename stays the same.
+Every asset is named with a content hash — not just JS and CSS, but **articles and markdown too**:
 
-This means **deploys only invalidate what actually changed**. If I publish a new article but don't touch any code, all the JS/CSS bundles keep their exact filenames. Cloudflare's edge cache keeps serving them with 1-year immutable headers. Zero cache churn.
+- `index.A1B2C3D4.js` — app bundle
+- `hello-world.5de02914.md` — article content
+- `manifest.215efd59.json` — content manifest
 
-The constraint tests verify this pattern is maintained:
+If the content doesn't change, the hash doesn't change, and the filename stays the same. This means **deploys only invalidate what actually changed**. Publish a new article? Only the manifest and that article get new hashes. Everything else stays cached.
 
-```typescript
-test("JS/CSS assets use content-hash naming", async () => {
-  const assets = glob.sync("dist/assets/*");
-  for (const asset of assets) {
-    // Must match pattern: name.HASH.ext
-    expect(asset).toMatch(/\.[a-zA-Z0-9]{8,}\.(js|css)$/);
-  }
-});
+The manifest hash is injected into `index.html` at build time:
+
+```html
+<script>window.__MANIFEST_PATH__="/content/manifest.215efd59.json";</script>
 ```
 
-This is why committing `dist/` works well: the git diff is minimal when only content changes. The hashed assets are stable.
+The app reads this on load, fetches the manifest, and uses the hashed article paths. Everything except `index.html` gets `Cache-Control: public, max-age=31536000, immutable`.
+
+This is why committing `dist/` works well: the git diff is minimal when only content changes. Unchanged files keep identical hashes across builds.
 
 ## The Context System
 

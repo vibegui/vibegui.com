@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "../app";
 import { marked } from "marked";
+import { getContextPath } from "../lib/manifest";
 
 interface ContextCollection {
   name: string;
@@ -162,7 +163,13 @@ export function ContextDoc({ path }: { path: string }) {
       setError(null);
 
       try {
-        const response = await fetch(`/context/${path}.md`);
+        // Get hashed path from manifest, fallback to direct path in dev
+        const contextPath = await getContextPath(path);
+        if (!contextPath) {
+          throw new Error("Document not found");
+        }
+
+        const response = await fetch(contextPath);
         if (!response.ok) {
           throw new Error("Document not found");
         }

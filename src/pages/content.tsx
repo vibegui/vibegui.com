@@ -7,14 +7,7 @@
 import { useState, useEffect } from "react";
 import { ArticleCard } from "../components/article-card";
 import { PageHeader } from "../components/page-header";
-
-interface ArticleMeta {
-  id: string;
-  title: string;
-  date: string;
-  description?: string | null;
-  tags?: string[];
-}
+import { loadManifest, type ArticleMeta } from "../lib/manifest";
 
 export function Content() {
   const [articles, setArticles] = useState<ArticleMeta[]>([]);
@@ -22,17 +15,8 @@ export function Content() {
 
   useEffect(() => {
     const loadArticles = async () => {
-      try {
-        const response = await fetch("/content/manifest.json");
-        if (response.ok) {
-          const data = await response.json();
-          setArticles(data.articles ?? []);
-        } else {
-          setArticles([]);
-        }
-      } catch {
-        setArticles([]);
-      }
+      const manifest = await loadManifest();
+      setArticles(manifest?.articles ?? []);
       setLoading(false);
     };
 

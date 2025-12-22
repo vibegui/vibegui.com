@@ -2,12 +2,13 @@
  * Article Page
  *
  * Loads and renders a single article by slug.
- * Fetches markdown content and renders client-side.
+ * Fetches markdown content using hashed paths from manifest.
  */
 
 import { useState, useEffect } from "react";
 import { Link } from "../app";
 import { marked } from "marked";
+import { getArticlePath } from "../lib/manifest";
 
 interface ArticleData {
   title: string;
@@ -66,7 +67,13 @@ export function Article({ slug }: { slug: string }) {
       setError(null);
 
       try {
-        const response = await fetch(`/content/articles/${slug}.md`);
+        // Get the hashed path from manifest
+        const articlePath = await getArticlePath(slug);
+        if (!articlePath) {
+          throw new Error("Article not found");
+        }
+
+        const response = await fetch(articlePath);
         if (!response.ok) {
           throw new Error("Article not found");
         }

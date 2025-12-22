@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
+import { createHash } from "node:crypto";
 import {
   readdirSync,
   readFileSync,
@@ -11,8 +12,15 @@ import {
 } from "node:fs";
 
 /**
- * Generate content manifest from markdown files
- * This runs at dev server start and build time
+ * Compute content hash (8 chars)
+ */
+function hashContent(content: string): string {
+  return createHash("sha256").update(content).digest("hex").slice(0, 8);
+}
+
+/**
+ * Generate content manifest from markdown files with content hashes.
+ * The hashes are used by the post-build script to rename files.
  */
 function generateManifest() {
   const articlesDir = resolve(__dirname, "content/articles");
@@ -34,6 +42,7 @@ function generateManifest() {
   const articles = files
     .map((file) => {
       const content = readFileSync(resolve(articlesDir, file), "utf-8");
+      const contentHash = hashContent(content);
 
       // Parse frontmatter
       const match = content.match(/^---\n([\s\S]*?)\n---/);
@@ -67,12 +76,14 @@ function generateManifest() {
           ? dateVal
           : new Date().toISOString().slice(0, 10);
 
+      const id = file.replace(".md", "");
+
       return {
-        id: file.replace(".md", ""),
-        title:
-          typeof frontmatter.title === "string"
-            ? frontmatter.title
-            : file.replace(".md", ""),
+        id,
+        hash: contentHash,
+        // In dev, path is unhashed; post-build script updates to hashed path
+        path: `articles/${file}`,
+        title: typeof frontmatter.title === "string" ? frontmatter.title : id,
         description: frontmatter.description ?? null,
         date: dateStr,
         tags: frontmatter.tags ?? [],
@@ -84,7 +95,11 @@ function generateManifest() {
     // Only include published articles
     .filter((a) => a.status === "published");
 
-  const manifest = { articles, generatedAt: new Date().toISOString() };
+  const manifest = {
+    version: 1,
+    articles,
+    generatedAt: new Date().toISOString(),
+  };
   writeFileSync(
     resolve(publicContentDir, "manifest.json"),
     JSON.stringify(manifest, null, 2),

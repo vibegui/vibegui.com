@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && bun scripts/hash-content.ts",
     "preview": "vite preview",
     "pages:build": "cp -r content dist/ && cp -r context dist/",
     "mcp:dev": "bun --watch main.ts",
