@@ -20,6 +20,7 @@ import {
   existsSync,
   mkdirSync,
   copyFileSync,
+  rmSync,
 } from "node:fs";
 import { resolve, join } from "node:path";
 
@@ -74,11 +75,8 @@ function processContextDirectory(
       const baseName = entry.name.replace(".md", "");
       const hashedName = `${baseName}.${hash}.md`;
 
-      // Ensure destination directory exists
-      const destSubDir = join(destDir, relativePath);
-      mkdirSync(destSubDir, { recursive: true });
-
-      const destPath = join(destSubDir, hashedName);
+      // Write directly to destDir (already correct from recursive call)
+      const destPath = join(destDir, hashedName);
       writeFileSync(destPath, content);
 
       // Original path without .md extension (for URL matching)
@@ -98,9 +96,7 @@ function processContextDirectory(
       console.log(`  📄 ${originalPath}.md → ${hashedName}`);
     } else {
       // Copy non-markdown files as-is
-      const destSubDir = join(destDir, relativePath);
-      mkdirSync(destSubDir, { recursive: true });
-      const destPath = join(destSubDir, entry.name);
+      const destPath = join(destDir, entry.name);
       copyFileSync(sourcePath, destPath);
     }
   }
@@ -154,8 +150,12 @@ async function main() {
     });
   }
 
-  // Process context files
+  // Process context files - clean first to remove Vite-copied unhashed files
   console.log("\n📁 Processing context...");
+  if (existsSync(distContext)) {
+    rmSync(distContext, { recursive: true });
+  }
+  mkdirSync(distContext, { recursive: true });
   const contextFiles = processContextDirectory(CONTEXT_DIR, distContext);
 
   // Build final manifest with hashed paths

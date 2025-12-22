@@ -107,7 +107,8 @@ export async function getContextPath(
   const manifest = await loadManifest();
   if (!manifest) return null;
 
-  const file = manifest.context.find((c) => c.original === originalPath);
+  // In dev mode, manifest.context may not exist
+  const file = manifest.context?.find((c) => c.original === originalPath);
   if (!file) {
     // Fallback for dev mode - try the original path
     return `/context/${originalPath}.md`;
