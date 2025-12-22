@@ -98,7 +98,6 @@ function generateManifest() {
   const manifest = {
     version: 1,
     articles,
-    generatedAt: new Date().toISOString(),
   };
   writeFileSync(
     resolve(publicContentDir, "manifest.json"),

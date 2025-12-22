@@ -159,9 +159,9 @@ async function main() {
   const contextFiles = processContextDirectory(CONTEXT_DIR, distContext);
 
   // Build final manifest with hashed paths
+  // Note: No timestamp - manifest hash should only change when content changes
   const finalManifest = {
     version: 1,
-    generatedAt: new Date().toISOString(),
     articles: updatedArticles,
     context: contextFiles,
   };

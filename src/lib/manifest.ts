@@ -31,9 +31,8 @@ export interface ContextFile {
 
 export interface ContentManifest {
   version: number;
-  generatedAt: string;
   articles: ArticleMeta[];
-  context: ContextFile[];
+  context?: ContextFile[]; // Only in production build
 }
 
 let cachedManifest: ContentManifest | null = null;
