@@ -14,7 +14,7 @@ This post documents what we actually built: a fully MCP-native publishing platfo
 
 ## The Stack
 
-- **Vite + React 19** — with the React Compiler (no manual memoization needed)
+- **Vite + React 19** — with React Compiler
 - **Tailwind CSS v4** — utility-first styling with design tokens
 - **Bun** — fast runtime and test runner
 - **Playwright** — E2E tests for accessibility, responsive design, and performance
@@ -62,7 +62,7 @@ This post documents what we actually built: a fully MCP-native publishing platfo
 
 ## Resilient Deploys: No npm, No Problem
 
-I'have grown paranoid about non-reproducible builds.
+I've grown paranoid about non-reproducible builds.
 
 npm registries go down. esm.sh has outages. Package versions get yanked. Transitive dependencies break in ways you didn't expect. I've seen production deploys fail because a CDN couldn't resolve a package that worked fine 10 minutes ago.
 
@@ -134,7 +134,13 @@ test("app code (non-vendor) < 50KB", async () => {
 
 Every image in `public/` and `content/` must be under 250KB. A pre-commit optimization script runs Sharp to resize and compress.
 
-### Cache Strategy Verification
+### Content-Hash Caching
+
+Every JS and CSS file is named with a content hash: `index.A1B2C3D4.js`. If the content doesn't change, the hash doesn't change, and the filename stays the same.
+
+This means **deploys only invalidate what actually changed**. If I publish a new article but don't touch any code, all the JS/CSS bundles keep their exact filenames. Cloudflare's edge cache keeps serving them with 1-year immutable headers. Zero cache churn.
+
+The constraint tests verify this pattern is maintained:
 
 ```typescript
 test("JS/CSS assets use content-hash naming", async () => {
@@ -145,6 +151,8 @@ test("JS/CSS assets use content-hash naming", async () => {
   }
 });
 ```
+
+This is why committing `dist/` works well: the git diff is minimal when only content changes. The hashed assets are stable.
 
 ## The Context System
 
@@ -161,26 +169,17 @@ This powers AI-assisted writing where the agent can pull in relevant context fro
 
 ## What I Learned
 
-### 1. React 19 Compiler Is Real
+### 1. Pre-built Deploys Are Underrated
 
-No more `useMemo`, `useCallback`, or `React.memo`. The compiler handles it. Our oxlint config actively bans these:
+The mental model shift: treat `dist/` as a first-class artifact. Version it. Test it. Deploy it directly. Your CI becomes your local machine, and deploys become file copies.
 
-```javascript
-// plugins/ban-memoization.js
-// "useMemo/useCallback/memo are unnecessary with React 19 Compiler"
-```
+### 2. MCP Makes AI-First Natural
 
-### 2. Pre-built Deploys Are Underrated
+When every action is a tool call, there's no context switching. Write prose → call `COLLECTION_ARTICLES_CREATE` → call `COMMIT` → call `PUSH`. The agent does it all. This entire article was written through MCP tools.
 
-The mental model shift: treat `dist/` as a first-class artifact. Version it. Test it. Deploy it directly.
+### 3. Cloudflare's JSON and MD Caching Quirk
 
-### 3. MCP Makes AI-First Natural
-
-When every action is a tool call, there's no context switching. Write prose → call `COLLECTION_ARTICLES_CREATE` → call `COMMIT` → call `PUSH`. The agent does it all.
-
-### 4. Cloudflare's JSON Caching Quirk
-
-JSON and Markdown files return `Cf-Cache-Status: DYNAMIC` by default, even with proper `Cache-Control` headers. The fix: setup a Cache Rule in the dashboard with correct path and mark "eligible for cache".
+JSON and Markdown files return `Cf-Cache-Status: DYNAMIC` by default, even with proper `Cache-Control` headers. The fix: setup a Cache Rule in the dashboard with the correct path and mark "eligible for cache".
 
 ## The Road Ahead
 
