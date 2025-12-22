@@ -184,6 +184,12 @@ async function main() {
   // Inject manifest path as a global variable
   const manifestScript = `<script>window.__MANIFEST_PATH__="/content/${manifestFileName}";</script>`;
 
+  // Remove any existing manifest script first (idempotent)
+  indexHtml = indexHtml.replace(
+    /<script>window\.__MANIFEST_PATH__="[^"]*";<\/script>\n?/g,
+    "",
+  );
+
   // Insert before closing </head> tag
   if (indexHtml.includes("</head>")) {
     indexHtml = indexHtml.replace("</head>", `${manifestScript}\n</head>`);
