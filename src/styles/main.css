@@ -156,21 +156,29 @@ a:hover {
   color: inherit;
 }
 
-.prose ul,
+.prose ul {
+  padding-left: 1.5rem;
+  margin-block: 1.25em;
+  list-style-type: disc;
+}
+
 .prose ol {
   padding-left: 1.5rem;
   margin-block: 1.25em;
+  list-style-type: decimal;
 }
 
 .prose li {
   margin-block: 0.5em;
+  display: list-item;
 }
 
-/* Green bullet points */
-.green-bullets {
-  list-style-type: disc;
+/* Green bullet points in prose */
+.prose li::marker {
+  color: var(--color-accent);
 }
 
+/* Explicit class for non-prose contexts */
 .green-bullets li::marker {
   color: var(--color-accent);
 }

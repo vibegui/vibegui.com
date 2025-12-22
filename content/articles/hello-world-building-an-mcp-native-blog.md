@@ -10,60 +10,194 @@ status: published
 
 Welcome to **vibegui.com** — my personal blog, experiment sandbox, and a demonstration of what's possible when you build content-first with MCP (Model Context Protocol).
 
-## What Makes This Different?
+This post documents what we actually built: a fully MCP-native publishing platform where every piece of content flows through AI-accessible tools, deploys to Cloudflare Pages in under 20 seconds, and respects strict performance constraints verified by automated tests.
 
-This isn't just another static blog. It's a fully MCP-native publishing platform where every piece of content — from initial idea to published article — flows through a single protocol that AI agents can understand and manipulate.
+## The Stack
 
-### The Architecture
+- **Vite + React 19** — with the React Compiler (no manual memoization needed)
+- **Tailwind CSS v4** — utility-first styling with design tokens
+- **Bun** — fast runtime and test runner
+- **Playwright** — E2E tests for accessibility, responsive design, and performance
+- **MCP Server** — local TypeScript server exposing tools for content management
+- **Cloudflare Pages** — edge deployment with intelligent caching
+
+## Architecture: MCP All The Way Down
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     MCP Mesh (Self-Hosted)                  │
-├─────────────────────────────────────────────────────────────┤
-│   vibegui.com MCP Server                                    │
-│   ├── Collections: Ideas → Research → Drafts → Articles     │
-│   ├── Dev Tools: build, commit, push                        │
-│   └── Research Tools: topic research stubs                  │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    MCP Server (main.ts)                         │
+├─────────────────────────────────────────────────────────────────┤
+│  COLLECTIONS                                                    │
+│  ├── Ideas      → Quick thoughts, captured in seconds           │
+│  ├── Research   → Deep dives, LLM-generated topic stubs         │
+│  ├── Drafts     → Work in progress                              │
+│  └── Articles   → Published content (you're reading one!)       │
+├─────────────────────────────────────────────────────────────────┤
+│  DEV TOOLS (auto-generated from package.json)                   │
+│  ├── SCRIPT_DEV      → Start Vite dev server                    │
+│  ├── SCRIPT_BUILD    → Production build                         │
+│  ├── SCRIPT_TEST     → Run unit tests                           │
+│  ├── SCRIPT_TEST_E2E → Run Playwright tests                     │
+│  └── SCRIPT_PRECOMMIT → Full CI pipeline locally                │
+├─────────────────────────────────────────────────────────────────┤
+│  SEARCH TOOLS (ripgrep-powered)                                 │
+│  ├── SEARCH_CONTENT  → Find patterns in articles                │
+│  ├── SEARCH_CONTEXT  → Search reference materials               │
+│  └── SEARCH_ALL      → Search everything                        │
+├─────────────────────────────────────────────────────────────────┤
+│  GIT TOOLS                                                      │
+│  ├── GIT_STATUS      → See what changed                         │
+│  ├── COMMIT          → Stage all + commit                       │
+│  └── PUSH            → Push to remote                           │
+└─────────────────────────────────────────────────────────────────┘
                               │
                               ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   Cloudflare Pages (Edge)                   │
-│   • Static HTML + SPA runtime                               │
-│   • Content-hash URLs for immutable caching                 │
-│   • 30s CDN cache, 1h stale-while-revalidate                │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                   Cloudflare Pages (Edge)                       │
+│   • Pre-built dist/ folder (no npm install on CF!)              │
+│   • Content-hash URLs → 1 year immutable cache                  │
+│   • HTML → 30s cache, 1h stale-while-revalidate                 │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### Why MCP-Native?
+## Resilient Deploys: No npm, No Problem
 
-1. **AI-First Authoring**: I can write articles by chatting with an AI agent that has full access to my content collections. Ideas become drafts become articles — all through tool calls.
+I'have grown paranoid about non-reproducible builds.
 
-2. **Single Source of Truth**: The MCP server knows about every piece of content. No scattered markdown files or orphaned drafts.
+npm registries go down. esm.sh has outages. Package versions get yanked. Transitive dependencies break in ways you didn't expect. I've seen production deploys fail because a CDN couldn't resolve a package that worked fine 10 minutes ago.
 
-3. **Programmatic Control**: Deploy, commit, push — all exposed as MCP tools. The entire publishing workflow is automatable.
+For a personal blog that I want to last for years, I wanted **complete resilience**. No external dependencies at deploy time. No network calls to package registries. Just static files.
 
-### Why Edge Performance Matters
+The solution: **build locally, commit the `dist/` folder, deploy only what's already built.**
 
-Every page load should feel instant. The constraints are strict:
+### How It Works
 
-- **< 100KB initial payload** — no bloated JavaScript frameworks
-- **< 100KB per image** — Vite optimizes everything at build time
-- **Content-hash URLs** — assets are cached forever until they change
-- **Static-first** — HTML is pre-rendered, SPA hydrates only when needed
+1. **Pre-commit hook** (via Lefthook) runs the full CI pipeline locally:
+   - Format with Biome
+   - Lint with oxlint
+   - TypeScript check
+   - Vite build → produces `dist/`
+   - Stage `dist/` automatically
+   - Run constraint tests
+   - Run E2E tests with Playwright
 
-## The Journey Ahead
+2. **Everything is verified before it leaves my machine.** If the E2E tests fail, the commit is rejected. No broken deploys.
+
+3. **Cloudflare Pages config**:
+   - Build command: `npm run pages:build` (just copies markdown files to `dist/`)
+   - Build output: `dist`
+   - Environment variable: `SKIP_DEPENDENCY_INSTALL=true`
+
+The key insight: since `dist/` is already complete and tested, Cloudflare doesn't need to run npm install at all. I can skip dependency installation entirely. The deploy becomes a simple file copy.
+
+```bash
+# What happens on every commit
+$ git commit -m "New article"
+
+╭───────────────────────────────────────╮
+│ 🥊 lefthook v1.13.6  hook: pre-commit │
+╰───────────────────────────────────────╯
+✔️ 1_format (0.05s)
+✔️ 2_lint (0.06s)
+✔️ 3_typecheck (1.31s)
+✔️ 4_build (0.72s)      ← Vite builds in <1s
+✔️ 5_stage (0.01s)      ← dist/ is staged
+✔️ 6_constraints (0.03s)
+✔️ 7_e2e (6.47s)
+
+# Push → CF deploys in ~15s (just copies files, no npm)
+```
+
+The side effect is speed — deploys take 15-20 seconds instead of 2-3 minutes — but the real win is reliability. My blog will deploy correctly even if npm is having a bad day.
+
+## Constraint-Driven Development
+
+Performance isn't aspirational — it's enforced. We have automated tests that fail the build if constraints are violated:
+
+### Build Size Constraints
+
+```typescript
+// tests/constraints/build-size.test.ts
+test("index.html compressed size < 100KB", async () => {
+  const html = await Bun.file("dist/index.html").text();
+  const compressed = Bun.gzipSync(new TextEncoder().encode(html));
+  expect(compressed.length).toBeLessThan(100 * 1024);
+});
+
+test("app code (non-vendor) < 50KB", async () => {
+  // Ensures our actual code stays small
+  // Vendor chunks (React, markdown parser) are separate
+});
+```
+
+### Image Constraints
+
+Every image in `public/` and `content/` must be under 250KB. A pre-commit optimization script runs Sharp to resize and compress.
+
+### Cache Strategy Verification
+
+```typescript
+test("JS/CSS assets use content-hash naming", async () => {
+  const assets = glob.sync("dist/assets/*");
+  for (const asset of assets) {
+    // Must match pattern: name.HASH.ext
+    expect(asset).toMatch(/\.[a-zA-Z0-9]{8,}\.(js|css)$/);
+  }
+});
+```
+
+## The Context System
+
+Beyond articles, the site includes a **Context** section: LLM-generated summaries of papers and books that inform my thinking. These aren't reproductions — they're interpretive notes that help me internalize concepts.
+
+The MCP server exposes `SEARCH_CONTEXT` to find relevant references while writing:
+
+```typescript
+// Find references to "integrity" across all context files
+SEARCH_CONTEXT({ pattern: "integrity", contextLines: 5 })
+```
+
+This powers AI-assisted writing where the agent can pull in relevant context from my reading notes.
+
+## What I Learned
+
+### 1. React 19 Compiler Is Real
+
+No more `useMemo`, `useCallback`, or `React.memo`. The compiler handles it. Our oxlint config actively bans these:
+
+```javascript
+// plugins/ban-memoization.js
+// "useMemo/useCallback/memo are unnecessary with React 19 Compiler"
+```
+
+### 2. Pre-built Deploys Are Underrated
+
+The mental model shift: treat `dist/` as a first-class artifact. Version it. Test it. Deploy it directly.
+
+### 3. MCP Makes AI-First Natural
+
+When every action is a tool call, there's no context switching. Write prose → call `COLLECTION_ARTICLES_CREATE` → call `COMMIT` → call `PUSH`. The agent does it all.
+
+### 4. Cloudflare's JSON Caching Quirk
+
+JSON and Markdown files return `Cf-Cache-Status: DYNAMIC` by default, even with proper `Cache-Control` headers. The fix: setup a Cache Rule in the dashboard with correct path and mark "eligible for cache".
+
+## The Road Ahead
 
 This blog will document:
 
-- **Technical deep-dives** into MCP, AI agents, and edge computing
-- **deco CMS** — the platform I'm building to democratize AI-powered software creation
+- **MCP patterns** — what works, what doesn't, how to structure agent-first applications
+- **Agentic workflows** — connecting Exa, Perplexity and others in my MCP Mesh to create powerful workflows
+- **deco CMS** — the platform I'm building to democratize AI-powered software creation  
 - **Brazil's tech future** — my commitment to making Brazil a global technology protagonist
+- **The meta-journey** — building in public, with AI, through MCP
 
 Every article you read here was created, edited, and published through the same MCP tools you could use yourself.
 
-Welcome to the future of content management.
+The source is at [github.com/vibegui/vibegui.com](https://github.com/vibegui/vibegui.com). Star it, fork it, make it yours.
+
+This is a living experiment! I will write more on it as it evolves.
 
 ---
 
-*This article was created using the `COLLECTION_ARTICLES_CREATE` tool via MCP.*
+*This article and blog was authored collaboratively with Claude Opus 4.5 via MCP. Total time from idea to published: ~6 hours of vibe coding.*

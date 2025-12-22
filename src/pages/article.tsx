@@ -120,8 +120,8 @@ export function Article({ slug }: { slug: string }) {
 
   return (
     <article className="container py-4">
-      {/* Constrain content to prose width for consistent alignment */}
-      <div>
+      {/* Constrain all content to prose width */}
+      <div className="prose">
         <header className="mt-4 mb-8">
           <time
             dateTime={article.date}
@@ -130,7 +130,10 @@ export function Article({ slug }: { slug: string }) {
           >
             {formatDate(article.date)}
           </time>
-          <h1 className="mt-4 text-3xl md:text-4xl font-bold">
+          <h1
+            className="mt-6 text-3xl md:text-4xl font-bold"
+            style={{ marginBlock: "0.5em" }}
+          >
             {article.title}
           </h1>
           {article.description && (
@@ -144,10 +147,7 @@ export function Article({ slug }: { slug: string }) {
         </header>
 
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
-        <div
-          className="prose"
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-        />
+        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
       </div>
     </article>
   );
