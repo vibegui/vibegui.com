@@ -7,7 +7,16 @@ import { defineConfig, devices } from "@playwright/test";
  * - Performance (payload sizes, caching)
  * - Accessibility (WCAG AA)
  * - Mobile-first responsive design
+ *
+ * Always runs against production build to exercise the full pipeline:
+ * - Vite build with content hashing
+ * - Post-build script for manifest hashing
+ * - Preview server (simulates Cloudflare deployment)
  */
+
+// Use a dedicated port for E2E tests to avoid conflicts with dev server
+const E2E_PORT = 4002;
+
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
@@ -17,7 +26,7 @@ export default defineConfig({
   reporter: "list",
 
   use: {
-    baseURL: "http://localhost:4001",
+    baseURL: `http://localhost:${E2E_PORT}`,
     trace: "on-first-retry",
   },
 
@@ -37,11 +46,12 @@ export default defineConfig({
     },
   ],
 
-  // Start dev server before running tests
+  // Serve production build for testing
+  // Assumes `bun run build` already ran (e.g., in pre-commit)
   webServer: {
-    command: "bun run preview",
-    url: "http://localhost:4001",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
+    command: `bun run vite preview --port ${E2E_PORT}`,
+    url: `http://localhost:${E2E_PORT}`,
+    reuseExistingServer: false,
+    timeout: 30 * 1000,
   },
 });
