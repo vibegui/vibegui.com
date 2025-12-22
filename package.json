@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build && bun scripts/hash-content.ts",
     "preview": "vite preview",
-    "pages:build": "cp -r content dist/ && cp -r context dist/",
+    "pages:build": "node --experimental-strip-types scripts/hash-content.ts",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",

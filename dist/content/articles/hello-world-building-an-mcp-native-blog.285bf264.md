@@ -152,7 +152,7 @@ The manifest hash is injected into `index.html` at build time:
 
 The app reads this on load, fetches the manifest, and uses the hashed article paths. Everything except `index.html` gets `Cache-Control: public, max-age=31536000, immutable`.
 
-This is why committing `dist/` works well: the git diff is minimal when only content changes. Unchanged files keep identical hashes across builds.
+Here's the clever part: we don't commit the hashed content files. The source markdown lives in `content/` and `context/`, and the Vite plugin generates a manifest with pre-computed hashes. On Cloudflare Pages, the `pages:build` script reads those hashes and copies files to `dist/` with hashed names. No duplication in git, and the hashing is deterministic — same content always produces the same hash.
 
 ## The Context System
 
