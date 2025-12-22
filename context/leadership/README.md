@@ -43,10 +43,11 @@ If you find these concepts valuable, I strongly encourage you to:
 4. `04_being_cause_in_matter.md` — Being cause in the matter of everything
 5. `05_future_as_context.md` — The future as a place to come from
 6. `06_already_always_listening.md` — Recognizing pre-existing interpretations
-7. `07_rackets.md` — Persistent complaints and their payoffs
-8. `08_authentic_listening.md` — Listening newly without filters
-9. `09_contextual_framework.md` — Creating contexts that shape action
-10. `10_power.md` — Power as a function of integrity and authenticity
+7. `07_life_sentences.md` — Judgments that constrain who you can be
+8. `08_rackets.md` — Persistent complaints and their payoffs
+9. `09_authentic_listening.md` — Listening newly without filters
+10. `10_contextual_framework.md` — Creating contexts that shape action
+11. `11_power.md` — Power as a function of integrity and authenticity
 
 ---
 

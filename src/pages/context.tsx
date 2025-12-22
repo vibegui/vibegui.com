@@ -48,16 +48,17 @@ const COLLECTIONS: ContextCollection[] = [
         path: "leadership/06_already_always_listening",
         title: "6. Already-Always Listening",
       },
-      { path: "leadership/07_rackets", title: "7. Rackets" },
+      { path: "leadership/07_life_sentences", title: "7. Life Sentences" },
+      { path: "leadership/08_rackets", title: "8. Rackets" },
       {
-        path: "leadership/08_authentic_listening",
-        title: "8. Authentic Listening",
+        path: "leadership/09_authentic_listening",
+        title: "9. Authentic Listening",
       },
       {
-        path: "leadership/09_contextual_framework",
-        title: "9. Contextual Framework",
+        path: "leadership/10_contextual_framework",
+        title: "10. Contextual Framework",
       },
-      { path: "leadership/10_power", title: "10. Power" },
+      { path: "leadership/11_power", title: "11. Power" },
     ],
   },
   {

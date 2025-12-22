@@ -219,7 +219,7 @@ vibegui.com/
 │   └── articles/*.md          # Published articles
 │
 ├── context/                   # Reference material for AI writing
-│   ├── leadership/*.md        # 10 leadership summaries
+│   ├── leadership/*.md        # 11 leadership summaries
 │   ├── integrity_*.md         # Integrity model summary
 │   └── LINKEDIN_PROFILE.md    # Author context
 │
