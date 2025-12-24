@@ -1,0 +1,6 @@
+/* Minimal CSS for content script - can be used for visual feedback */
+
+/* Highlight scraped messages (optional, for debugging) */
+.wa-scraper-scraped {
+  outline: 2px solid rgba(0, 168, 132, 0.3) !important;
+}

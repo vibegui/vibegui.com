@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Scraper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>WA Scraper</h1>
+      <p class="subtitle">Extract messages from current chat</p>
+    </header>
+
+    <div id="status-bar" class="status-bar hidden">
+      <span id="status-text">Ready</span>
+      <span id="status-count"></span>
+    </div>
+
+    <main>
+      <section class="option-group output-config">
+        <label>Output file</label>
+        <div class="file-input-row">
+          <span id="output-path" class="output-path">Click to select...</span>
+          <button id="btn-pick-file" class="btn-small">Choose</button>
+        </div>
+        <span class="hint">Default: ~/Downloads/whatsapp-messages-DATE.txt</span>
+      </section>
+
+      <section class="option-group">
+        <label>Filter messages</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="filter" value="all" checked>
+            <span>All messages</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="filter" value="me">
+            <span>Only from me</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="filter" value="others">
+            <span>Only from others</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="option-group">
+        <label>Content filter</label>
+        <div class="checkbox-group">
+          <label class="checkbox-label">
+            <input type="checkbox" id="include-text" checked>
+            <span>Text messages</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" id="include-media" checked>
+            <span>Media captions</span>
+          </label>
+        </div>
+      </section>
+
+      <section class="option-group">
+        <label for="min-length">Minimum length</label>
+        <input type="number" id="min-length" value="0" min="0" step="50">
+        <span class="hint">characters (0 = no minimum, try 400 for longer msgs)</span>
+      </section>
+
+      <section class="option-group">
+        <label for="scroll-limit">Scroll limit</label>
+        <input type="number" id="scroll-limit" value="1000" min="1" max="5000">
+        <span class="hint">scroll iterations (more = older messages)</span>
+      </section>
+    </main>
+
+    <footer>
+      <button id="btn-scrape" class="btn-primary">
+        <span class="btn-icon">▶</span>
+        Start Scraping
+      </button>
+      <button id="btn-stop" class="btn-secondary hidden">
+        <span class="btn-icon">■</span>
+        Stop
+      </button>
+      <button id="btn-export" class="btn-secondary" disabled>
+        <span class="btn-icon">↓</span>
+        Export
+      </button>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
+

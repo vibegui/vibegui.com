@@ -1,0 +1,241 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  background: #0b141a;
+  color: #e9edef;
+  min-width: 280px;
+}
+
+.container {
+  padding: 16px;
+}
+
+header {
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #2a3942;
+}
+
+h1 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #00a884;
+  letter-spacing: -0.3px;
+}
+
+.subtitle {
+  font-size: 11px;
+  color: #8696a0;
+  margin-top: 2px;
+}
+
+.status-bar {
+  background: #1f2c34;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.status-bar.hidden {
+  display: none;
+}
+
+.status-bar.running {
+  background: #00a884;
+  color: #0b141a;
+}
+
+.status-bar.error {
+  background: #ea4335;
+  color: white;
+}
+
+#status-count {
+  font-weight: 600;
+}
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option-group > label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8696a0;
+}
+
+.radio-group,
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radio-label,
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.radio-label:hover,
+.checkbox-label:hover {
+  background: #1f2c34;
+}
+
+input[type="radio"],
+input[type="checkbox"] {
+  accent-color: #00a884;
+  width: 14px;
+  height: 14px;
+}
+
+input[type="number"] {
+  background: #1f2c34;
+  border: 1px solid #2a3942;
+  border-radius: 4px;
+  padding: 8px 10px;
+  color: #e9edef;
+  font-size: 13px;
+  width: 100%;
+}
+
+input[type="number"]:focus {
+  outline: none;
+  border-color: #00a884;
+}
+
+.hint {
+  font-size: 10px;
+  color: #667781;
+}
+
+.file-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.output-path {
+  flex: 1;
+  padding: 8px 10px;
+  background: #1f2c34;
+  border: 1px solid #2a3942;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #8696a0;
+  font-family: monospace;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.output-path.has-file {
+  color: #00a884;
+}
+
+.btn-small {
+  padding: 8px 12px;
+  background: #2a3942;
+  border: none;
+  border-radius: 4px;
+  color: #e9edef;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-small:hover {
+  background: #3b4a54;
+}
+
+.output-config {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #2a3942;
+  margin-bottom: 4px;
+}
+
+footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #2a3942;
+  display: flex;
+  gap: 8px;
+}
+
+button {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: #00a884;
+  color: #0b141a;
+}
+
+.btn-primary:hover {
+  background: #06cf9c;
+}
+
+.btn-primary:disabled {
+  background: #2a3942;
+  color: #667781;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #1f2c34;
+  color: #e9edef;
+}
+
+.btn-secondary:hover {
+  background: #2a3942;
+}
+
+.btn-secondary:disabled {
+  color: #667781;
+  cursor: not-allowed;
+}
+
+.btn-secondary.hidden {
+  display: none;
+}
+
+.btn-icon {
+  font-size: 10px;
+}

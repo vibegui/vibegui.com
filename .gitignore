@@ -39,3 +39,5 @@ dist/.vite/
 # Test results
 test-results/
 playwright-report/
+
+temp/
