@@ -4,12 +4,18 @@
   padding: 0;
 }
 
+.hidden {
+  display: none !important;
+}
+
+html,
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 13px;
   background: #0b141a;
   color: #e9edef;
-  min-width: 280px;
+  width: 420px;
+  height: 600px;
 }
 
 .container {

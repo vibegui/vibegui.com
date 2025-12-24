@@ -20,12 +20,20 @@
 
     <main>
       <section class="option-group output-config">
-        <label>Output file</label>
-        <div class="file-input-row">
+        <label for="filename">Filename</label>
+        <input type="text" id="filename" value="whatsapp-{chatName}-{date}.txt">
+        
+        <div class="checkbox-group" style="margin-top: 8px;">
+          <label class="checkbox-label">
+            <input type="checkbox" id="auto-download" checked>
+            <span>Use default download folder</span>
+          </label>
+        </div>
+        
+        <div id="custom-path-group" class="file-input-row hidden" style="margin-top: 8px;">
           <span id="output-path" class="output-path">Click to select...</span>
           <button id="btn-pick-file" class="btn-small">Choose</button>
         </div>
-        <span class="hint">Default: ~/Downloads/whatsapp-messages-DATE.txt</span>
       </section>
 
       <section class="option-group">
@@ -38,10 +46,6 @@
           <label class="radio-label">
             <input type="radio" name="filter" value="me">
             <span>Only from me</span>
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="filter" value="others">
-            <span>Only from others</span>
           </label>
         </div>
       </section>

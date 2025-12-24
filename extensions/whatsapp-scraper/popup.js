@@ -11,12 +11,15 @@ const btnStop = document.getElementById("btn-stop");
 const btnExport = document.getElementById("btn-export");
 const btnPickFile = document.getElementById("btn-pick-file");
 const outputPath = document.getElementById("output-path");
+const filenameInput = document.getElementById("filename");
+const autoDownloadCheck = document.getElementById("auto-download");
+const customPathGroup = document.getElementById("custom-path-group");
 const statusBar = document.getElementById("status-bar");
 const statusText = document.getElementById("status-text");
 const statusCount = document.getElementById("status-count");
 
-// Default filename with date and chat name
-function getDefaultFilename(chatName = "chat") {
+// Process filename template with chat name and date
+function processFilename(template, chatName = "chat") {
   const date = new Date().toISOString().slice(0, 10);
   // Sanitize chat name for filename
   const safeName = chatName
@@ -24,7 +27,16 @@ function getDefaultFilename(chatName = "chat") {
     .replace(/\s+/g, "-")
     .slice(0, 30)
     .toLowerCase();
-  return `whatsapp-${safeName}-${date}.txt`;
+
+  return template
+    .replace(/\{chatName\}/gi, safeName)
+    .replace(/\{date\}/gi, date);
+}
+
+// Get current filename (process template if needed)
+function getFilename(chatName = "chat") {
+  const template = filenameInput.value || "whatsapp-{chatName}-{date}.txt";
+  return processFilename(template, chatName);
 }
 
 // Get current options from UI
@@ -85,18 +97,19 @@ async function sendToContent(action, data = {}) {
   }
 }
 
-// Pick output file
+// Toggle auto-download / custom path
+autoDownloadCheck.addEventListener("change", () => {
+  customPathGroup.classList.toggle("hidden", autoDownloadCheck.checked);
+});
+
+// Pick custom output file (only used when auto-download is OFF)
 async function pickFile() {
   try {
-    // Get chat name for suggested filename
-    let chatName = "chat";
     const info = await sendToContent("info");
-    if (info?.chatName) {
-      chatName = info.chatName;
-    }
+    const chatName = info?.chatName || "chat";
 
     fileHandle = await window.showSaveFilePicker({
-      suggestedName: getDefaultFilename(chatName),
+      suggestedName: getFilename(chatName),
       startIn: "downloads",
       types: [
         {
@@ -108,7 +121,6 @@ async function pickFile() {
 
     outputPath.textContent = fileHandle.name;
     outputPath.classList.add("has-file");
-    btnScrape.disabled = false;
     console.log("[WA Scraper] File selected:", fileHandle.name);
     return true;
   } catch (err) {
@@ -170,31 +182,6 @@ function formatMessage(message, includeAuthor = true) {
   return `${ts}${author}${text}`;
 }
 
-// Append a single message to file
-async function appendMessage(message) {
-  if (!writableStream) return false;
-
-  // Include author unless filter is "me" (my own messages)
-  const currentFilter = document.querySelector(
-    'input[name="filter"]:checked',
-  )?.value;
-  const includeAuthor = currentFilter !== "me";
-
-  const formatted = formatMessage(message, includeAuthor);
-  if (!formatted) return false;
-
-  try {
-    // Newline before each message (except first)
-    const prefix = writtenMessageIds.size > 0 ? "\n" : "";
-    await writableStream.write(`${prefix}${formatted}`);
-    writtenMessageIds.add(message.id);
-    return true;
-  } catch (err) {
-    console.error("[WA Scraper] Append error:", err);
-    return false;
-  }
-}
-
 // Close the stream
 async function closeStream() {
   if (!writableStream) return;
@@ -212,35 +199,49 @@ async function closeStream() {
   writableStream = null;
 }
 
-// Write new messages (streaming - only writes what hasn't been written)
-async function writeNewMessages(messages) {
-  if (!writableStream) return 0;
+// Write all messages at once (after sorting is complete)
+async function writeAllMessages(messages) {
+  if (!writableStream) {
+    console.log("[WA Scraper] No stream, using fallback download");
+    // Fallback: trigger download if stream not available
+    const info = await sendToContent("info");
+    const chatName = info?.chatName || "chat";
+    downloadFallback(messages, getDefaultFilename(chatName));
+    return messages.length;
+  }
+
+  const currentFilter = document.querySelector(
+    'input[name="filter"]:checked',
+  )?.value;
+  const includeAuthor = currentFilter !== "me";
 
   let written = 0;
   for (const msg of messages) {
     if (!writtenMessageIds.has(msg.id)) {
-      if (await appendMessage(msg)) {
-        written++;
+      const formatted = formatMessage(msg, includeAuthor);
+      if (formatted) {
+        try {
+          const prefix = writtenMessageIds.size > 0 ? "\n" : "";
+          await writableStream.write(`${prefix}${formatted}`);
+          writtenMessageIds.add(msg.id);
+          written++;
+        } catch (err) {
+          console.error("[WA Scraper] Write error:", err);
+        }
       }
     }
   }
 
-  if (written > 0) {
-    console.log(
-      "[WA Scraper] Appended",
-      written,
-      "new messages. Total:",
-      writtenMessageIds.size,
-    );
-  }
-
+  console.log("[WA Scraper] Wrote", written, "messages");
   return written;
 }
 
 // Start scraping
 btnScrape.addEventListener("click", async () => {
-  // Auto-pick file if not selected
-  if (!fileHandle) {
+  const useAutoDownload = autoDownloadCheck.checked;
+
+  // If custom path mode, need to pick file first
+  if (!useAutoDownload && !fileHandle) {
     const picked = await pickFile();
     if (!picked) return;
   }
@@ -251,18 +252,20 @@ btnScrape.addEventListener("click", async () => {
   scrapedMessages = [];
   writtenMessageIds = new Set();
 
-  // Open file stream for streaming writes
-  const streamOpened = await openStream();
-  if (!streamOpened) {
-    setRunning(false);
-    return;
+  // Only open stream if using custom file path
+  if (!useAutoDownload) {
+    const streamOpened = await openStream();
+    if (!streamOpened) {
+      setRunning(false);
+      return;
+    }
   }
 
   const response = await sendToContent("start", options);
 
   if (!response?.success) {
     setRunning(false);
-    await closeStream();
+    if (!useAutoDownload) await closeStream();
     showError(response?.error || "Failed to start");
     return;
   }
@@ -274,8 +277,8 @@ btnScrape.addEventListener("click", async () => {
 btnStop.addEventListener("click", async () => {
   await sendToContent("stop");
   setRunning(false);
-  await closeStream();
-  updateStatus("Stopped", writtenMessageIds.size);
+  if (!autoDownloadCheck.checked) await closeStream();
+  updateStatus("Stopped", scrapedMessages.length);
 });
 
 // Poll content script for progress
@@ -286,29 +289,42 @@ async function pollProgress() {
 
   if (response) {
     scrapedMessages = response.messages || [];
-
-    // Stream write new messages immediately
-    await writeNewMessages(scrapedMessages);
-
-    updateStatus(response.status, writtenMessageIds.size);
+    updateStatus(response.status, scrapedMessages.length);
 
     if (response.done) {
       setRunning(false);
       statusBar.classList.remove("running");
-      await closeStream();
-      updateStatus(
-        `Done! Saved ${writtenMessageIds.size}`,
-        writtenMessageIds.size,
-      );
+
+      const useAutoDownload = autoDownloadCheck.checked;
+
+      if (useAutoDownload) {
+        // Auto-download to Downloads folder
+        const info = await sendToContent("info");
+        const filename = getFilename(info?.chatName || "chat");
+        downloadFallback(scrapedMessages, filename);
+        updateStatus(
+          `Done! Downloaded ${scrapedMessages.length}`,
+          scrapedMessages.length,
+        );
+      } else {
+        // Write to custom file path
+        await writeAllMessages(scrapedMessages);
+        await closeStream();
+        updateStatus(
+          `Done! Saved ${writtenMessageIds.size}`,
+          writtenMessageIds.size,
+        );
+      }
+
       // Clear storage after successful save
       await sendToContent("clear");
       chrome.storage.local.remove("scrapeData");
     } else {
-      setTimeout(pollProgress, 500); // Poll faster for streaming
+      setTimeout(pollProgress, 1000);
     }
   } else {
     setRunning(false);
-    await closeStream();
+    if (!autoDownloadCheck.checked) await closeStream();
   }
 }
 
@@ -316,12 +332,9 @@ async function pollProgress() {
 btnExport.addEventListener("click", async () => {
   if (scrapedMessages.length === 0) return;
 
-  // Get chat name for filename
-  let chatName = "chat";
   const info = await sendToContent("info");
-  if (info?.chatName) chatName = info.chatName;
-
-  downloadFallback(scrapedMessages, getDefaultFilename(chatName));
+  const filename = getFilename(info?.chatName || "chat");
+  downloadFallback(scrapedMessages, filename);
   updateStatus("Exported!", scrapedMessages.length);
 
   // Clear storage after export
@@ -427,4 +440,6 @@ async function checkForRecovery() {
 
 // Initialize
 btnScrape.disabled = false;
+// Ensure custom path is hidden when auto-download is checked (default)
+customPathGroup.classList.toggle("hidden", autoDownloadCheck.checked);
 checkForRecovery();
