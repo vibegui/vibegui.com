@@ -3,7 +3,7 @@
   "name": "WhatsApp Message Scraper",
   "version": "0.2.0",
   "description": "Extract messages from WhatsApp Web conversations",
-  "permissions": ["activeTab", "scripting", "downloads"],
+  "permissions": ["activeTab", "scripting", "downloads", "storage"],
   "host_permissions": ["https://web.whatsapp.com/*"],
   "action": {
     "default_popup": "popup.html"

@@ -143,36 +143,50 @@ async function openStream() {
   }
 }
 
-// Convert WhatsApp timestamp to ISO format
-function toIsoDate(waTimestamp) {
+// Convert WhatsApp timestamp to export format
+// Input: "HH:MM, DD/MM/YYYY" -> Output: "DD/MM/YYYY, HH:MM:SS"
+function formatTimestamp(waTimestamp) {
   if (!waTimestamp) return "";
-  // Format: "HH:MM, DD/MM/YYYY" -> "YYYY-MM-DDTHH:MM"
   const match = waTimestamp.match(
     /(\d{2}):(\d{2}),?\s*(\d{2})\/(\d{2})\/(\d{4})/,
   );
   if (!match) return waTimestamp;
   const [, hour, min, day, month, year] = match;
-  return `${year}-${month}-${day}T${hour}:${min}`;
+  return `${day}/${month}/${year}, ${hour}:${min}:00`;
+}
+
+// Format a message for export (WhatsApp compatible format)
+function formatMessage(message, includeAuthor = true) {
+  // Flatten text to single line (replace newlines with spaces)
+  const text = message.text?.trim().replace(/\n+/g, " ");
+  if (!text) return "";
+
+  // WhatsApp format: [DD/MM/YYYY, HH:MM:SS] Author: Message
+  const ts = message.timestamp
+    ? `[${formatTimestamp(message.timestamp)}] `
+    : "";
+  const author = includeAuthor && message.author ? `${message.author}: ` : "";
+
+  return `${ts}${author}${text}`;
 }
 
 // Append a single message to file
 async function appendMessage(message) {
   if (!writableStream) return false;
 
-  // Flatten text to single line (replace newlines with spaces)
-  const text = message.text?.trim().replace(/\n+/g, " ");
-  if (!text) return false;
+  // Include author unless filter is "me" (my own messages)
+  const currentFilter = document.querySelector(
+    'input[name="filter"]:checked',
+  )?.value;
+  const includeAuthor = currentFilter !== "me";
+
+  const formatted = formatMessage(message, includeAuthor);
+  if (!formatted) return false;
 
   try {
     // Newline before each message (except first)
     const prefix = writtenMessageIds.size > 0 ? "\n" : "";
-
-    // ISO timestamp prefix
-    const timestamp = message.timestamp
-      ? `[${toIsoDate(message.timestamp)}] `
-      : "";
-
-    await writableStream.write(`${prefix}${timestamp}${text}`);
+    await writableStream.write(`${prefix}${formatted}`);
     writtenMessageIds.add(message.id);
     return true;
   } catch (err) {
@@ -286,6 +300,9 @@ async function pollProgress() {
         `Done! Saved ${writtenMessageIds.size}`,
         writtenMessageIds.size,
       );
+      // Clear storage after successful save
+      await sendToContent("clear");
+      chrome.storage.local.remove("scrapeData");
     } else {
       setTimeout(pollProgress, 500); // Poll faster for streaming
     }
@@ -306,16 +323,21 @@ btnExport.addEventListener("click", async () => {
 
   downloadFallback(scrapedMessages, getDefaultFilename(chatName));
   updateStatus("Exported!", scrapedMessages.length);
+
+  // Clear storage after export
+  await sendToContent("clear");
+  chrome.storage.local.remove("scrapeData");
 });
 
 // Fallback: Download using data URL (always works)
 async function downloadFallback(messages, filename) {
-  const formatted = messages.map((m) => {
-    const text = m.text?.trim().replace(/\n+/g, " ") || "";
-    if (!text) return "";
-    const ts = m.timestamp ? `[${toIsoDate(m.timestamp)}] ` : "";
-    return `${ts}${text}`;
-  });
+  // Include author unless filter is "me"
+  const currentFilter = document.querySelector(
+    'input[name="filter"]:checked',
+  )?.value;
+  const includeAuthor = currentFilter !== "me";
+
+  const formatted = messages.map((m) => formatMessage(m, includeAuthor));
   const content = formatted.filter((t) => t.length > 0).join("\n");
 
   const blob = new Blob([content], { type: "text/plain" });
@@ -343,5 +365,66 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// Initialize - start button works, will prompt for file on click
+// Check for saved/running scrapes on popup open
+async function checkForRecovery() {
+  // First check if content script has data (running or just completed)
+  const liveData = await sendToContent("recover");
+
+  if (liveData?.messages?.length > 0) {
+    scrapedMessages = liveData.messages;
+    console.log(
+      "[WA Scraper] Recovered from content script:",
+      scrapedMessages.length,
+      "messages",
+    );
+
+    if (liveData.isRunning) {
+      // Reconnect to running scrape
+      setRunning(true);
+      updateStatus("Reconnected...", scrapedMessages.length);
+      pollProgress();
+    } else {
+      // Scrape completed while popup was closed
+      updateStatus(
+        `Found ${scrapedMessages.length} scraped`,
+        scrapedMessages.length,
+      );
+      statusBar.classList.remove("hidden");
+      btnExport.disabled = false;
+    }
+    return;
+  }
+
+  // Check chrome.storage for older saved data
+  const stored = await chrome.storage.local.get("scrapeData");
+  if (stored.scrapeData?.messages?.length > 0) {
+    const data = stored.scrapeData;
+    const age = Date.now() - data.timestamp;
+    const ageMin = Math.round(age / 60000);
+
+    // Only offer recovery if less than 30 minutes old
+    if (age < 30 * 60 * 1000) {
+      scrapedMessages = data.messages;
+      console.log(
+        "[WA Scraper] Recovered from storage:",
+        scrapedMessages.length,
+        "messages,",
+        ageMin,
+        "min old",
+      );
+      updateStatus(
+        `Recovered ${scrapedMessages.length} (${ageMin}m ago)`,
+        scrapedMessages.length,
+      );
+      statusBar.classList.remove("hidden");
+      btnExport.disabled = false;
+    } else {
+      // Clear old data
+      chrome.storage.local.remove("scrapeData");
+    }
+  }
+}
+
+// Initialize
 btnScrape.disabled = false;
+checkForRecovery();

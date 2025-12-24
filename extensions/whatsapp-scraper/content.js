@@ -15,6 +15,7 @@ let options = {};
 let status = "idle";
 let scrollCount = 0;
 let noNewContentCount = 0;
+let retryWaitMs = 1500; // Initial retry wait, increases with backoff
 
 // WhatsApp DOM selectors (updated Dec 2024)
 const SELECTORS = {
@@ -129,15 +130,21 @@ function extractMessage(el) {
   // Get text content
   const text = extractTextContent(el);
 
-  // Get timestamp
+  // Get timestamp and author from data-pre-plain-text
+  // Format: "[HH:MM, DD/MM/YYYY] Name: "
   let timestamp = "";
+  let author = "";
   const copyableDiv = el.querySelector(SELECTORS.copyableText);
   if (copyableDiv) {
     const prePlainText = copyableDiv.getAttribute("data-pre-plain-text");
     if (prePlainText) {
-      // Format: "[HH:MM, DD/MM/YYYY] Name: "
-      const match = prePlainText.match(/\[([^\]]+)\]/);
-      if (match) timestamp = match[1];
+      // Extract timestamp
+      const tsMatch = prePlainText.match(/\[([^\]]+)\]/);
+      if (tsMatch) timestamp = tsMatch[1];
+
+      // Extract author (everything after ] and before :)
+      const authorMatch = prePlainText.match(/\]\s*([^:]+):/);
+      if (authorMatch) author = authorMatch[1].trim();
     }
   }
 
@@ -149,6 +156,7 @@ function extractMessage(el) {
     text,
     isOutgoing,
     timestamp,
+    author,
     hasMedia,
   };
 }
@@ -201,17 +209,31 @@ function mergeMessages(newMsgs) {
     }
   }
 
+  // Auto-save to storage every 50 new messages
+  if (addedCount > 0 && messages.length % 50 < addedCount) {
+    saveToStorage();
+  }
+
   return addedCount;
+}
+
+// Save messages to chrome.storage.local for recovery
+function saveToStorage() {
+  const chatName = getChatName();
+  chrome.storage.local.set({
+    scrapeData: {
+      messages,
+      chatName,
+      status,
+      isRunning,
+      timestamp: Date.now(),
+    },
+  });
+  debug("Auto-saved to storage:", messages.length, "messages");
 }
 
 // Click "load older messages" notice if present
 function clickLoadMoreNotice() {
-  // Look for the notice button (Portuguese: "Clique neste aviso para carregar mensagens mais antigas")
-  const noticeSelectors = [
-    'button[class*="x1bvqhpb"]', // Generic button class from the notice
-    'div[role="button"]:has(div:contains("carregar mensagens"))',
-  ];
-
   // Find any button that contains text about loading older messages
   const buttons = document.querySelectorAll("button");
   for (const btn of buttons) {
@@ -307,15 +329,27 @@ async function scrape() {
     // Track if we're getting new content
     if (!hasMore && added === 0) {
       noNewContentCount++;
-      debug(`No new content (${noNewContentCount}/3)`);
-      // If no new content for 3 consecutive scrolls, we've reached the top
-      if (noNewContentCount >= 3) {
+      // Exponential backoff: wait longer each retry (1.5s, 3s, 6s, 10s, 15s)
+      const maxRetries = 6;
+      const waitTime = Math.min(
+        retryWaitMs * Math.pow(1.5, noNewContentCount - 1),
+        15000,
+      );
+      debug(
+        `No new content (${noNewContentCount}/${maxRetries}), waiting ${Math.round(waitTime / 1000)}s...`,
+      );
+
+      if (noNewContentCount >= maxRetries) {
         status = "reached top of chat";
-        debug("Stopping: reached top of chat");
+        debug("Stopping: reached top of chat after retries");
         break;
       }
+
+      // Wait with backoff before next attempt
+      await new Promise((r) => setTimeout(r, waitTime));
     } else {
       noNewContentCount = 0;
+      retryWaitMs = 1500; // Reset backoff on success
     }
 
     // Small delay to prevent hammering
@@ -345,6 +379,9 @@ async function scrape() {
   debug("Scrape complete. Total messages:", messages.length);
   isRunning = false;
   status = shouldStop ? "stopped" : "done";
+
+  // Final save to storage
+  saveToStorage();
 }
 
 // Get current chat name from header
@@ -376,6 +413,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({ chatName: getChatName() });
       break;
 
+    case "recover":
+      // Return current in-memory state (for reconnecting to running scrape)
+      sendResponse({
+        messages,
+        status,
+        isRunning,
+        chatName: getChatName(),
+      });
+      break;
+
+    case "clear":
+      // Clear stored data after successful export
+      chrome.storage.local.remove("scrapeData");
+      messages = [];
+      sendResponse({ success: true });
+      break;
+
     case "start":
       if (isRunning) {
         sendResponse({ success: false, error: "Already running" });
@@ -394,6 +448,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       isRunning = true;
       shouldStop = false;
       noNewContentCount = 0;
+      retryWaitMs = 1500;
       scrape();
       sendResponse({ success: true });
       break;
