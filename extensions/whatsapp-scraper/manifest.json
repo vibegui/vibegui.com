@@ -1,18 +1,19 @@
 {
   "manifest_version": 3,
-  "name": "WhatsApp Message Scraper",
-  "version": "0.2.0",
-  "description": "Extract messages from WhatsApp Web conversations",
+  "name": "WhatsApp Web MCP",
+  "version": "0.3.0",
+  "description": "Scrape messages and control WhatsApp Web via MCP",
   "permissions": ["activeTab", "scripting", "downloads", "storage"],
   "host_permissions": ["https://web.whatsapp.com/*"],
-  "action": {
-    "default_popup": "popup.html"
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://web.whatsapp.com/*"],
       "js": ["content.js"],
-      "css": ["content.css"]
+      "css": ["panel.css"]
     }
   ]
 }
