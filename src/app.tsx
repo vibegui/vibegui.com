@@ -8,6 +8,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "./components/header";
 import { Article } from "./pages/article";
+import { Bookmarks } from "./pages/bookmarks";
 import { Commitment } from "./pages/commitment";
 import { Content } from "./pages/content";
 import { Context, ContextDoc } from "./pages/context";
@@ -16,6 +17,7 @@ import { updateCanonical } from "./hooks/use-canonical";
 type Route =
   | { type: "content" }
   | { type: "article"; slug: string }
+  | { type: "bookmarks" }
   | { type: "commitment" }
   | { type: "context" }
   | { type: "context-doc"; path: string }
@@ -24,6 +26,9 @@ type Route =
 function parseRoute(pathname: string): Route {
   if (pathname === "/" || pathname === "" || pathname === "/content") {
     return { type: "content" };
+  }
+  if (pathname === "/bookmarks" || pathname === "/bookmarks/") {
+    return { type: "bookmarks" };
   }
   if (pathname === "/commitment") {
     return { type: "commitment" };
@@ -121,6 +126,8 @@ function RouteContent({ route }: { route: Route }) {
       return <Content />;
     case "article":
       return <Article slug={route.slug} />;
+    case "bookmarks":
+      return <Bookmarks />;
     case "commitment":
       return <Commitment />;
     case "context":

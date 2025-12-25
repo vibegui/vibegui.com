@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defineConfig, type Connect } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
@@ -39,7 +39,7 @@ function generateManifest() {
     (f) => f.endsWith(".md") && !f.startsWith("."),
   );
 
-  const articles = files
+  const allArticles = files
     .map((file) => {
       const content = readFileSync(resolve(articlesDir, file), "utf-8");
       const contentHash = hashContent(content);
@@ -91,19 +91,28 @@ function generateManifest() {
       };
     })
     // Sort by date descending (newest first)
-    .sort((a, b) => b.date.localeCompare(a.date))
-    // Only include published articles
-    .filter((a) => a.status === "published");
+    .sort((a, b) => b.date.localeCompare(a.date));
+
+  // Published articles for public manifest
+  const articles = allArticles.filter((a) => a.status === "published");
+
+  // Drafts only included in dev mode (detected by NODE_ENV or absence of build)
+  const isDev = process.env.NODE_ENV !== "production";
+  const drafts = isDev ? allArticles.filter((a) => a.status === "draft") : [];
 
   const manifest = {
     version: 1,
     articles,
+    // Only include drafts in dev mode for local preview
+    ...(drafts.length > 0 && { drafts }),
   };
   writeFileSync(
     resolve(publicContentDir, "manifest.json"),
     JSON.stringify(manifest, null, 2),
   );
-  console.log(`📝 Generated manifest with ${articles.length} articles`);
+  console.log(
+    `📝 Generated manifest with ${articles.length} articles${drafts.length > 0 ? ` + ${drafts.length} drafts (dev only)` : ""}`,
+  );
 }
 
 /**
@@ -134,6 +143,76 @@ function contentManifestPlugin() {
 }
 
 /**
+ * API plugin for localhost-only operations like deleting bookmarks
+ */
+function bookmarksApiPlugin() {
+  const CSV_PATH = resolve(__dirname, "public/bookmarks/links.csv");
+
+  return {
+    name: "bookmarks-api",
+    configureServer(server: {
+      middlewares: { use: (middleware: Connect.HandleFunction) => void };
+    }) {
+      server.middlewares.use(
+        (
+          req: Connect.IncomingMessage,
+          res: import("http").ServerResponse,
+          next: Connect.NextFunction,
+        ) => {
+          if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", () => {
+              try {
+                const { url } = JSON.parse(body);
+                if (!url) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: "URL required" }));
+                  return;
+                }
+
+                // Read CSV
+                const content = readFileSync(CSV_PATH, "utf-8");
+                const lines = content.split("\n");
+                const header = lines[0];
+                const dataLines = lines.slice(1);
+
+                // Filter out the URL
+                const newLines = dataLines.filter(
+                  (line) => !line.startsWith(url + ","),
+                );
+
+                if (newLines.length === dataLines.length) {
+                  res.statusCode = 404;
+                  res.end(JSON.stringify({ error: "URL not found" }));
+                  return;
+                }
+
+                // Write back
+                const newContent = [header, ...newLines].join("\n");
+                writeFileSync(CSV_PATH, newContent);
+
+                res.setHeader("Content-Type", "application/json");
+                res.end(
+                  JSON.stringify({ success: true, remaining: newLines.length }),
+                );
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
+            });
+            return;
+          }
+          next();
+        },
+      );
+    },
+  };
+}
+
+/**
  * Vite Configuration for vibegui.com
  *
  * Key features:
@@ -144,7 +223,12 @@ function contentManifestPlugin() {
  * - Auto-generated content manifest
  */
 export default defineConfig({
-  plugins: [react(), tailwindcss(), contentManifestPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    contentManifestPlugin(),
+    bookmarksApiPlugin(),
+  ],
 
   resolve: {
     alias: {

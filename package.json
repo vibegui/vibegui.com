@@ -93,6 +93,10 @@
   "optionalDependencies": {
     "@decocms/bindings": "1.0.1-alpha.23",
     "@decocms/runtime": "1.0.0-alpha.39",
-    "@modelcontextprotocol/sdk": "1.20.2"
+    "@modelcontextprotocol/sdk": "1.20.2",
+    "plist": "^3.1.0",
+    "better-sqlite3": "^11.7.0",
+    "@types/plist": "^3.0.5",
+    "@types/better-sqlite3": "^7.6.11"
   }
 }

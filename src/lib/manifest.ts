@@ -32,6 +32,7 @@ export interface ContextFile {
 export interface ContentManifest {
   version: number;
   articles: ArticleMeta[];
+  drafts?: ArticleMeta[]; // Only in dev mode for local preview
   context?: ContextFile[]; // Only in production build
 }
 
@@ -86,12 +87,20 @@ export async function loadManifest(): Promise<ContentManifest | null> {
 
 /**
  * Get an article's content path by slug
+ * Searches both published articles and drafts (dev mode)
  */
 export async function getArticlePath(slug: string): Promise<string | null> {
   const manifest = await loadManifest();
   if (!manifest) return null;
 
-  const article = manifest.articles.find((a) => a.id === slug);
+  // Search in published articles first
+  let article = manifest.articles.find((a) => a.id === slug);
+
+  // If not found and drafts exist (dev mode), search there too
+  if (!article && manifest.drafts) {
+    article = manifest.drafts.find((a) => a.id === slug);
+  }
+
   if (!article) return null;
 
   return `/content/${article.path}`;

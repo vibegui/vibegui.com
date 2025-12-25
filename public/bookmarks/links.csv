@@ -1,0 +1,263 @@
+url,category,domain,content_type,relevance,title,description
+https://agentskills.io/home,tool,agentskills,product,learning,Agent Skills,AI agent evaluation platform
+https://alprielse.xyz/posts/code-prompting/,reference,personal,article,learning,Code Prompting Guide,LLM code generation best practices
+https://autism-simulator.vercel.app,reference,misc,product,misc,Autism Simulator,Vercel deployment
+https://basecoatui.com/,tool,basecoatui,product,learning,BaseCoat UI,UI component library
+https://blog.cloudflare.com/capnweb-javascript-rpc-library/,reference,cloudflare,article,learning,CapnWeb RPC,Cloudflare RPC library for JavaScript
+https://blog.cloudflare.com/code-mode/,reference,cloudflare,article,learning,Code Mode,Cloudflare Workers code editor
+https://blog.cloudflare.com/sqlite-in-durable-objects/,reference,cloudflare,article,learning,SQLite in Durable Objects,Cloudflare SQLite integration for stateful workers
+https://blog.cloudflare.com/unpacking-cloudflare-workers-cpu-performance-benchmarks,reference,cloudflare,article,learning,Workers CPU Benchmarks,Performance analysis of Cloudflare Workers
+https://blog.langchain.com/how-agents-can-use-filesystems-for-context-engineering/,reference,langchain,article,learning,Filesystem Context Engineering,How AI agents use filesystems for context
+https://blog.platformatic.dev/93-faster-nextjs-in-your-kubernetes,reference,platformatic,article,learning,Faster Next.js on K8s,Performance optimization for Next.js
+https://blog.yakkomajuri.com/blog/local-rag,reference,personal,article,learning,Local RAG,Guide to running RAG locally
+https://budibase.com/,tool,budibase,product,competitor,Budibase,Low-code platform for internal tools
+https://buildwithfern.com/,tool,fern,product,learning,Fern,API documentation generator
+https://bun.com/blog/bun-v1.3,reference,bun,article,learning,Bun v1.3,Major Bun runtime release notes
+https://clickhouse.com/docs/getting-started/example-datasets/hackernews-vector-search-dataset,reference,clickhouse,docs,learning,HN Vector Search Dataset,ClickHouse vector search example
+https://cloudflare-mesh-weaver.lovable.app,reference,lovable,product,misc,Mesh Weaver,Lovable-built app
+https://community.fly.io/t/introducing-bun-tastic-a-high-performance-static-site-server-host-backed-by-tigris-storage/23477,reference,flyio,discussion,learning,Bun-tastic Static Server,Fly.io + Bun + Tigris storage solution
+https://conf.react.dev/,reference,react,event,learning,React Conf,Official React conference
+https://coolify.io/docs/get-started/introduction,tool,coolify,docs,learning,Coolify,Self-hosted Heroku/Vercel alternative
+https://cursor.com/docs/agent/hooks,reference,cursor,docs,learning,Cursor Hooks,Cursor IDE agent hooks documentation
+https://cursor.com/docs/context/mcp/install-links,reference,cursor,docs,learning,Cursor MCP Install,MCP installation for Cursor
+https://dagger.io/,tool,dagger,product,learning,Dagger,CI/CD pipelines as code
+https://deno.com/blog/fresh-and-vite,reference,deno,article,learning,Fresh and Vite,Deno Fresh migrating to Vite
+https://developer.chrome.com/blog/chrome-devtools-mcp,reference,google,article,learning,Chrome DevTools MCP,Chrome DevTools MCP integration
+https://developers.cloudflare.com/browser-rendering/,reference,cloudflare,docs,learning,CF Browser Rendering,Cloudflare browser rendering API
+https://developers.cloudflare.com/browser-rendering/rest-api/screenshot-endpoint/,reference,cloudflare,docs,learning,CF Screenshot API,Screenshot endpoint documentation
+https://developers.cloudflare.com/browser-rendering/workers-bindings/,reference,cloudflare,docs,learning,CF Browser Bindings,Browser rendering Workers bindings
+https://developers.cloudflare.com/changelog/2025-09-16-remote-bindings-ga/,reference,cloudflare,docs,learning,Remote Bindings GA,Cloudflare remote bindings general availability
+https://developers.openai.com/apps-sdk,reference,openai,docs,learning,OpenAI Apps SDK,ChatGPT apps development SDK
+https://developers.openai.com/apps-sdk/build/custom-ux,reference,openai,docs,learning,OpenAI Custom UX,Building custom UX for ChatGPT apps
+https://developers.openai.com/apps-sdk/build/mcp-server,reference,openai,docs,learning,OpenAI MCP Server,MCP server for ChatGPT apps
+https://discrete-distribution-networks.github.io/,reference,github,article,learning,DDN Paper,Discrete distribution networks research
+https://docs.chainlit.io/get-started/overview,reference,chainlit,docs,learning,Chainlit,Python framework for chat UIs
+https://docs.dapr.io/developing-applications/building-blocks/actors/actors-overview/,reference,dapr,docs,learning,Dapr Actors,Actor model in Dapr
+https://docs.fireworks.ai/evaluators/documentation_home,reference,fireworks,docs,learning,Fireworks Evaluators,AI model evaluation docs
+https://docs.sentry.io/pricing/,reference,sentry,docs,ops,Sentry Pricing,Error monitoring pricing
+https://downdetector.com.br/,tool,downdetector,product,ops,Down Detector BR,Service status checker
+https://downdetector.com.br/fora-do-ar/aws-amazon-web-services/,tool,downdetector,product,ops,AWS Status BR,AWS outage tracking
+https://e2b.dev/,tool,e2b,product,learning,E2B,AI code execution sandboxes
+https://elysiajs.com/,tool,elysia,product,learning,Elysia,Bun-native web framework
+https://en.m.wikipedia.org/wiki/Tor_(network),reference,wikipedia,article,misc,Tor Network,Wikipedia article
+https://events.linuxfoundation.org/mcp-dev-summit-north-america/program/cfp/,reference,linux-foundation,event,learning,MCP Dev Summit CFP,MCP development summit call for papers
+https://everydaysuperpowers.dev/articles/why-i-switched-from-htmx-to-datastar/,reference,personal,article,learning,HTMX to Datastar,Comparison of hypermedia frameworks
+https://forgejo.org/,tool,forgejo,product,learning,Forgejo,Self-hosted Git forge
+https://garagehq.deuxfleurs.fr/,tool,garage,product,learning,Garage,Self-hosted S3-compatible storage
+https://getden.io/,tool,den,product,learning,Den,Deno package manager alternative
+https://github.com/0xcucumbersalad,reference,github,profile,hiring,Cucumber Salad GitHub,Security researcher profile
+https://github.com/agno-agi/agno,tool,github,code,learning,Agno,High-performance AI agent framework
+https://github.com/asdf-vm/asdf,tool,github,code,learning,asdf,Version manager for multiple languages
+https://github.com/bellard/mquickjs/blob/main/README.md,reference,github,code,learning,MicroQuickJS,Tiny JavaScript engine
+https://github.com/Budibase/budibase/discussions/,tool,github,discussion,learning,Budibase Discussions,Low-code platform community
+https://github.com/BurntSushi/ripgrep,tool,github,code,learning,ripgrep,Fast recursive grep tool
+https://github.com/character-ai/Ovi,reference,github,code,learning,Ovi,Character AI open-source project
+https://github.com/ChromeDevTools/chrome-devtools-mcp/?tab=readme-ov-file#chrome-devtools-mcp,tool,github,code,learning,Chrome DevTools MCP,Browser automation via MCP
+https://github.com/cloudflare/actors,reference,github,code,learning,CF Actors,Cloudflare actor framework
+https://github.com/cloudflare/workers-sdk/issues/10523,reference,github,discussion,learning,Workers SDK Issue,Cloudflare Workers SDK issue
+https://github.com/continuedev/continue,tool,github,code,learning,Continue,Open-source AI code assistant
+https://github.com/datalab-to/chandra,tool,github,code,learning,Chandra,Data lab tool
+https://github.com/denoland/fresh/issues/3480,reference,github,issue,learning,Fresh Issue,Deno Fresh framework issue
+https://github.com/DGoettlich/history-llms,reference,github,code,learning,History LLMs,Historical LLM research
+https://github.com/dhyansraj/mcp-mesh,reference,github,code,learning,MCP Mesh,External MCP mesh implementation
+https://github.com/esm-dev/esm.sh/issues/1158#issuecomment-3032732142,reference,github,issue,learning,ESM.sh Issue,Package registry issue
+https://github.com/esm-dev/esm.sh/issues/1160,reference,github,issue,learning,ESM.sh Issue,Package registry issue
+https://github.com/fastrepl/hyprnote,tool,github,code,learning,Hyprnote,AI-powered note-taking app
+https://github.com/fastrepl/hyprnote/blob/main/apps/desktop/src-tauri/tauri.conf.json,tool,github,code,learning,Hyprnote Config,Tauri app configuration
+https://github.com/gavrielc/Nano-PDF,tool,github,code,learning,Nano PDF,Minimal PDF library
+https://github.com/Gentoro-OneMCP/onemcp,tool,github,code,learning,OneMCP,MCP aggregator/proxy
+https://github.com/googleapis/genai-toolbox,reference,github,code,learning,GenAI Toolbox,Google AI tools collection
+https://github.com/HKUDS/AutoAgent,reference,github,code,learning,AutoAgent,Autonomous agent framework
+https://github.com/idosal/git-mcp,tool,github,code,learning,Git MCP,Git operations via MCP
+https://github.com/idosal/mcp-ui,tool,github,code,learning,MCP UI,MCP user interface components
+https://github.com/imprvhub/mcp-domain-availability,tool,github,code,learning,Domain Availability MCP,Domain checking via MCP
+https://github.com/installer/instl,tool,github,code,learning,Instl,Package installer
+https://github.com/karpathy/nanochat,reference,github,code,learning,NanoChat,Andrej Karpathy's minimal chat
+https://github.com/makew0rld/didder,tool,github,code,learning,Didder,Image dithering tool
+https://github.com/mattzcarey/shippie,tool,github,code,learning,Shippie,Shipping tool
+https://github.com/metatool-ai/metamcp,tool,github,code,learning,MetaMCP,MCP management tool
+https://github.com/metatool-ai/metamcp/blob/main/recent-updates.md,tool,github,docs,learning,MetaMCP Updates,Recent changes
+https://github.com/microfox-ai/ai-router,tool,github,code,learning,AI Router,LLM routing layer
+https://github.com/microsoft/mcp-gateway?tab=readme-ov-file,tool,github,code,learning,Microsoft MCP Gateway,Microsoft's MCP gateway implementation
+https://github.com/penpot/penpot,tool,github,code,learning,Penpot,Open-source design tool
+https://github.com/platformrocks/osr.gik,reference,github,code,misc,OSR GIK,Platform Rocks project
+https://github.com/rictic/jsonriver,tool,github,code,learning,JSON River,JSON streaming library
+https://github.com/Significant-Gravitas/AutoGPT,reference,github,code,learning,AutoGPT,Autonomous GPT agent
+https://github.com/skaldlabs/skald,tool,github,code,learning,Skald,Voice/audio tool
+https://github.com/sst/opencode,tool,github,code,learning,OpenCode,SST's open-source Cursor alternative
+https://github.com/steel-dev/steel-browser,tool,github,code,learning,Steel Browser,Browser automation framework
+https://github.com/TanStack/ai,tool,github,code,learning,TanStack AI,AI utilities for TanStack
+https://github.com/Thinkmill/keystatic,tool,github,code,learning,Keystatic,Git-based CMS
+https://github.com/tonbo-io/tonbo,tool,github,code,learning,Tonbo,Embedded database
+https://github.com/VibiumDev/vibium,reference,github,code,misc,Vibium,External project
+https://github.com/wilpel/caveman-compression,reference,github,code,learning,Caveman Compression,Compression library
+https://glama.ai/blog/2025-12-07-the-state-of-mcp-in-2025,reference,glama,article,learning,State of MCP 2025,Comprehensive MCP ecosystem analysis
+https://grok.com/share/c2hhcmQtNA_8d1ba414-7ff3-4396-a884-02fcea981610,reference,grok,discussion,misc,Grok Share,Shared Grok conversation
+https://hackerone.com/bug-bounty-programs,reference,hackerone,product,learning,HackerOne Bug Bounties,Security bug bounty programs
+https://hackerone.com/cucumbersalad?type=user,reference,hackerone,profile,hiring,CucumberSalad HackerOne,Security researcher profile
+https://huggingface.co/papers/2512.15603,reference,huggingface,article,learning,HuggingFace Paper,AI research paper
+https://hyperdx.statuspage.io/,tool,hyperdx,product,ops,HyperDX Status,Service status page
+https://hyprnote.com/,tool,hyprnote,product,learning,Hyprnote,AI note-taking app
+https://immich.app/blog/google-flags-immich-as-dangerous,reference,immich,article,misc,Immich Google Flag,Photo backup app flagged by Google
+https://interestingengineering.com/culture/vape-pen-repurposed-web-server,reference,misc,article,misc,Vape Pen Web Server,Creative hardware hacking article
+https://jsxtool.com/,tool,jsxtool,product,learning,JSX Tool,JSX utilities
+https://keystatic.com/,tool,keystatic,product,learning,Keystatic,Git-based CMS
+https://knip.dev/,tool,knip,product,learning,Knip,Find unused code and dependencies
+https://kube.io/blog/liquid-glass-css-svg,reference,kube,article,learning,Liquid Glass CSS,CSS/SVG visual effects tutorial
+https://luma.com/iu8ll1k3?locale=pt,reference,luma,event,misc,Luma Event,Event page
+https://makingmcp.com/,reference,makingmcp,article,learning,Making MCP,MCP development resources
+https://mastra.ai/en/docs/evals/overview,reference,mastra,docs,learning,Mastra Evals,AI agent evaluation framework
+https://mcp.so/,reference,mcp,product,learning,MCP.so,MCP server directory
+https://messenger.abeto.co/,tool,abeto,product,learning,Abeto Messenger,Messaging platform
+https://mistral.ai/news/devstral-2-vibe-cli,reference,mistral,article,learning,Devstral 2 Vibe CLI,Mistral AI coding assistant
+https://modelcontextprotocol.io/specification/2025-06-18/server/resources#subscriptions,reference,mcp,docs,learning,MCP Spec Resources,MCP protocol specification
+https://momento.sh,tool,momento,product,learning,Momento,Serverless cache
+https://news.ycombinator.com/item?id=45081752,social,hackernews,discussion,learning,HN Discussion,Hacker News thread
+https://news.ycombinator.com/item?id=45438346,social,hackernews,discussion,learning,HN Discussion,Hacker News thread
+https://news.ycombinator.com/item?id=46075320,social,hackernews,discussion,learning,HN Discussion,Hacker News thread
+https://nitro.build/,tool,nitro,product,learning,Nitro,Universal server framework
+https://notes.mtb.xyz/p/your-data-model-is-your-destiny,reference,personal,article,learning,Data Model Destiny,Architecture article
+https://open.spotify.com/track/6IQiGf6mnAh8R0ymU8aG98,media,spotify,music,misc,Spotify Track,Shared music
+https://openwebui.com/,tool,openwebui,product,learning,Open WebUI,Self-hosted LLM UI
+https://paddedinputs.substack.com/p/meta-superintelligences-surprising,reference,substack,article,learning,Meta Superintelligence,AI safety/capabilities article
+https://penpot.app/self-host,tool,penpot,docs,learning,Penpot Self-Host,Self-hosting Penpot design tool
+https://pierce.dev/notes/go-ahead-self-host-postgres,reference,personal,article,learning,Self-Host Postgres,Database hosting guide
+https://platform.live-demo.truefoundry.cloud/,tool,truefoundry,product,learning,TrueFoundry,ML platform
+https://platform.openai.com/docs/guides/supervised-fine-tuning,reference,openai,docs,learning,OpenAI Fine-Tuning,Model fine-tuning guide
+https://porffor.dev/,tool,porffor,product,learning,Porffor,JavaScript compiler to WebAssembly
+https://qwen.ai/blog?id=99f0335c4ad9ff6153e517418d48535ab6d8afef,reference,qwen,article,learning,Qwen Blog,Alibaba AI model updates
+https://ramsayleung.github.io/en/post/2025/a_story_about_bypassing_air_canadas_in-flight_network_restrictions/,reference,personal,article,misc,Air Canada Network Bypass,Interesting tech story
+https://rapidapi.com/,tool,rapidapi,product,learning,RapidAPI,API marketplace
+https://react.dev/blog/2025/12/11/denial-of-service-and-source-code-exposure-in-react-server-components,reference,react,article,learning,React RSC Security,React Server Components security advisory
+https://reactbits.dev,reference,reactbits,product,learning,React Bits,React component library
+https://rootly.com/external-status-pages/azion,tool,rootly,product,ops,Azion Status via Rootly,Edge platform status
+https://rsa-llm.github.io/,reference,github,article,learning,RSA LLM,LLM research paper site
+https://rustfs.com/,tool,rustfs,product,learning,RustFS,Rust filesystem utilities
+https://simonwillison.net/2025/Dec/12/openai-skills/,reference,simonwillison,article,learning,OpenAI Skills,Analysis of OpenAI skills feature
+https://simonwillison.net/2025/Dec/2/claude-soul-document/,reference,simonwillison,article,learning,Claude Soul Document,Analysis of Claude's system prompt
+https://simonwillison.net/2025/Sep/9/claude-code-interpreter/,reference,simonwillison,article,learning,Claude Code Interpreter,Analysis of Claude's code execution
+https://status.cursor.com/,tool,cursor,product,ops,Cursor Status,IDE status page
+https://status.supabase.com/,tool,supabase,product,ops,Supabase Status,Database status page
+https://tauri.app/,tool,tauri,product,learning,Tauri,Desktop app framework (Rust + Web)
+https://techcrunch.com/2024/11/13/nokia-acquires-rapid-the-api-company-once-valued-at-1b/,reference,techcrunch,article,misc,Nokia Acquires Rapid,Tech acquisition news
+https://tela.com/careers/data-engineer,reference,tela,job,hiring,Tela Data Engineer,Job posting
+https://tidewave.ai/,tool,tidewave,product,learning,Tidewave,AI development tool
+https://tigerbeetle.com/,tool,tigerbeetle,product,learning,TigerBeetle,Financial transactions database
+https://tools.simonwillison.net/microquickjs,tool,simonwillison,product,learning,MicroQuickJS Tool,Browser-based QuickJS
+https://trailbase.io/comparison/pocketbase/,reference,trailbase,article,learning,TrailBase vs PocketBase,Database comparison
+https://tryabsurd.com/,tool,absurd,product,competitor,Absurd,YC-backed dev tool
+https://useworkflow.dev,tool,workflow,product,learning,Workflow.dev,Workflow automation tool
+https://vercel.com/blog/ai-sdk-6,reference,vercel,article,learning,Vercel AI SDK 6,Major AI SDK release
+https://visualrambling.space/dithering-part-1/,reference,personal,article,learning,Dithering Guide,Image dithering tutorial
+https://viteplus.dev/,tool,viteplus,product,learning,Vite Plus,Vite enhancement tool
+https://web-to-mcp.com/,tool,webtomcp,product,learning,Web to MCP,Website to MCP converter
+https://workers.cloudflare.com/,reference,cloudflare,product,learning,Cloudflare Workers,Edge computing platform
+https://www.activepieces.com/,tool,activepieces,product,competitor,ActivePieces,Open-source automation (Zapier alternative)
+https://www.agemo.ai/,tool,agemo,product,learning,Agemo AI,AI tool
+https://www.agenticcommerce.dev/,reference,agenticcommerce,product,learning,Agentic Commerce,AI commerce patterns
+https://www.amazon.com/Latency-Pekka-Enberg/dp/1633438082,reference,amazon,product,learning,Latency Book,Database engineering book
+https://www.anthropic.com/engineering/a-postmortem-of-three-recent-issues,reference,anthropic,article,learning,Anthropic Postmortem,Engineering incident analysis
+https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents,reference,anthropic,article,learning,Context Engineering Guide,AI agent context management best practices
+https://www.anthropic.com/news/anthropic-raises-series-f-at-usd183b-post-money-valuation,reference,anthropic,article,misc,Anthropic Series F,Funding news
+https://www.anthropic.com/news/claude-sonnet-4-5,reference,anthropic,article,learning,Claude Sonnet 4.5,Model release announcement
+https://www.anthropic.com/research/small-samples-poison,reference,anthropic,article,learning,Small Samples Poison,AI safety research on data poisoning
+https://www.ararahq.com/,tool,arara,product,competitor,Arara HQ,Development platform
+https://www.cloudflarestatus.com/,tool,cloudflare,product,ops,Cloudflare Status,Service status page
+https://www.coderabbit.ai/cli,tool,coderabbit,product,learning,CodeRabbit CLI,AI code review CLI
+https://www.creem.io/,tool,creem,product,learning,Creem,Payment infrastructure
+https://www.cubic.dev/,tool,cubic,product,learning,Cubic,Development tool
+https://www.datalab.to/,tool,datalab,product,learning,Datalab,Data analysis platform
+https://www.dwarkesh.com/p/andrej-karpathy,reference,dwarkesh,article,learning,Andrej Karpathy Interview,AI research interview
+https://www.githubstatus.com/,tool,github,product,ops,GitHub Status,Service status page
+https://www.gravitee.io/blog/mcp-api-gateway-explained-protocols-caching-and-remote-server-integration,reference,gravitee,article,learning,MCP API Gateway,MCP gateway architecture explanation
+https://www.ibm.com/new/announcements/granite-docling-end-to-end-document-conversion,reference,ibm,article,learning,IBM Granite Docling,Document conversion AI
+https://www.linkedin.com/posts/a-messina_algu%C3%A9m-compilou-mais-de-500-projetos-de-agentes-activity-7401994882241802241-8aLV,linkedin,linkedin,article,learning,a-messina: Alguém compilou mais de 500 projetos de agentes de IA em um repositório do GitHub 😳 ,
+https://www.linkedin.com/posts/addyosmani_ai-programming-softwareengineering-activity-7376269189441003520-Qf0p,linkedin,linkedin,article,learning,addyosmani: Introducing Chrome DevTools MCP: Automate and debug with AI | Addy Osmani posted on the topic | Link,Announcing Chrome DevTools MCP! Connect your AI coding agent to Chrome
+https://www.linkedin.com/posts/archimedes-fagundes-junior_ontem-o-java-25-foi-lan%C3%A7ado-finalmente-vai-activity-7374201157012979712-nHX5,linkedin,linkedin,article,misc,archimedes-fagundes-junior: Ontem o Java 25 foi lançado. Finalmente vai dar pra ensinar Java sem traumatizar os coitados com o f,"Ontem o Java 25 foi lançado. Finalmente vai dar pra ensinar Java sem traumatizar os coitados com o famoso public static void main(String[] args) 😂. Além do código mais enxuto, também não é mais nec"
+https://www.linkedin.com/posts/ashpreetbedi_today-were-releasing-agno-20-and-sharing-activity-7371241593552392192-x4pH,linkedin,linkedin,article,learning,ashpreetbedi: Introducing Agno 2.0 with AgentOS: Fastest Agent Development | Ashpreet B. posted on the topic | Lin,"Today we’re releasing Agno 2.0 and sharing an early preview of the AgentOS, our high-performance runtime for multi-agent systems."
+https://www.linkedin.com/posts/chris-nicholas-dev_streaming-ai-generated-code-into-an-editor-activity-7374103735314227200-cy0Q,linkedin,linkedin,article,learning,chris-nicholas-dev: How to stream AI generated code into an editor | Chris Nicholas posted on the topic | LinkedIn,Streaming AI generated code into an editor ✨
+https://www.linkedin.com/posts/claude_claude-is-now-available-in-slack-chat-with-activity-7379211466932977664-HNXc,linkedin,linkedin,article,learning,claude: Claude AI now integrated with Slack for collaboration | Claude posted on the topic | LinkedIn,Claude is now available in Slack.
+https://www.linkedin.com/posts/daniellimae_%C3%A9-cedo-demais-pra-falar-que-n8n-e-make-ugcPost-7381192083052716032-u78A,linkedin,linkedin,article,learning,n8n vs Make Discussion,Automation tools comparison
+https://www.linkedin.com/posts/deno_we-want-it-to-be-easier-to-manage-connections-activity-7350592667715579904-gObO,linkedin,linkedin,article,learning,deno: We want it to be easier to manage connections to cloud services like AWS and GCP ,
+https://www.linkedin.com/posts/elves-silva-vieira_github-just-dropped-its-latest-octoverse-activity-7389256265237176320-UTkd,linkedin,linkedin,article,misc,"elves-silva-vieira: GitHub just dropped its latest Octoverse report, and the numbers are wild. TypeScript officially pas","GitHub just dropped its latest Octoverse report, and the numbers are wild. TypeScript officially passed Python and JavaScript as the #1 language, and honestly, it makes total sense."
+https://www.linkedin.com/posts/frederic-barthelet_were-going-full-steam-ahead-with-skybridge-activity-7403843202153140224-kQ1G,linkedin,linkedin,article,learning,Skybridge Announcement,Serverless project
+https://www.linkedin.com/posts/gergelyorosz_i-didnt-believe-it-until-i-saw-it-but-it-activity-7389306027000774656-u0r8,linkedin,linkedin,article,misc,gergelyorosz: I didn't believe it until I saw it: but it *really* works in open offices! And you cannot even hear ,I didn
+https://www.linkedin.com/posts/matteocollina_the-nodejs-revolution-started-aws-just-activity-7402769825430769664-QrHL,linkedin,linkedin,article,learning,matteocollina: The Node.js (R)evolution started - AWS just made it official | Matteo Collina,🔥 NEW BANTER EPISODE: The Node.js (R)evolution Started: AWS Just Made It Official
+https://www.linkedin.com/posts/matteocollina_youve-captured-a-performance-issue-in-your-ugcPost-7406705741228617728-qx08,linkedin,linkedin,article,learning,Performance Debugging,Node.js performance tips
+https://www.linkedin.com/posts/reginaclin_browser-ai-productivity-ugcPost-7404951038362910720-pwX9,linkedin,linkedin,article,misc,Browser AI Productivity,AI browser tools
+https://www.linkedin.com/posts/y-combinator_castari-yc-f25-is-building-the-vercel-for-activity-7396292301100212225-SgK9,linkedin,linkedin,article,competitor,y-combinator: Castari launches to simplify AI agent deployment | Y Combinator posted on the topic | LinkedIn,"Castari (YC F25) is building the Vercel for AI agents. They manage the infrastructure needed for teams to deploy sandboxed agents into production without having to become experts in sandboxes, jobs, o"
+https://www.litellm.ai/,tool,litellm,product,learning,LiteLLM,LLM proxy and gateway
+https://www.mcpauth.app/,tool,mcpauth,product,learning,MCP Auth,MCP authentication solution
+https://www.momento.sh,tool,momento,product,learning,Momento,Serverless cache
+https://www.morphllm.com,tool,morphllm,product,learning,Morph LLM,LLM tool
+https://www.nvidia.com/en-us/startups/?deeplink=expertise-faq--4#expertise-faq-item-a26763166a,reference,nvidia,docs,misc,NVIDIA Startups FAQ,Startup program info
+https://www.prdprompt.com.br/login,tool,prdprompt,product,misc,PRD Prompt,Product requirements tool
+https://www.reddit.com/r/n8n/comments/1gjdxkt/best_front_end_for_n8n_ai_agents/,social,reddit,discussion,learning,n8n Frontend Discussion,Automation UI discussion
+https://www.reddit.com/r/webdev/comments/1kxepor/i_rebuilt_shadcnui_in_html_tailwind_no_react/,social,reddit,discussion,learning,shadcn HTML Rebuild,Component library discussion
+https://www.rivet.dev/,tool,rivet,product,learning,Rivet,AI agent IDE
+https://www.shayon.dev/post/2025/277/an-mvcc-like-columnar-table-on-s3-with-constant-time-deletes/,reference,personal,article,learning,S3 Columnar Table,Database architecture article
+https://www.stainless.com/,tool,stainless,product,learning,Stainless,API SDK generator
+https://www.superdoc.dev/,tool,superdoc,product,learning,SuperDoc,Document processing tool
+https://www.tadata.com/blog/how-we-make-ai-tool-calling-work,reference,tadata,article,learning,AI Tool Calling,How tool calling works
+https://www.tbench.ai/,tool,tbench,product,learning,TBench,AI benchmarking tool
+https://www.trynia.ai/,tool,trynia,product,learning,Trynia,AI tool
+https://www.ycombinator.com/companies/absurd,reference,ycombinator,profile,competitor,Absurd YC Profile,YC company profile
+https://www.youtube.com/playlist?list=PLBaUJRFQ-j_WJZdZfFNsgUWDWF1Ldjp_X,media,youtube,video,learning,YouTube Playlist,Educational playlist
+https://www.youtube.com/playlist?list=PLGXfp7aORhWCwBl07NtNQX21bHGxa8oJ3,media,youtube,video,learning,YouTube Playlist,Educational playlist
+https://www.youtube.com/watch?v=5fVtI4Hl6qk,media,youtube,video,learning,YouTube Video,Educational video
+https://www.youtube.com/watch?v=bgreXPgt43g&t=9s,media,youtube,video,learning,YouTube Video,Educational video
+https://www.youtube.com/watch?v=dGiqrsv530Y,media,youtube,video,learning,YouTube Video,Educational video
+https://www.youtube.com/watch?v=QAPxB0zqzpw,media,youtube,video,learning,YouTube Video,Educational video
+https://www.youtube.com/watch?v=w3WYdYyjek4,media,youtube,video,learning,YouTube Video,Educational video
+https://x.com/benhylak/status/1962738600484958661,x,twitter,discussion,learning,@benhylak on X,Social media post from @benhylak
+https://x.com/comunidademc/status/1989358202329477622,x,twitter,discussion,community,@comunidademc on X,Social media post from @comunidademc
+https://x.com/cursor_ai/status/1940817965211177471,x,twitter,discussion,learning,@cursor_ai on X,Social media post from @cursor_ai
+https://x.com/cursor_ai/status/1972778817854067188,x,twitter,discussion,learning,@cursor_ai on X,Social media post from @cursor_ai
+https://x.com/embirico/status/1969078820012486705,x,twitter,discussion,learning,@embirico on X,Social media post from @embirico
+https://x.com/ericzakariasson/status/1976740401093787690,x,twitter,discussion,learning,@ericzakariasson on X,Social media post from @ericzakariasson
+https://x.com/ericzakariasson/status/1978177556424917152,x,twitter,discussion,learning,@ericzakariasson on X,Social media post from @ericzakariasson
+https://x.com/jamesacowling/status/1968366955737575905,x,twitter,discussion,learning,@jamesacowling on X,Social media post from @jamesacowling
+https://x.com/kiwicopple/status/1976411278609699148,x,twitter,discussion,learning,@kiwicopple on X,Social media post from @kiwicopple
+https://x.com/levie/status/1973471766938001745,x,twitter,discussion,learning,@levie on X,Social media post from @levie
+https://x.com/levie/status/1989813515650281968,x,twitter,discussion,learning,@levie on X,Social media post from @levie
+https://x.com/levie/status/1999359216310714844,x,twitter,discussion,learning,@levie on X,Social media post from @levie
+https://x.com/maccaw/status/1973890926771658813,x,twitter,discussion,learning,@maccaw on X,Social media post from @maccaw
+https://x.com/mitsuhiko/status/1942531115371131270,x,twitter,discussion,learning,@mitsuhiko on X,Social media post from @mitsuhiko
+https://x.com/mitsuhiko/status/1963980011460804629,x,twitter,discussion,learning,@mitsuhiko on X,Social media post from @mitsuhiko
+https://x.com/reactjs/status/1996244264192274535,x,twitter,discussion,learning,@reactjs on X,Social media post from @reactjs
+https://x.com/shadcn/status/1974161344493670687,x,twitter,discussion,learning,@shadcn on X,Social media post from @shadcn
+https://x.com/thdxr/status/1960902791024587233,x,twitter,discussion,learning,@thdxr on X,Social media post from @thdxr
+https://x.com/zeeg/status/1982486860971839523,x,twitter,discussion,learning,@zeeg on X,Social media post from @zeeg
+https://youtu.be/44eFf-tRiSg,media,youtube,video,learning,YouTube Video,Educational video
+https://youtu.be/rmvDxxNubIg,media,youtube,video,learning,YouTube Video,Educational video
+https://youtu.be/VaeI9YgE1o8,media,youtube,video,learning,YouTube Video,Educational video
+https://zen-browser.app/,tool,zen,product,learning,Zen Browser,Privacy-focused browser
+https://softwareanalyst.substack.com/p/the-wiz-playbook-how-they-dominated,reference,softwareanalyst,product,learning,How Wiz Became the Fastest Software Company to Hit $500M & Its Path to $1B,From Comet Refs
+https://www.youtube.com/live/IS2r9L9Go4s,reference,youtube,product,learning,(1007) MANGABEIRA UNGER - DESAFIOS ENTRE LULA E BOLSONARO - KRITIKÊ #349 - YouTube,From Comet Refs
+https://www.sully.ai/,reference,sully,product,learning,Sully.ai - AI Agents for Healthcare,From Comet Refs
+https://www.gitlip.com/,reference,gitlip,product,learning,Gitlip,From Comet Refs
+https://jumpad.ai/,reference,jumpad,product,learning,Jumpad - Enterprise-level AI layer,From Comet Refs
+https://asdf-vm.com/guide/getting-started.html,reference,asdf-vm,product,learning,Getting Started | asdf,From Comet Refs
+https://asdf-vm.com/,reference,asdf-vm,product,learning,asdf,From Comet Refs
+https://www.arcade.dev/,reference,arcade,product,learning,Go Beyond Chat: Make AI actually do things.,From Comet Refs
+https://refine.dev/,reference,refine,product,learning,Refine | Open-source Retool for Enterprise,From Comet Refs
+https://www.unifyapps.com/,reference,unifyapps,product,learning,UnifyApps,From Comet Refs
+https://www.superblocks.com/clark,reference,superblocks,product,learning,Clark - The first AI Agent to build internal enterprise apps,From Comet Refs
+https://metorial.com/,reference,metorial,product,learning,Metorial - Integration Platform for AI,From Comet Refs
+https://www.runlayer.com/,reference,runlayer,product,learning,"Runlayer | The Simpler, Safer Way to Connect MCPs",From Comet Refs
+https://leap.new/,reference,leap,product,learning,Leap - AI developer agent that builds and deploys apps to your cloud,From Comet Refs
+https://dust.tt/,reference,dust,product,learning,Accelerate your entire organization with custom AI agents,From Comet Refs
+https://airia.com/?gad_source=1&gad_campaignid=23148227909&gbraid=0AAAAA_Y29P2z5c8_YoIOpqZjnsGE-F3kS&gclid=CjwKCAiAt8bIBhBpEiwAzH1w6Ww3X-9OSxXZi6Djt6D2HLBdDTrpU_3umHLt9g_Pkvydk7up8iJIaBoCd0kQAvD_BwE,reference,airia,product,learning,Airia | Enterprise AI Platform for Secure & Scalable Solutions,From Comet Refs
+https://fiberplane.com/,reference,fiberplane,product,learning,Fiberplane,From Comet Refs
+https://www.levelfour.ai/,reference,levelfour,product,learning,LevelFour - Your AI-powered FinOps partner,From Comet Refs
+https://poke-holo.simey.me/,reference,poke-holo,product,learning,Pokémon Cards CSS Holographic Effect,From Comet Refs
+https://computer.tldraw.com/p/sCeHo8uTtpyeYK5yzMiUie,reference,computer,product,learning,tldraw computer,From Comet Refs
+https://www.coderabbit.ai/,reference,coderabbit,product,learning,AI Code Reviews | CodeRabbit | Try for Free,From Comet Refs
+https://www.eraser.io/diagramgpt,reference,eraser,product,learning,DiagramGPT – AI diagram generator,From Comet Refs
+https://benanderson.work/blog/technical-deflation/,reference,benanderson,article,learning,Technical Deflation,From Comet 2025-11
+https://www.bvp.com/atlas/roadmap-developer-tooling-for-software-3-0,reference,bvp,article,learning,Roadmap: Developer Tooling for Software 3.0 - Bessemer Venture Partners,From Comet 2025-11
+https://www.anthropic.com/engineering/code-execution-with-mcp,reference,anthropic,article,learning,Code execution with MCP: building more efficient AI agents \ Anthropic,From Comet 2025-11
+https://www.youtube.com/watch?v=26al00-nq74,media,youtube,video,learning,(150) Get started with MCPTotal - YouTube,From Comet Watchlist
+https://www.youtube.com/watch?v=50-Gc320CNo,media,youtube,video,learning,(418) Understanding the Most Anxious Country in the World - YouTube,From Comet Watchlist
+https://dev.to/stacklok/introducing-virtual-mcp-server-unified-gateway-for-multi-mcp-workflows-17ee,reference,dev,article,learning,Introducing Virtual MCP Server: Unified Gateway for Multi-MCP Workflows - DEV Community,From Comet Readlist
+https://www.speakeasy.com/mcp/mcp-for-skeptics/common-criticisms,reference,speakeasy,article,learning,Common Criticisms of MCP (And Why They Miss the Point) | Speakeasy,From Comet Readlist

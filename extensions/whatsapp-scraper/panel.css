@@ -375,6 +375,12 @@ body.wa-scraper-open .app-wrapper-web {
   color: var(--text-tertiary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  transition: all 0.2s ease;
+}
+
+.wa-badge.live {
+  background: var(--accent-subtle);
+  color: var(--accent);
 }
 
 /* MCP Tab */
@@ -474,19 +480,63 @@ body.wa-scraper-open .app-wrapper-web {
 }
 
 .wa-mcp-status {
-  margin-top: 20px;
-  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  padding: 14px 18px;
   background: var(--accent-subtle);
-  border-radius: var(--radius-md);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: var(--radius-lg);
   text-align: center;
   color: var(--accent-hover);
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.wa-mcp-status.stopped {
-  background: rgba(239, 68, 68, 0.1);
+.wa-mcp-status.connected {
+  background: var(--accent-subtle);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: var(--accent-hover);
+}
+
+.wa-mcp-status.disconnected {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(239, 68, 68, 0.3);
   color: #f87171;
+}
+
+.wa-mcp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 2s infinite;
+}
+
+.wa-mcp-status.disconnected .wa-mcp-dot {
+  animation: none;
+  opacity: 0.5;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.9);
+  }
+}
+
+.wa-mcp-footer {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--panel-border);
+  text-align: center;
 }
 
 /* Debug output */

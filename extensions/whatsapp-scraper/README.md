@@ -1,18 +1,20 @@
-# WhatsApp Web MCP
+# WhatsApp Web MCP Bridge
 
-A Chrome extension with a side panel UI for scraping messages and controlling WhatsApp Web via MCP.
+A Chrome extension that bridges WhatsApp Web to MCP (Model Context Protocol), enabling AI agents to interact with your WhatsApp conversations.
 
 ## Features
 
-- **Side Panel UI**: Opens inside WhatsApp Web, symmetrical to the chat list
-- **Two Tabs**:
-  - **Scrape**: Extract and export message history
-  - **MCP (soon)**: Local MCP server for agentic WhatsApp access
-- **Filter by sender**: All messages, only from me, or only from others
-- **Content filters**: Text messages, media captions
-- **Minimum length**: Skip short messages
-- **Auto-scroll**: Automatically scrolls up to load older messages
-- **Export options**: Auto-download or custom file picker
+### 🔌 MCP Bridge
+- **Real-time WebSocket connection** to local MCP server
+- **Full tool suite** for AI agents to control WhatsApp
+- **Auto-reconnect** if connection drops
+
+### 📋 Manual Scraping (Side Panel UI)
+- Extract and export message history
+- Filter by sender: All / Only from me / Only from others
+- Content filters: Text messages, media captions
+- Auto-scroll to load older messages
+- Export to text file
 
 ## Installation
 
@@ -21,31 +23,86 @@ A Chrome extension with a side panel UI for scraping messages and controlling Wh
 3. Click **Load unpacked**
 4. Select the `extensions/whatsapp-scraper` folder
 
-## Usage
+## MCP Bridge Setup
 
-1. Open [WhatsApp Web](https://web.whatsapp.com)
-2. Open the chat you want to scrape
-3. **Click the extension icon** in Chrome toolbar to toggle the side panel
-4. Configure filters in the **Scrape** tab:
-   - **Filter messages**: All / Only from me / Only from others
-   - **Content filter**: Text messages / Media captions
-   - **Minimum length**: Skip messages shorter than N characters
-   - **Scroll limit**: How many times to scroll up (more = older messages)
-   - **Filename**: Template with `{chatName}` and `{date}` placeholders
-5. Click **Start Scraping**
-6. Wait for completion (watch progress in status bar)
-7. File auto-downloads when complete (or use Export button)
+### 1. Start the MCP Server
 
-## MCP Tab (Coming Soon)
+```bash
+cd /path/to/vibegui.com
+bun run mcp:dev
+```
 
-The MCP tab will allow you to start a local WebSocket server that exposes MCP-compatible tools:
+The server starts a WebSocket on `ws://localhost:9999`.
 
-- `whatsapp.listChats()` - List all chats
-- `whatsapp.openChat(name)` - Focus a specific chat
-- `whatsapp.scrapeMessages(opts)` - Scrape message history
-- `whatsapp.sendMessage(chat, text)` - Send messages
+### 2. Open WhatsApp Web
 
-Connect from Claude Desktop, Cursor, or other MCP clients to control WhatsApp programmatically.
+Navigate to [web.whatsapp.com](https://web.whatsapp.com) in Chrome.
+
+### 3. Verify Connection
+
+Click the extension icon to open the side panel, go to the **MCP** tab. You should see:
+- **"Connected to MCP Server"** with a pulsing green dot
+
+### 4. Use via AI Agent
+
+In Cursor, Claude Desktop, or any MCP-compatible client, you can now use these tools:
+
+## Available MCP Tools
+
+| Tool | Description |
+|------|-------------|
+| `WHATSAPP_STATUS` | Check if extension is connected and a chat is open |
+| `WHATSAPP_LIST_CHATS` | List visible chats in sidebar with last messages |
+| `WHATSAPP_SEARCH_CHATS` | Search for a chat by name or phone number |
+| `WHATSAPP_CLEAR_SEARCH` | Clear search and return to full chat list |
+| `WHATSAPP_OPEN_CHAT` | Open a specific chat by name (partial match) |
+| `WHATSAPP_GET_CURRENT_CHAT` | Get info about currently open chat |
+| `WHATSAPP_READ_MESSAGES` | Read currently visible messages |
+| `WHATSAPP_SCROLL_UP` | Scroll up to load older messages |
+| `WHATSAPP_SCROLL_DOWN` | Scroll down to see newer messages |
+| `WHATSAPP_SCRAPE` | Full history scrape with auto-scroll |
+
+### Example Usage (via AI)
+
+```
+"List my WhatsApp chats"
+→ Calls WHATSAPP_LIST_CHATS
+
+"Open the chat with João"
+→ Calls WHATSAPP_OPEN_CHAT with name="João"
+
+"Read the last messages"
+→ Calls WHATSAPP_READ_MESSAGES
+
+"Scroll up and read older messages"
+→ Calls WHATSAPP_SCROLL_UP then WHATSAPP_READ_MESSAGES
+
+"Scrape the full conversation history"
+→ Calls WHATSAPP_SCRAPE with scrollLimit=100
+```
+
+## Architecture
+
+```
+┌─────────────────────┐     MCP      ┌──────────────────────┐
+│   AI Agent          │◄────────────►│  vibegui.com MCP     │
+│  (Cursor/Claude)    │   Protocol   │  Server (Bun)        │
+└─────────────────────┘              └──────────┬───────────┘
+                                                │
+                                     WebSocket  │ :9999
+                                                │
+                                     ┌──────────▼───────────┐
+                                     │  Chrome Extension    │
+                                     │  (content.js)        │
+                                     └──────────┬───────────┘
+                                                │
+                                       DOM      │
+                                                │
+                                     ┌──────────▼───────────┐
+                                     │  WhatsApp Web        │
+                                     │  (web.whatsapp.com)  │
+                                     └──────────────────────┘
+```
 
 ## Files
 
@@ -53,28 +110,50 @@ Connect from Claude Desktop, Cursor, or other MCP clients to control WhatsApp pr
 extensions/whatsapp-scraper/
 ├── manifest.json      # Extension config (MV3)
 ├── background.js      # Service worker (handles icon clicks)
-├── content.js         # Injected script (panel UI + scraping logic)
+├── content.js         # Main script (panel UI + scraping + MCP bridge)
 ├── panel.css          # Side panel styles
 ├── icon.svg           # Extension icon
 └── README.md          # This file
 ```
 
-## Notes
+## Security
 
-- WhatsApp Web DOM structure changes frequently. If scraping stops working, the selectors in `content.js` may need updating.
-- For very long chats, increase the scroll limit (default: 500)
-- The extension only reads messages in Scrape mode - it doesn't modify anything
+- WebSocket only on `localhost` (127.0.0.1)
+- No external network access from extension
+- User must explicitly have WhatsApp Web open
+- Extension only reads messages, doesn't send (read-only)
 
 ## Troubleshooting
 
-**Side panel doesn't open**
+### "Not connected" in MCP tab
+- Ensure `bun run mcp:dev` is running in vibegui.com
+- Check console for WebSocket errors
+- Click "Reconnect" button
+
+### Side panel doesn't open
 - Make sure you're on web.whatsapp.com
-- Refresh the page after installing/updating the extension
+- Refresh the page after installing/updating
 
-**"No chat open"**
-- Make sure you have a chat selected (not just the chat list)
+### "No chat open" error
+- Select a chat in WhatsApp before reading messages
 
-**No messages found**
-- Check your filter settings
-- Try reducing minimum length to 0
+### Messages not found
 - WhatsApp DOM might have changed - check console for errors
+- Try updating selectors in content.js
+
+## Development
+
+```bash
+# Watch MCP server
+cd vibegui.com
+bun run mcp:dev
+
+# After changing extension files, reload in chrome://extensions
+```
+
+## Version History
+
+- **1.0.0** - Full MCP Bridge with WebSocket connection
+- **0.3.0** - Side panel UI for scraping
+- **0.2.0** - Basic message extraction
+- **0.1.0** - Initial popup version

@@ -4,6 +4,7 @@
  * This MCP server manages the entire lifecycle of the blog:
  * - Content collections: Ideas, Research, Drafts, Articles (CRUD)
  * - Development tools: dev server, build, git operations
+ * - WhatsApp Bridge: Control WhatsApp Web via browser extension
  *
  * Agents transform content between collections using the CRUD tools directly.
  *
@@ -21,6 +22,125 @@ import { readdir, readFile, writeFile, unlink, mkdir } from "node:fs/promises";
 import { join, basename } from "node:path";
 import { execSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
+import {
+  discoverAllProfiles,
+  createReader,
+  getBrowserDisplayName,
+  type BrowserProfile,
+  type RawBookmark,
+} from "./lib/bookmarks/index.ts";
+
+// ============================================================================
+// WhatsApp Bridge - WebSocket Server
+// ============================================================================
+
+const WS_PORT = 9999;
+
+interface PendingRequest {
+  resolve: (value: unknown) => void;
+  reject: (error: Error) => void;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+interface BridgeRequest {
+  id: string;
+  method: string;
+  params: Record<string, unknown>;
+}
+
+interface BridgeResponse {
+  id: string;
+  result?: unknown;
+  error?: { code: number; message: string };
+}
+
+let extensionSocket: import("bun").ServerWebSocket<unknown> | null = null;
+const pendingRequests = new Map<string, PendingRequest>();
+
+// Create WebSocket server for extension communication
+const _wsServer = Bun.serve({
+  port: WS_PORT,
+  fetch(req, server) {
+    // Upgrade HTTP requests to WebSocket
+    if (server.upgrade(req)) {
+      return; // Upgrade successful
+    }
+    return new Response("WebSocket server for WhatsApp MCP Bridge", {
+      status: 200,
+    });
+  },
+  websocket: {
+    open(ws) {
+      console.log("[MCP] WhatsApp extension connected");
+      extensionSocket = ws;
+    },
+    message(ws, message) {
+      try {
+        const response = JSON.parse(
+          typeof message === "string" ? message : message.toString(),
+        ) as BridgeResponse;
+        const pending = pendingRequests.get(response.id);
+        if (pending) {
+          clearTimeout(pending.timeout);
+          pendingRequests.delete(response.id);
+          if (response.error) {
+            pending.reject(new Error(response.error.message));
+          } else {
+            pending.resolve(response.result);
+          }
+        }
+      } catch (err) {
+        console.error("[MCP] Failed to parse extension message:", err);
+      }
+    },
+    close() {
+      console.log("[MCP] WhatsApp extension disconnected");
+      extensionSocket = null;
+      // Reject all pending requests
+      for (const [id, pending] of pendingRequests) {
+        clearTimeout(pending.timeout);
+        pending.reject(new Error("Extension disconnected"));
+        pendingRequests.delete(id);
+      }
+    },
+  },
+});
+
+console.log(
+  `[MCP] WhatsApp Bridge WebSocket server listening on ws://localhost:${WS_PORT}`,
+);
+
+/**
+ * Send a command to the WhatsApp extension and wait for response
+ */
+async function sendToExtension<T>(
+  method: string,
+  params: Record<string, unknown> = {},
+): Promise<T> {
+  if (!extensionSocket) {
+    throw new Error(
+      "WhatsApp extension not connected. Open WhatsApp Web and ensure the extension is loaded.",
+    );
+  }
+
+  const id = crypto.randomUUID();
+
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      pendingRequests.delete(id);
+      reject(new Error("Extension request timeout (30s)"));
+    }, 30000);
+
+    pendingRequests.set(id, {
+      resolve: resolve as (value: unknown) => void,
+      reject,
+      timeout,
+    });
+
+    const request: BridgeRequest = { id, method, params };
+    extensionSocket!.send(JSON.stringify(request));
+  });
+}
 
 // ============================================================================
 // Package.json Script Tools Generator
@@ -914,6 +1034,526 @@ const interactiveTools = [
 ];
 
 // ============================================================================
+// WhatsApp Bridge Tools
+// ============================================================================
+
+/**
+ * Schema for a WhatsApp chat in the sidebar
+ */
+const WhatsAppChatSchema = z.object({
+  name: z.string(),
+  lastMessage: z.string().optional(),
+  time: z.string().optional(),
+  unread: z.number().optional(),
+});
+
+/**
+ * Schema for a WhatsApp message
+ */
+const WhatsAppMessageSchema = z.object({
+  id: z.string(),
+  text: z.string(),
+  isOutgoing: z.boolean(),
+  timestamp: z.string().optional(),
+  author: z.string().optional(),
+  hasMedia: z.boolean().optional(),
+});
+
+const whatsappTools = [
+  createTool({
+    id: "WHATSAPP_STATUS",
+    description:
+      "Check if WhatsApp extension is connected and a chat is open. Use this first to verify the bridge is working.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      connected: z.boolean().describe("Whether extension is connected"),
+      chatOpen: z.boolean().describe("Whether a chat is currently open"),
+      currentChat: z.string().optional().describe("Name of current chat"),
+    }),
+    execute: async () => {
+      try {
+        const result = await sendToExtension<{
+          connected: boolean;
+          chatOpen: boolean;
+          currentChat?: string;
+        }>("status");
+        return result;
+      } catch {
+        return { connected: false, chatOpen: false };
+      }
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_LIST_CHATS",
+    description:
+      "List visible chats in WhatsApp sidebar. Returns chat names, last messages, and timestamps.",
+    inputSchema: z.object({
+      limit: z
+        .number()
+        .default(20)
+        .describe("Maximum number of chats to return"),
+    }),
+    outputSchema: z.object({
+      chats: z.array(WhatsAppChatSchema),
+      total: z.number(),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("listChats", { limit: context.limit });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_SEARCH_CHATS",
+    description:
+      "Search for a chat by name using WhatsApp's search box. Updates the visible chat list.",
+    inputSchema: z.object({
+      query: z.string().describe("Search query (name or phone number)"),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("searchChats", { query: context.query });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_OPEN_CHAT",
+    description:
+      "Open a specific chat by name. Supports partial matching (case-insensitive).",
+    inputSchema: z.object({
+      name: z.string().describe("Chat name to open (partial match supported)"),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+      openedChat: z.string().optional().describe("Full name of opened chat"),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("openChat", { name: context.name });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_GET_CURRENT_CHAT",
+    description: "Get information about the currently open chat.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      name: z.string().describe("Name of current chat"),
+      isGroup: z.boolean().optional(),
+    }),
+    execute: async () => {
+      return sendToExtension("getCurrentChat");
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_READ_MESSAGES",
+    description:
+      "Read currently visible messages in the open chat. Does not scroll - only reads what's on screen.",
+    inputSchema: z.object({
+      filter: z
+        .enum(["all", "me", "them"])
+        .default("all")
+        .describe("Filter by sender: all, me (outgoing), or them (incoming)"),
+    }),
+    outputSchema: z.object({
+      messages: z.array(WhatsAppMessageSchema),
+      total: z.number(),
+      chatName: z.string().optional(),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("readMessages", { filter: context.filter });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_SCROLL_UP",
+    description:
+      "Scroll up to load older messages. Use this iteratively to navigate history.",
+    inputSchema: z.object({
+      count: z
+        .number()
+        .default(5)
+        .describe("Number of scroll actions to perform"),
+    }),
+    outputSchema: z.object({
+      scrolled: z.number().describe("Actual number of successful scrolls"),
+      reachedTop: z.boolean().optional().describe("Whether we reached the top"),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("scrollUp", { count: context.count });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_SCROLL_DOWN",
+    description: "Scroll down to see newer messages.",
+    inputSchema: z.object({
+      count: z
+        .number()
+        .default(5)
+        .describe("Number of scroll actions to perform"),
+    }),
+    outputSchema: z.object({
+      scrolled: z.number(),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("scrollDown", { count: context.count });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_SCRAPE",
+    description:
+      "Full scrape of chat history with auto-scroll. Collects all messages by scrolling through the entire conversation. Can take a while for long chats.",
+    inputSchema: z.object({
+      scrollLimit: z
+        .number()
+        .default(50)
+        .describe(
+          "Maximum scroll actions (more = older history, ~20 msgs per scroll)",
+        ),
+      filter: z
+        .enum(["all", "me", "them"])
+        .default("all")
+        .describe("Filter messages by sender"),
+      minLength: z
+        .number()
+        .default(0)
+        .describe("Minimum message length in characters"),
+    }),
+    outputSchema: z.object({
+      messages: z.array(WhatsAppMessageSchema),
+      total: z.number(),
+      scrollsPerformed: z.number().optional(),
+    }),
+    execute: async ({ context }) => {
+      return sendToExtension("scrape", {
+        scrollLimit: context.scrollLimit,
+        filter: context.filter,
+        minLength: context.minLength,
+      });
+    },
+  }),
+
+  createTool({
+    id: "WHATSAPP_CLEAR_SEARCH",
+    description: "Clear the search box and return to the full chat list.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      success: z.boolean(),
+    }),
+    execute: async () => {
+      return sendToExtension("clearSearch");
+    },
+  }),
+];
+
+console.log(`[MCP] Registered ${whatsappTools.length} WhatsApp Bridge tools`);
+
+// ============================================================================
+// Bookmark Tools - Read bookmarks from local browsers
+// ============================================================================
+
+const BrowserTypeSchema = z.enum([
+  "chrome",
+  "chromium",
+  "brave",
+  "edge",
+  "dia",
+  "comet",
+  "firefox",
+  "safari",
+]);
+
+const BrowserProfileSchema = z.object({
+  browser: BrowserTypeSchema,
+  name: z.string(),
+  path: z.string(),
+  bookmarksPath: z.string(),
+  isDefault: z.boolean(),
+});
+
+const RawBookmarkSchema = z.object({
+  id: z.string(),
+  url: z.string(),
+  title: z.string(),
+  dateAdded: z.number().optional(),
+  dateModified: z.number().optional(),
+  folderId: z.string().optional(),
+});
+
+const bookmarkTools = [
+  createTool({
+    id: "BOOKMARKS_DISCOVER_BROWSERS",
+    description:
+      "Discover all browser profiles on this system. Returns Chrome, Brave, Edge, Firefox, Safari profiles with their paths. Use this first to see available browsers before reading bookmarks.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      profiles: z.array(BrowserProfileSchema),
+      summary: z.string(),
+    }),
+    execute: async () => {
+      const profiles = await discoverAllProfiles();
+
+      // Group by browser for summary
+      const byBrowser = new Map<string, number>();
+      for (const p of profiles) {
+        const name = getBrowserDisplayName(p.browser);
+        byBrowser.set(name, (byBrowser.get(name) || 0) + 1);
+      }
+
+      const summary = Array.from(byBrowser.entries())
+        .map(([name, count]) => `${name}: ${count} profile(s)`)
+        .join(", ");
+
+      return {
+        profiles,
+        summary: summary || "No browser profiles found",
+      };
+    },
+  }),
+
+  createTool({
+    id: "BOOKMARKS_READ",
+    description:
+      "Read bookmarks from a specific browser profile. Returns all bookmarks with URLs, titles, and folder info. Supports Chrome, Brave, Edge, Dia, Comet, Safari. Firefox requires better-sqlite3.",
+    inputSchema: z.object({
+      browser: BrowserTypeSchema.describe("Browser type to read from"),
+      profilePath: z
+        .string()
+        .optional()
+        .describe(
+          "Optional: specific profile path. If not provided, uses default profile.",
+        ),
+    }),
+    outputSchema: z.object({
+      bookmarks: z.array(RawBookmarkSchema),
+      folderCount: z.number(),
+      totalCount: z.number(),
+      browser: z.string(),
+      profileName: z.string(),
+    }),
+    execute: async ({ context }) => {
+      const reader = createReader(context.browser);
+      const profiles = await reader.discoverProfiles();
+
+      let profile: BrowserProfile | undefined;
+
+      if (context.profilePath) {
+        profile = profiles.find((p) => p.path === context.profilePath);
+        if (!profile) {
+          throw new Error(`Profile not found at path: ${context.profilePath}`);
+        }
+      } else {
+        profile = profiles.find((p) => p.isDefault) || profiles[0];
+        if (!profile) {
+          throw new Error(
+            `No ${getBrowserDisplayName(context.browser)} profiles found`,
+          );
+        }
+      }
+
+      const data = await reader.readBookmarks(profile);
+
+      return {
+        bookmarks: data.bookmarks.map((b) => ({
+          id: b.id,
+          url: b.url,
+          title: b.title,
+          dateAdded: b.dateAdded,
+          dateModified: b.dateModified,
+          folderId: b.folderId,
+        })),
+        folderCount: data.folders.length,
+        totalCount: data.bookmarks.length,
+        browser: getBrowserDisplayName(context.browser),
+        profileName: profile.name,
+      };
+    },
+  }),
+
+  createTool({
+    id: "BOOKMARKS_SEARCH",
+    description:
+      "Search bookmarks across all browser profiles by URL or title pattern. Returns matching bookmarks from all installed browsers.",
+    inputSchema: z.object({
+      pattern: z
+        .string()
+        .describe("Search pattern (case-insensitive, matches URL or title)"),
+      browsers: z
+        .array(BrowserTypeSchema)
+        .optional()
+        .describe(
+          "Optional: limit search to specific browsers. If not provided, searches all.",
+        ),
+      limit: z
+        .number()
+        .default(50)
+        .describe("Maximum number of results to return"),
+    }),
+    outputSchema: z.object({
+      results: z.array(
+        z.object({
+          browser: z.string(),
+          profileName: z.string(),
+          bookmark: RawBookmarkSchema,
+        }),
+      ),
+      totalMatches: z.number(),
+      searchedBrowsers: z.array(z.string()),
+    }),
+    execute: async ({ context }) => {
+      const allProfiles = await discoverAllProfiles();
+      const pattern = context.pattern.toLowerCase();
+
+      // Filter by browser if specified
+      const profilesToSearch = context.browsers
+        ? allProfiles.filter((p) => context.browsers!.includes(p.browser))
+        : allProfiles;
+
+      const results: Array<{
+        browser: string;
+        profileName: string;
+        bookmark: RawBookmark;
+      }> = [];
+
+      const searchedBrowsers = new Set<string>();
+
+      for (const profile of profilesToSearch) {
+        try {
+          const reader = createReader(profile.browser);
+          const data = await reader.readBookmarks(profile);
+
+          searchedBrowsers.add(getBrowserDisplayName(profile.browser));
+
+          for (const bookmark of data.bookmarks) {
+            if (
+              bookmark.url.toLowerCase().includes(pattern) ||
+              bookmark.title.toLowerCase().includes(pattern)
+            ) {
+              results.push({
+                browser: getBrowserDisplayName(profile.browser),
+                profileName: profile.name,
+                bookmark,
+              });
+
+              if (results.length >= context.limit) {
+                break;
+              }
+            }
+          }
+
+          if (results.length >= context.limit) {
+            break;
+          }
+        } catch {
+          // Skip browsers that fail to read (e.g., Firefox without better-sqlite3)
+        }
+      }
+
+      return {
+        results: results.slice(0, context.limit).map((r) => ({
+          browser: r.browser,
+          profileName: r.profileName,
+          bookmark: {
+            id: r.bookmark.id,
+            url: r.bookmark.url,
+            title: r.bookmark.title,
+            dateAdded: r.bookmark.dateAdded,
+            dateModified: r.bookmark.dateModified,
+            folderId: r.bookmark.folderId,
+          },
+        })),
+        totalMatches: results.length,
+        searchedBrowsers: Array.from(searchedBrowsers),
+      };
+    },
+  }),
+
+  createTool({
+    id: "BOOKMARKS_EXPORT_CSV",
+    description:
+      "Export bookmarks from a browser to CSV format. Returns CSV content that can be saved or appended to existing CSV files.",
+    inputSchema: z.object({
+      browser: BrowserTypeSchema.describe("Browser type to export from"),
+      profilePath: z
+        .string()
+        .optional()
+        .describe("Optional: specific profile path"),
+      includeHeader: z
+        .boolean()
+        .default(true)
+        .describe("Include CSV header row"),
+    }),
+    outputSchema: z.object({
+      csv: z.string(),
+      rowCount: z.number(),
+      browser: z.string(),
+    }),
+    execute: async ({ context }) => {
+      const reader = createReader(context.browser);
+      const profiles = await reader.discoverProfiles();
+
+      let profile: BrowserProfile | undefined;
+
+      if (context.profilePath) {
+        profile = profiles.find((p) => p.path === context.profilePath);
+      } else {
+        profile = profiles.find((p) => p.isDefault) || profiles[0];
+      }
+
+      if (!profile) {
+        throw new Error(
+          `No ${getBrowserDisplayName(context.browser)} profiles found`,
+        );
+      }
+
+      const data = await reader.readBookmarks(profile);
+
+      // Build CSV
+      const escapeCSV = (str: string) => {
+        if (str.includes(",") || str.includes('"') || str.includes("\n")) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
+      const lines: string[] = [];
+
+      if (context.includeHeader) {
+        lines.push("url,title,browser,profile,date_added");
+      }
+
+      for (const bookmark of data.bookmarks) {
+        const dateAdded = bookmark.dateAdded
+          ? new Date(bookmark.dateAdded / 1000).toISOString()
+          : "";
+
+        lines.push(
+          [
+            escapeCSV(bookmark.url),
+            escapeCSV(bookmark.title),
+            escapeCSV(getBrowserDisplayName(context.browser)),
+            escapeCSV(profile.name),
+            dateAdded,
+          ].join(","),
+        );
+      }
+
+      return {
+        csv: lines.join("\n"),
+        rowCount: data.bookmarks.length,
+        browser: getBrowserDisplayName(context.browser),
+      };
+    },
+  }),
+];
+
+console.log(`[MCP] Registered ${bookmarkTools.length} Bookmark tools`);
+
+// ============================================================================
 // MCP Server Export
 // ============================================================================
 
@@ -939,6 +1579,12 @@ const allTools = [
 
   // Interactive tools (dev server, git)
   ...wrapTools(interactiveTools),
+
+  // WhatsApp Bridge tools
+  ...wrapTools(whatsappTools),
+
+  // Bookmark tools (read from local browsers)
+  ...wrapTools(bookmarkTools),
 ];
 
 console.log(`[MCP] Registering ${allTools.length} total tools`);

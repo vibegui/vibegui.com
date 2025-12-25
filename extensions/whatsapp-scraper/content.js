@@ -54,7 +54,7 @@ function createPanel() {
   panel.innerHTML = `
     <div class="wa-panel-header">
       <button class="wa-panel-tab active" data-tab="scrape">Scrape</button>
-      <button class="wa-panel-tab" data-tab="mcp">MCP <span class="wa-badge">soon</span></button>
+      <button class="wa-panel-tab" data-tab="mcp">MCP <span class="wa-badge">off</span></button>
       <button class="wa-panel-close" title="Close">&times;</button>
     </div>
     <div class="wa-panel-content">
@@ -88,6 +88,14 @@ function createPanel() {
           <label class="wa-checkbox">
             <input type="checkbox" id="include-media" checked>
             Include media captions
+          </label>
+        </div>
+
+        <div class="wa-field">
+          <label>Output Format</label>
+          <label class="wa-checkbox">
+            <input type="checkbox" id="only-urls">
+            Only URLs (one per line)
           </label>
         </div>
 
@@ -135,28 +143,40 @@ function createPanel() {
       <!-- MCP TAB -->
       <div class="wa-panel-view" id="view-mcp">
         <div class="wa-mcp-hero">
-          <h2>🤖 WhatsApp MCP</h2>
-          <p>Create an MCP server that exposes tools for AI agents to interact with your WhatsApp.</p>
+          <h2>🤖 WhatsApp MCP Bridge</h2>
+          <p>Let AI agents control your WhatsApp through MCP tools. Run the vibegui.com MCP server locally.</p>
 
-          <button class="wa-mcp-btn" id="btn-mcp-start" disabled>
-            <span>▶</span> Start MCP Server
-          </button>
+          <div class="wa-mcp-status disconnected" id="mcp-status">
+            <span class="wa-mcp-dot"></span> Not connected
+          </div>
 
           <div class="wa-mcp-instructions">
-            <h3>📋 Implementation Plan</h3>
+            <h3>🚀 How to Connect</h3>
             <ul>
-              <li>1. Start a local WebSocket server on <code>localhost:9999</code></li>
-              <li>2. Expose MCP-compatible JSON-RPC endpoints</li>
-              <li>3. Tool: <code>whatsapp.listChats()</code> - List all chats</li>
-              <li>4. Tool: <code>whatsapp.openChat(name)</code> - Focus a chat</li>
-              <li>5. Tool: <code>whatsapp.scrapeMessages(opts)</code> - Scrape history</li>
-              <li>6. Tool: <code>whatsapp.sendMessage(chat, text)</code> - Send messages</li>
-              <li>7. Connect from Claude Desktop, Cursor, or other MCP clients</li>
+              <li>1. Run <code>bun run mcp:dev</code> in vibegui.com</li>
+              <li>2. Extension auto-connects to <code>ws://localhost:9999</code></li>
+              <li>3. Status above will show "Connected"</li>
+              <li>4. Use Cursor/Claude to call WhatsApp tools!</li>
             </ul>
           </div>
 
-          <div class="wa-mcp-status stopped" id="mcp-status">
-            Server not running
+          <div class="wa-mcp-instructions">
+            <h3>🔧 Available Tools</h3>
+            <ul>
+              <li><code>WHATSAPP_STATUS</code> - Check connection</li>
+              <li><code>WHATSAPP_LIST_CHATS</code> - List sidebar chats</li>
+              <li><code>WHATSAPP_SEARCH_CHATS</code> - Search by name</li>
+              <li><code>WHATSAPP_OPEN_CHAT</code> - Open a chat</li>
+              <li><code>WHATSAPP_READ_MESSAGES</code> - Read visible msgs</li>
+              <li><code>WHATSAPP_SCROLL_UP</code> - Load older msgs</li>
+              <li><code>WHATSAPP_SCRAPE</code> - Full history scrape</li>
+            </ul>
+          </div>
+
+          <div class="wa-mcp-footer">
+            <button class="wa-btn wa-btn-secondary" id="btn-mcp-reconnect">
+              Reconnect
+            </button>
           </div>
         </div>
       </div>
@@ -218,6 +238,18 @@ function initPanelEvents() {
 
   // Debug button
   document.getElementById("btn-debug").addEventListener("click", runDebug);
+
+  // MCP Reconnect button
+  document
+    .getElementById("btn-mcp-reconnect")
+    ?.addEventListener("click", () => {
+      debug("Manual MCP reconnect requested");
+      if (mcpSocket) {
+        mcpSocket.close();
+      }
+      mcpSocket = null;
+      connectToMCP();
+    });
 }
 
 function runDebug() {
@@ -423,6 +455,20 @@ function processFilename(template) {
   return template.replace("{chatName}", chatName).replace("{date}", date);
 }
 
+/**
+ * Extract all URLs from a text string
+ */
+function extractUrls(text) {
+  if (!text) return [];
+  // Match URLs with or without protocol
+  const urlRegex = /(?:https?:\/\/|www\.)[^\s<>"{}|\\^`[\]]+/gi;
+  const matches = text.match(urlRegex) || [];
+  // Clean up trailing punctuation that might be captured
+  return matches.map((url) =>
+    url.replace(/[.,;:!?)]+$/, "").replace(/\)+$/, ""),
+  );
+}
+
 function formatMessage(msg) {
   // Format: [DD/MM/YYYY, HH:MM:SS] Author: Message
   let timestamp = msg.timestamp || "";
@@ -454,7 +500,26 @@ function exportMessages() {
     return;
   }
 
-  const content = messages.map(formatMessage).join("\n");
+  const onlyUrls = document.getElementById("only-urls")?.checked ?? false;
+  let content;
+
+  if (onlyUrls) {
+    // Extract all URLs and deduplicate
+    const allUrls = new Set();
+    for (const msg of messages) {
+      const urls = extractUrls(msg.text);
+      for (const url of urls) {
+        allUrls.add(url);
+      }
+    }
+    content = Array.from(allUrls).join("\n");
+    debug(
+      `Extracted ${allUrls.size} unique URLs from ${messages.length} messages`,
+    );
+  } else {
+    content = messages.map(formatMessage).join("\n");
+  }
+
   const filenameTemplate =
     document.getElementById("filename")?.value ||
     "whatsapp-{chatName}-{date}.txt";
@@ -500,7 +565,10 @@ function downloadViaBlob(content, filename) {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  debug(`Downloaded: ${filename} (${messages.length} messages)`);
+  const onlyUrls = document.getElementById("only-urls")?.checked ?? false;
+  const lineCount = content.split("\n").filter((l) => l.trim()).length;
+  const label = onlyUrls ? `${lineCount} URLs` : `${messages.length} messages`;
+  debug(`Downloaded: ${filename} (${label})`);
   updateStatus("Exported!", messages.length);
 }
 
@@ -843,6 +911,477 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 // =============================================================================
+// MCP BRIDGE - WebSocket connection to local MCP server
+// =============================================================================
+
+let mcpSocket = null;
+let mcpReconnectInterval = null;
+let mcpConnected = false;
+
+/**
+ * Connect to the MCP server's WebSocket
+ */
+function connectToMCP() {
+  if (mcpSocket?.readyState === WebSocket.OPEN) return;
+
+  try {
+    mcpSocket = new WebSocket("ws://localhost:9999");
+
+    mcpSocket.onopen = () => {
+      debug("MCP Bridge connected to ws://localhost:9999");
+      mcpConnected = true;
+      updateMCPStatus("connected");
+      if (mcpReconnectInterval) {
+        clearInterval(mcpReconnectInterval);
+        mcpReconnectInterval = null;
+      }
+    };
+
+    mcpSocket.onmessage = async (event) => {
+      try {
+        const request = JSON.parse(event.data);
+        debug("MCP Request:", request.method, request.params);
+
+        try {
+          const result = await handleMCPCommand(
+            request.method,
+            request.params || {},
+          );
+          mcpSocket.send(JSON.stringify({ id: request.id, result }));
+          debug("MCP Response sent for:", request.method);
+        } catch (error) {
+          debug("MCP Command error:", error.message);
+          mcpSocket.send(
+            JSON.stringify({
+              id: request.id,
+              error: { code: -1, message: error.message },
+            }),
+          );
+        }
+      } catch (parseError) {
+        debug("Failed to parse MCP message:", parseError);
+      }
+    };
+
+    mcpSocket.onclose = () => {
+      debug("MCP Bridge disconnected");
+      mcpConnected = false;
+      mcpSocket = null;
+      updateMCPStatus("disconnected");
+      // Auto-reconnect every 5 seconds
+      if (!mcpReconnectInterval) {
+        mcpReconnectInterval = setInterval(connectToMCP, 5000);
+      }
+    };
+
+    mcpSocket.onerror = (err) => {
+      debug("MCP Bridge error:", err);
+    };
+  } catch (err) {
+    debug("Failed to connect to MCP:", err);
+  }
+}
+
+/**
+ * Handle incoming MCP commands
+ */
+async function handleMCPCommand(method, params) {
+  switch (method) {
+    case "status":
+      return mcpStatus();
+
+    case "listChats":
+      return listChats(params.limit);
+
+    case "searchChats":
+      return searchChats(params.query);
+
+    case "clearSearch":
+      return clearSearch();
+
+    case "openChat":
+      return openChat(params.name);
+
+    case "getCurrentChat":
+      return { name: getChatName(), isGroup: isGroupChat() };
+
+    case "readMessages":
+      return readVisibleMessages(params.filter);
+
+    case "scrollUp":
+      return scrollUpMessages(params.count);
+
+    case "scrollDown":
+      return scrollDownMessages(params.count);
+
+    case "scrape":
+      return scrapeWithOptions(params);
+
+    default:
+      throw new Error(`Unknown MCP method: ${method}`);
+  }
+}
+
+/**
+ * MCP Command: Get status
+ */
+function mcpStatus() {
+  const container = getScrollContainer();
+  return {
+    connected: true,
+    chatOpen: !!container,
+    currentChat: container ? getChatName() : undefined,
+  };
+}
+
+/**
+ * MCP Command: List chats in sidebar
+ */
+function listChats(limit = 50) {
+  // Try multiple selectors for chat items
+  const chatSelectors = [
+    '[data-testid="cell-frame-container"]',
+    '[data-testid="list-item-chat"]',
+    'div[role="listitem"]',
+    "#pane-side > div > div > div > div",
+  ];
+
+  let chatItems = [];
+  for (const sel of chatSelectors) {
+    chatItems = document.querySelectorAll(sel);
+    if (chatItems.length > 0) break;
+  }
+
+  const chats = [];
+  for (const item of Array.from(chatItems).slice(0, limit)) {
+    // Try to get chat name
+    const nameEl =
+      item.querySelector('span[dir="auto"][title]') ||
+      item.querySelector("span[title]") ||
+      item.querySelector('span[dir="auto"]');
+
+    const name = nameEl?.getAttribute("title") || nameEl?.innerText;
+    if (!name || name.length === 0) continue;
+
+    // Skip status-like text
+    const lower = name.toLowerCase();
+    if (
+      lower.includes("last seen") ||
+      lower.includes("visto por") ||
+      lower.includes("online") ||
+      lower.includes("typing")
+    ) {
+      continue;
+    }
+
+    // Get last message preview
+    const msgEl =
+      item.querySelector('span[dir="ltr"]') ||
+      item.querySelector('span[class*="last"]');
+    const lastMessage = msgEl?.innerText;
+
+    // Get time
+    const timeEl =
+      item.querySelector('[data-testid="last-msg-time"]') ||
+      item.querySelector("span:last-child");
+    const time = timeEl?.innerText;
+
+    // Get unread count if present
+    const unreadEl =
+      item.querySelector('[data-testid="unread-count"]') ||
+      item.querySelector('span[aria-label*="unread"]');
+    const unread = unreadEl ? parseInt(unreadEl.innerText) || 0 : 0;
+
+    chats.push({ name, lastMessage, time, unread });
+  }
+
+  return { chats, total: chats.length };
+}
+
+/**
+ * MCP Command: Search chats
+ */
+function searchChats(query) {
+  // Find search input
+  const searchSelectors = [
+    '[data-testid="chat-list-search"]',
+    'div[contenteditable="true"][data-tab="3"]',
+    '[role="textbox"][title*="Search"]',
+    '[role="textbox"][title*="Pesquisar"]',
+  ];
+
+  let searchBox = null;
+  for (const sel of searchSelectors) {
+    searchBox = document.querySelector(sel);
+    if (searchBox) break;
+  }
+
+  if (!searchBox) {
+    // Try clicking the search button first
+    const searchBtn = document.querySelector(
+      '[data-testid="chat-list-search-container"]',
+    );
+    if (searchBtn) searchBtn.click();
+
+    // Wait a bit and try again
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        for (const sel of searchSelectors) {
+          searchBox = document.querySelector(sel);
+          if (searchBox) break;
+        }
+        if (searchBox) {
+          performSearch(searchBox, query);
+          resolve({ success: true });
+        } else {
+          resolve({ success: false, error: "Search box not found" });
+        }
+      }, 300);
+    });
+  }
+
+  performSearch(searchBox, query);
+  return { success: true };
+}
+
+function performSearch(searchBox, query) {
+  searchBox.focus();
+  // Clear existing content
+  searchBox.innerHTML = "";
+  // Type the query
+  document.execCommand("insertText", false, query);
+  // Trigger input event
+  searchBox.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
+/**
+ * MCP Command: Clear search
+ */
+function clearSearch() {
+  const clearBtn =
+    document.querySelector('[data-testid="search-clear-btn"]') ||
+    document.querySelector('button[aria-label*="Clear"]') ||
+    document.querySelector('button[aria-label*="Limpar"]');
+
+  if (clearBtn) {
+    clearBtn.click();
+    return { success: true };
+  }
+
+  // Try pressing Escape
+  document.dispatchEvent(
+    new KeyboardEvent("keydown", { key: "Escape", keyCode: 27 }),
+  );
+  return { success: true };
+}
+
+/**
+ * MCP Command: Open a chat by name
+ */
+function openChat(name) {
+  const chatSelectors = [
+    '[data-testid="cell-frame-container"]',
+    '[data-testid="list-item-chat"]',
+    'div[role="listitem"]',
+  ];
+
+  let chatItems = [];
+  for (const sel of chatSelectors) {
+    chatItems = document.querySelectorAll(sel);
+    if (chatItems.length > 0) break;
+  }
+
+  const nameLower = name.toLowerCase();
+
+  for (const item of chatItems) {
+    const nameEl =
+      item.querySelector('span[dir="auto"][title]') ||
+      item.querySelector("span[title]") ||
+      item.querySelector('span[dir="auto"]');
+
+    const chatName = nameEl?.getAttribute("title") || nameEl?.innerText;
+    if (chatName?.toLowerCase().includes(nameLower)) {
+      item.click();
+      return { success: true, openedChat: chatName };
+    }
+  }
+
+  throw new Error(
+    `Chat not found: "${name}". Try using WHATSAPP_LIST_CHATS to see available chats.`,
+  );
+}
+
+/**
+ * Check if current chat is a group
+ */
+function isGroupChat() {
+  // Groups typically have participant counts or specific icons
+  const groupIndicators = [
+    '[data-testid="group-subject"]',
+    'span[title*="participants"]',
+    'span[title*="participantes"]',
+  ];
+
+  for (const sel of groupIndicators) {
+    if (document.querySelector(sel)) return true;
+  }
+  return false;
+}
+
+/**
+ * MCP Command: Read visible messages
+ */
+function readVisibleMessages(filter = "all") {
+  const msgs = getVisibleMessages();
+  let filtered = msgs;
+
+  if (filter === "me") {
+    filtered = msgs.filter((m) => m.isOutgoing);
+  } else if (filter === "them") {
+    filtered = msgs.filter((m) => !m.isOutgoing);
+  }
+
+  return {
+    messages: filtered,
+    total: filtered.length,
+    chatName: getChatName(),
+  };
+}
+
+/**
+ * MCP Command: Scroll up to load older messages
+ */
+async function scrollUpMessages(count = 1) {
+  const container = getScrollContainer();
+  if (!container)
+    throw new Error("No chat open. Use WHATSAPP_OPEN_CHAT first.");
+
+  let scrolledCount = 0;
+  let reachedTop = false;
+
+  for (let i = 0; i < count; i++) {
+    const prevHeight = container.scrollHeight;
+    const hadMore = await scrollUp(container);
+
+    if (hadMore) {
+      scrolledCount++;
+    } else {
+      // Check if we're at the top
+      if (container.scrollTop === 0 && container.scrollHeight === prevHeight) {
+        reachedTop = true;
+        break;
+      }
+    }
+
+    await new Promise((r) => setTimeout(r, 300));
+  }
+
+  return { scrolled: scrolledCount, reachedTop };
+}
+
+/**
+ * MCP Command: Scroll down to see newer messages
+ */
+async function scrollDownMessages(count = 1) {
+  const container = getScrollContainer();
+  if (!container)
+    throw new Error("No chat open. Use WHATSAPP_OPEN_CHAT first.");
+
+  let scrolledCount = 0;
+
+  for (let i = 0; i < count; i++) {
+    container.scrollTop += container.clientHeight * 0.8;
+    scrolledCount++;
+    await new Promise((r) => setTimeout(r, 200));
+  }
+
+  return { scrolled: scrolledCount };
+}
+
+/**
+ * MCP Command: Full scrape with auto-scroll
+ */
+async function scrapeWithOptions(opts) {
+  const container = getScrollContainer();
+  if (!container)
+    throw new Error("No chat open. Use WHATSAPP_OPEN_CHAT first.");
+
+  // Store original options and state
+  const originalOptions = { ...options };
+  const originalMessages = [...messages];
+  const originalIsRunning = isRunning;
+
+  // Set up for MCP-controlled scrape
+  options = {
+    filter: opts.filter || "all",
+    includeText: true,
+    includeMedia: true,
+    minLength: opts.minLength || 0,
+    scrollLimit: opts.scrollLimit || 50,
+  };
+  messages = [];
+  isRunning = true;
+  shouldStop = false;
+  noNewContentCount = 0;
+  retryWaitMs = 1500;
+  scrollCount = 0;
+
+  // Run the scrape
+  await scrape();
+
+  const result = {
+    messages: messages.map((m) => ({
+      id: m.id,
+      text: m.text,
+      isOutgoing: m.isOutgoing,
+      timestamp: m.timestamp,
+      author: m.author,
+      hasMedia: m.hasMedia,
+    })),
+    total: messages.length,
+    scrollsPerformed: scrollCount,
+  };
+
+  // Restore original state
+  options = originalOptions;
+  messages = originalMessages;
+  isRunning = originalIsRunning;
+
+  return result;
+}
+
+/**
+ * Update MCP status indicator in the panel
+ */
+function updateMCPStatus(status) {
+  const statusEl = document.getElementById("mcp-status");
+  if (statusEl) {
+    if (status === "connected") {
+      statusEl.className = "wa-mcp-status connected";
+      statusEl.innerHTML =
+        '<span class="wa-mcp-dot"></span> Connected to MCP Server';
+    } else {
+      statusEl.className = "wa-mcp-status disconnected";
+      statusEl.innerHTML = '<span class="wa-mcp-dot"></span> Not connected';
+    }
+  }
+
+  // Update the badge on MCP tab
+  const badge = document.querySelector(
+    '.wa-panel-tab[data-tab="mcp"] .wa-badge',
+  );
+  if (badge) {
+    if (status === "connected") {
+      badge.textContent = "live";
+      badge.classList.add("live");
+    } else {
+      badge.textContent = "off";
+      badge.classList.remove("live");
+    }
+  }
+}
+
+// =============================================================================
 // INIT
 // =============================================================================
 
@@ -850,13 +1389,19 @@ function debug(...args) {
   console.log("[WA MCP]", ...args);
 }
 
-debug("Content script loaded v0.5 - side panel");
+debug("Content script loaded v0.6 - MCP Bridge");
 
 // Pre-create panel (hidden)
 setTimeout(() => {
   createPanel();
   debug("Panel created");
 }, 1000);
+
+// Connect to MCP server after a short delay
+setTimeout(() => {
+  debug("Attempting to connect to MCP server...");
+  connectToMCP();
+}, 2000);
 
 // Expose debug helper to console
 window.__waScraperDebug = () => {
@@ -871,6 +1416,7 @@ window.__waScraperDebug = () => {
   debug("Messages with text:", allMessages.filter((m) => m.text).length);
   debug("Outgoing messages:", allMessages.filter((m) => m.isOutgoing).length);
   debug("Sample messages:", allMessages.slice(0, 3));
+  debug("MCP connected:", mcpConnected);
 
   // Test individual selectors
   debug("--- Selector tests ---");
@@ -890,5 +1436,13 @@ window.__waScraperDebug = () => {
     rows: rows.length,
     messages: allMessages,
     options: options,
+    mcpConnected,
   };
 };
+
+// Expose MCP control to console for testing
+window.__waMcpConnect = connectToMCP;
+window.__waMcpStatus = () => ({
+  connected: mcpConnected,
+  socket: mcpSocket?.readyState,
+});

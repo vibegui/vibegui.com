@@ -1,11 +1,35 @@
 /**
  * Page Header Component
  *
- * Shared header component for the Content (home) page.
- * Two-line introduction with author info and content description.
+ * Shared header component for pages.
+ * When no props are passed, shows the default author/blog introduction.
+ * When title/subtitle are passed, shows a custom page header.
  */
 
-export function PageHeader() {
+interface PageHeaderProps {
+  title?: string;
+  subtitle?: string;
+}
+
+export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
+  // Custom header for specific pages
+  if (title) {
+    return (
+      <div className="mb-6">
+        <h1
+          className="text-2xl font-bold mb-2"
+          style={{ color: "var(--color-fg)" }}
+        >
+          {title}
+        </h1>
+        {subtitle && (
+          <p style={{ color: "var(--color-fg-muted)" }}>{subtitle}</p>
+        )}
+      </div>
+    );
+  }
+
+  // Default header for blog home
   return (
     <div className="mb-6">
       <div
