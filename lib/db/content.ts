@@ -1,12 +1,11 @@
 /**
  * SQLite Database for Articles and Drafts
  *
- * Uses Node 22's native node:sqlite for zero-dependency SQLite operations.
+ * Runtime-aware: uses bun:sqlite when running in Bun, node:sqlite in Node.
  * Database file is stored in data/content.db
  * Articles and drafts are in the same table, differentiated by status field.
  */
 
-import { DatabaseSync } from "node:sqlite";
 import { join, dirname } from "node:path";
 import { mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,8 +19,61 @@ if (!existsSync(DATA_DIR)) {
   mkdirSync(DATA_DIR, { recursive: true });
 }
 
-// Initialize database
-const db = new DatabaseSync(DB_PATH);
+// Runtime detection and database initialization
+const isBun = typeof globalThis.Bun !== "undefined";
+
+interface DBWrapper {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    all(...params: unknown[]): unknown[];
+    get(...params: unknown[]): unknown | undefined;
+    run(...params: unknown[]): {
+      changes: number;
+      lastInsertRowid: number | bigint;
+    };
+  };
+}
+
+// Use top-level await for dynamic import (works in both Bun and Node ESM)
+let db: DBWrapper;
+
+if (isBun) {
+  // Bun runtime - use bun:sqlite
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { Database } = (await import("bun:sqlite")) as any;
+  const bunDb = new Database(DB_PATH);
+  db = {
+    exec: (sql: string) => bunDb.exec(sql),
+    prepare: (sql: string) => {
+      const stmt = bunDb.prepare(sql);
+      return {
+        all: (...params: unknown[]) => stmt.all(...params),
+        get: (...params: unknown[]) => stmt.get(...params),
+        run: (...params: unknown[]) => stmt.run(...params),
+      };
+    },
+  };
+} else {
+  // Node runtime - use node:sqlite
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { DatabaseSync } = (await import("node:sqlite")) as any;
+  const nodeDb = new DatabaseSync(DB_PATH);
+  db = {
+    exec: (sql: string) => nodeDb.exec(sql),
+    prepare: (sql: string) => {
+      const stmt = nodeDb.prepare(sql);
+      return {
+        all: (...params: unknown[]) => stmt.all(...params) as unknown[],
+        get: (...params: unknown[]) => stmt.get(...params) as unknown,
+        run: (...params: unknown[]) =>
+          stmt.run(...params) as {
+            changes: number;
+            lastInsertRowid: number | bigint;
+          },
+      };
+    },
+  };
+}
 
 // Create tables if they don't exist
 db.exec(`

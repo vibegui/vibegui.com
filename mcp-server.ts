@@ -18,8 +18,7 @@
 import { withRuntime } from "@decocms/runtime";
 import { createTool } from "@decocms/runtime/tools";
 import { z } from "zod";
-import { readdir, readFile, writeFile, unlink, mkdir } from "node:fs/promises";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 import { execSync, spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import {
@@ -29,6 +28,7 @@ import {
   type BrowserProfile,
   type RawBookmark,
 } from "./lib/bookmarks/index.ts";
+import * as contentDb from "./lib/db/content.ts";
 
 // ============================================================================
 // WhatsApp Bridge - WebSocket Server
@@ -245,19 +245,6 @@ const StateSchema = z.object({});
 // ============================================================================
 
 /**
- * Frontmatter schema for all content types
- */
-const FrontmatterSchema = z.object({
-  title: z.string(),
-  description: z.string().optional(),
-  date: z.string(),
-  tags: z.array(z.string()).optional(),
-  status: z.enum(["draft", "published"]).default("draft"),
-});
-
-type Frontmatter = z.infer<typeof FrontmatterSchema>;
-
-/**
  * Content entity returned by collection tools
  */
 const ContentEntitySchema = z.object({
@@ -272,8 +259,6 @@ const ContentEntitySchema = z.object({
   updated_at: z.string(),
 });
 
-type ContentEntity = z.infer<typeof ContentEntitySchema>;
-
 // ============================================================================
 // Content Directory Paths
 // ============================================================================
@@ -281,149 +266,11 @@ type ContentEntity = z.infer<typeof ContentEntitySchema>;
 /** Get today's date as YYYY-MM-DD */
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-const CONTENT_DIRS = {
-  drafts: "./content/drafts",
-  articles: "./content/articles",
-} as const;
-
-type CollectionName = keyof typeof CONTENT_DIRS;
+// Content is now stored in SQLite database, not files
 
 // ============================================================================
 // Helper Functions
 // ============================================================================
-
-/**
- * Parse frontmatter from markdown content
- */
-function parseFrontmatter(content: string): {
-  frontmatter: Frontmatter;
-  body: string;
-} {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) {
-    return {
-      frontmatter: {
-        title: "Untitled",
-        date: todayISO(),
-        status: "draft",
-      },
-      body: content,
-    };
-  }
-
-  const [, yamlStr, body] = match;
-  const frontmatter: Record<string, unknown> = {};
-
-  // Simple YAML parsing (for our limited use case)
-  for (const line of (yamlStr ?? "").split("\n")) {
-    const colonIndex = line.indexOf(":");
-    if (colonIndex > 0) {
-      const key = line.slice(0, colonIndex).trim();
-      let value: unknown = line.slice(colonIndex + 1).trim();
-
-      // Handle quoted strings
-      if (
-        typeof value === "string" &&
-        value.startsWith('"') &&
-        value.endsWith('"')
-      ) {
-        value = value.slice(1, -1);
-      }
-
-      // Handle arrays
-      if (typeof value === "string" && value.startsWith("[")) {
-        try {
-          value = JSON.parse(value.replace(/'/g, '"'));
-        } catch {
-          // Keep as string if parse fails
-        }
-      }
-
-      frontmatter[key] = value;
-    }
-  }
-
-  return {
-    frontmatter: FrontmatterSchema.parse({
-      title: frontmatter.title ?? "Untitled",
-      description: frontmatter.description,
-      date: frontmatter.date ?? new Date().toISOString().split("T")[0],
-      tags: frontmatter.tags,
-      status: frontmatter.status ?? "draft",
-    }),
-    body: body ?? "",
-  };
-}
-
-/**
- * Serialize frontmatter and body back to markdown
- */
-function serializeMarkdown(frontmatter: Frontmatter, body: string): string {
-  const yaml = [
-    "---",
-    `title: "${frontmatter.title}"`,
-    frontmatter.description
-      ? `description: "${frontmatter.description}"`
-      : null,
-    `date: ${frontmatter.date}`,
-    frontmatter.tags?.length
-      ? `tags: ${JSON.stringify(frontmatter.tags)}`
-      : null,
-    `status: ${frontmatter.status}`,
-    "---",
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-  return `${yaml}\n\n${body}`;
-}
-
-/**
- * Ensure content directory exists
- */
-async function ensureDir(dir: string): Promise<void> {
-  if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true });
-  }
-}
-
-/**
- * List all markdown files in a directory
- */
-async function listMarkdownFiles(dir: string): Promise<string[]> {
-  await ensureDir(dir);
-  const files = await readdir(dir);
-  return files.filter((f) => f.endsWith(".md"));
-}
-
-/**
- * Read and parse a markdown file
- */
-async function readContentFile(
-  dir: string,
-  filename: string,
-): Promise<ContentEntity | null> {
-  const filepath = join(dir, filename);
-  if (!existsSync(filepath)) return null;
-
-  const raw = await readFile(filepath, "utf-8");
-  const { frontmatter, body } = parseFrontmatter(raw);
-  const stats = await import("node:fs").then((fs) => fs.statSync(filepath));
-
-  const id = basename(filename, ".md");
-
-  return {
-    id,
-    title: frontmatter.title,
-    description: frontmatter.description ?? null,
-    date: frontmatter.date,
-    tags: frontmatter.tags,
-    status: frontmatter.status,
-    content: body.trim(),
-    created_at: stats.birthtime.toISOString(),
-    updated_at: stats.mtime.toISOString(),
-  };
-}
 
 /**
  * Generate a slug from a title
@@ -437,21 +284,18 @@ function slugify(title: string): string {
 }
 
 // ============================================================================
-// Collection Tools Factory
+// SQLite-Based Content Tools
 // ============================================================================
 
 /**
- * Creates CRUD tools for a content collection
+ * Creates CRUD tools for content (drafts and articles) using SQLite database
  */
-function createCollectionTools(name: CollectionName) {
-  const dir = CONTENT_DIRS[name];
-  const upperName = name.toUpperCase();
-
+function createSQLiteContentTools() {
   return [
-    // LIST
+    // DRAFTS LIST
     createTool({
-      id: `COLLECTION_${upperName}_LIST`,
-      description: `List all ${name} with optional filtering`,
+      id: "COLLECTION_DRAFTS_LIST",
+      description: "List all drafts with optional filtering",
       inputSchema: z.object({
         status: z.enum(["draft", "published"]).optional(),
         limit: z.number().default(50),
@@ -463,22 +307,21 @@ function createCollectionTools(name: CollectionName) {
         hasMore: z.boolean(),
       }),
       execute: async ({ context }) => {
-        const files = await listMarkdownFiles(dir);
-        const items: Omit<ContentEntity, "content">[] = [];
+        const allContent = context.status
+          ? contentDb.getContentByStatus(context.status)
+          : contentDb.getDrafts();
 
-        for (const file of files) {
-          const entity = await readContentFile(dir, file);
-          if (!entity) continue;
-          if (context.status && entity.status !== context.status) continue;
-
-          const { content: _, ...rest } = entity;
-          items.push(rest);
-        }
-
-        // Sort by date descending
-        items.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-        );
+        const now = new Date().toISOString();
+        const items = allContent.map((c) => ({
+          id: c.slug,
+          title: c.title,
+          description: c.description,
+          date: c.date,
+          status: c.status,
+          tags: c.tags,
+          created_at: now,
+          updated_at: now,
+        }));
 
         const paginated = items.slice(
           context.offset,
@@ -493,10 +336,10 @@ function createCollectionTools(name: CollectionName) {
       },
     }),
 
-    // GET
+    // DRAFTS GET
     createTool({
-      id: `COLLECTION_${upperName}_GET`,
-      description: `Get a single ${name.slice(0, -1)} by ID (slug)`,
+      id: "COLLECTION_DRAFTS_GET",
+      description: "Get a single draft by ID (slug)",
       inputSchema: z.object({
         id: z.string().describe("The slug/ID of the content"),
       }),
@@ -504,15 +347,29 @@ function createCollectionTools(name: CollectionName) {
         item: ContentEntitySchema.nullable(),
       }),
       execute: async ({ context }) => {
-        const entity = await readContentFile(dir, `${context.id}.md`);
-        return { item: entity };
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) return { item: null };
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: content.slug,
+            title: content.title,
+            description: content.description,
+            content: content.content,
+            date: content.date,
+            status: content.status,
+            tags: content.tags,
+            created_at: now,
+            updated_at: now,
+          },
+        };
       },
     }),
 
-    // CREATE
+    // DRAFTS CREATE
     createTool({
-      id: `COLLECTION_${upperName}_CREATE`,
-      description: `Create a new ${name.slice(0, -1)}`,
+      id: "COLLECTION_DRAFTS_CREATE",
+      description: "Create a new draft",
       inputSchema: z.object({
         title: z.string(),
         description: z.string().optional(),
@@ -524,34 +381,38 @@ function createCollectionTools(name: CollectionName) {
         item: ContentEntitySchema,
       }),
       execute: async ({ context }) => {
-        await ensureDir(dir);
-
         const slug = slugify(context.title);
-        const filename = `${slug}.md`;
-        const filepath = join(dir, filename);
-
-        const frontmatter: Frontmatter = {
+        const created = contentDb.createContent({
+          slug,
           title: context.title,
           description: context.description,
+          content: context.content,
           date: todayISO(),
-          tags: context.tags,
           status: context.status,
+          tags: context.tags,
+        });
+
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: created.slug,
+            title: created.title,
+            description: created.description,
+            content: created.content,
+            date: created.date,
+            status: created.status,
+            tags: created.tags,
+            created_at: now,
+            updated_at: now,
+          },
         };
-
-        const markdown = serializeMarkdown(frontmatter, context.content);
-        await writeFile(filepath, markdown, "utf-8");
-
-        const entity = await readContentFile(dir, filename);
-        if (!entity) throw new Error("Failed to create content");
-
-        return { item: entity };
       },
     }),
 
-    // UPDATE
+    // DRAFTS UPDATE
     createTool({
-      id: `COLLECTION_${upperName}_UPDATE`,
-      description: `Update an existing ${name.slice(0, -1)}`,
+      id: "COLLECTION_DRAFTS_UPDATE",
+      description: "Update an existing draft",
       inputSchema: z.object({
         id: z.string(),
         title: z.string().optional(),
@@ -564,33 +425,37 @@ function createCollectionTools(name: CollectionName) {
         item: ContentEntitySchema,
       }),
       execute: async ({ context }) => {
-        const existing = await readContentFile(dir, `${context.id}.md`);
-        if (!existing) throw new Error(`Content not found: ${context.id}`);
+        const updated = contentDb.updateContent(context.id, {
+          title: context.title,
+          description: context.description,
+          content: context.content,
+          status: context.status,
+          tags: context.tags,
+        });
 
-        const frontmatter: Frontmatter = {
-          title: context.title ?? existing.title,
-          description: context.description ?? existing.description ?? undefined,
-          date: existing.date,
-          tags: context.tags ?? existing.tags,
-          status: context.status ?? existing.status,
+        if (!updated) throw new Error(`Content not found: ${context.id}`);
+
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: updated.slug,
+            title: updated.title,
+            description: updated.description,
+            content: updated.content,
+            date: updated.date,
+            status: updated.status,
+            tags: updated.tags,
+            created_at: now,
+            updated_at: now,
+          },
         };
-
-        const body = context.content ?? existing.content;
-        const markdown = serializeMarkdown(frontmatter, body);
-
-        await writeFile(join(dir, `${context.id}.md`), markdown, "utf-8");
-
-        const entity = await readContentFile(dir, `${context.id}.md`);
-        if (!entity) throw new Error("Failed to update content");
-
-        return { item: entity };
       },
     }),
 
-    // DELETE
+    // DRAFTS DELETE
     createTool({
-      id: `COLLECTION_${upperName}_DELETE`,
-      description: `Delete a ${name.slice(0, -1)}`,
+      id: "COLLECTION_DRAFTS_DELETE",
+      description: "Delete a draft",
       inputSchema: z.object({
         id: z.string(),
       }),
@@ -599,12 +464,186 @@ function createCollectionTools(name: CollectionName) {
         id: z.string(),
       }),
       execute: async ({ context }) => {
-        const filepath = join(dir, `${context.id}.md`);
-        if (!existsSync(filepath)) {
-          throw new Error(`Content not found: ${context.id}`);
-        }
+        const success = contentDb.deleteContent(context.id);
+        if (!success) throw new Error(`Content not found: ${context.id}`);
+        return { success: true, id: context.id };
+      },
+    }),
 
-        await unlink(filepath);
+    // ARTICLES LIST
+    createTool({
+      id: "COLLECTION_ARTICLES_LIST",
+      description: "List all articles with optional filtering",
+      inputSchema: z.object({
+        status: z.enum(["draft", "published"]).optional(),
+        limit: z.number().default(50),
+        offset: z.number().default(0),
+      }),
+      outputSchema: z.object({
+        items: z.array(ContentEntitySchema.omit({ content: true })),
+        totalCount: z.number(),
+        hasMore: z.boolean(),
+      }),
+      execute: async ({ context }) => {
+        const allContent = context.status
+          ? contentDb.getContentByStatus(context.status)
+          : contentDb.getArticles();
+
+        const now = new Date().toISOString();
+        const items = allContent.map((c) => ({
+          id: c.slug,
+          title: c.title,
+          description: c.description,
+          date: c.date,
+          status: c.status,
+          tags: c.tags,
+          created_at: now,
+          updated_at: now,
+        }));
+
+        const paginated = items.slice(
+          context.offset,
+          context.offset + context.limit,
+        );
+
+        return {
+          items: paginated,
+          totalCount: items.length,
+          hasMore: items.length > context.offset + context.limit,
+        };
+      },
+    }),
+
+    // ARTICLES GET
+    createTool({
+      id: "COLLECTION_ARTICLES_GET",
+      description: "Get a single article by ID (slug)",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content"),
+      }),
+      outputSchema: z.object({
+        item: ContentEntitySchema.nullable(),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) return { item: null };
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: content.slug,
+            title: content.title,
+            description: content.description,
+            content: content.content,
+            date: content.date,
+            status: content.status,
+            tags: content.tags,
+            created_at: now,
+            updated_at: now,
+          },
+        };
+      },
+    }),
+
+    // ARTICLES CREATE
+    createTool({
+      id: "COLLECTION_ARTICLES_CREATE",
+      description: "Create a new article",
+      inputSchema: z.object({
+        title: z.string(),
+        description: z.string().optional(),
+        content: z.string().default(""),
+        tags: z.array(z.string()).optional(),
+        status: z.enum(["draft", "published"]).default("draft"),
+      }),
+      outputSchema: z.object({
+        item: ContentEntitySchema,
+      }),
+      execute: async ({ context }) => {
+        const slug = slugify(context.title);
+        const created = contentDb.createContent({
+          slug,
+          title: context.title,
+          description: context.description,
+          content: context.content,
+          date: todayISO(),
+          status: context.status,
+          tags: context.tags,
+        });
+
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: created.slug,
+            title: created.title,
+            description: created.description,
+            content: created.content,
+            date: created.date,
+            status: created.status,
+            tags: created.tags,
+            created_at: now,
+            updated_at: now,
+          },
+        };
+      },
+    }),
+
+    // ARTICLES UPDATE
+    createTool({
+      id: "COLLECTION_ARTICLES_UPDATE",
+      description: "Update an existing article",
+      inputSchema: z.object({
+        id: z.string(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        content: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        status: z.enum(["draft", "published"]).optional(),
+      }),
+      outputSchema: z.object({
+        item: ContentEntitySchema,
+      }),
+      execute: async ({ context }) => {
+        const updated = contentDb.updateContent(context.id, {
+          title: context.title,
+          description: context.description,
+          content: context.content,
+          status: context.status,
+          tags: context.tags,
+        });
+
+        if (!updated) throw new Error(`Content not found: ${context.id}`);
+
+        const now = new Date().toISOString();
+        return {
+          item: {
+            id: updated.slug,
+            title: updated.title,
+            description: updated.description,
+            content: updated.content,
+            date: updated.date,
+            status: updated.status,
+            tags: updated.tags,
+            created_at: now,
+            updated_at: now,
+          },
+        };
+      },
+    }),
+
+    // ARTICLES DELETE
+    createTool({
+      id: "COLLECTION_ARTICLES_DELETE",
+      description: "Delete an article",
+      inputSchema: z.object({
+        id: z.string(),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        id: z.string(),
+      }),
+      execute: async ({ context }) => {
+        const success = contentDb.deleteContent(context.id);
+        if (!success) throw new Error(`Content not found: ${context.id}`);
         return { success: true, id: context.id };
       },
     }),
@@ -1501,9 +1540,8 @@ const wrapTools = (tools: ReturnType<typeof createTool>[]) =>
   tools.map((tool) => () => tool);
 
 const allTools = [
-  // Content collections
-  ...wrapTools(createCollectionTools("drafts")),
-  ...wrapTools(createCollectionTools("articles")),
+  // Content collections (SQLite-based)
+  ...wrapTools(createSQLiteContentTools()),
 
   // Search tools (ripgrep/grep)
   ...wrapTools(searchTools),
