@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "bun run export && vite",
     "build": "bun run export && vite build && bun scripts/hash-content.ts",
-    "export": "npx tsx scripts/export-content.ts && npx tsx scripts/export-research.ts && npx tsx scripts/export-bookmarks.ts",
+    "export": "npx tsx scripts/export-content.ts && npx tsx scripts/export-bookmarks.ts",
     "preview": "vite preview",
-    "pages:build": "npx tsx scripts/export-content.ts && npx tsx scripts/export-research.ts && npx tsx scripts/export-bookmarks.ts && node --experimental-strip-types scripts/hash-content.ts",
+    "pages:build": "npx tsx scripts/export-content.ts && npx tsx scripts/export-bookmarks.ts && node --experimental-strip-types scripts/hash-content.ts",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",

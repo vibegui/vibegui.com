@@ -2,8 +2,7 @@
  * Content Manifest Utilities
  *
  * Handles loading content from JSON files generated from SQLite.
- * Content is fetched from /content/manifest.json (articles/drafts)
- * and /research/manifest.json (research).
+ * Content is fetched from /content/manifest.json (articles/drafts).
  */
 
 export interface ArticleMeta {
@@ -27,17 +26,7 @@ export interface ContentManifest {
   context?: ContextFile[];
 }
 
-export interface ResearchMeta {
-  slug: string;
-  title: string;
-  description?: string;
-  date: string;
-  status: "draft" | "published";
-  tags?: string[];
-}
-
 let cachedContentManifest: ContentManifest | null = null;
-let cachedResearchManifest: ResearchMeta[] | null = null;
 let cachedHashedManifest: ContentManifest | null = null;
 
 /**
@@ -136,29 +125,6 @@ export async function loadManifest(): Promise<ContentManifest | null> {
 }
 
 /**
- * Load the research manifest
- */
-export async function loadResearchManifest(): Promise<ResearchMeta[] | null> {
-  if (cachedResearchManifest) {
-    return cachedResearchManifest;
-  }
-
-  try {
-    const response = await fetch("/research/manifest.json");
-    if (!response.ok) {
-      console.error("Failed to load research manifest:", response.status);
-      return null;
-    }
-
-    cachedResearchManifest = await response.json();
-    return cachedResearchManifest;
-  } catch (error) {
-    console.error("Error loading research manifest:", error);
-    return null;
-  }
-}
-
-/**
  * Get an article's content path by slug
  * Searches both published articles and drafts (dev mode)
  * Returns path to JSON file (new format) or markdown file (legacy)
@@ -179,19 +145,6 @@ export async function getArticlePath(slug: string): Promise<string | null> {
 
   // Try JSON first (new SQLite export format), fallback to legacy markdown
   return `/content/${article.slug}.json`;
-}
-
-/**
- * Get a research item's content path by slug
- */
-export async function getResearchPath(slug: string): Promise<string | null> {
-  const manifest = await loadResearchManifest();
-  if (!manifest) return null;
-
-  const item = manifest.find((r) => r.slug === slug);
-  if (!item) return null;
-
-  return `/research/${item.slug}.json`;
 }
 
 /**
@@ -219,5 +172,4 @@ export async function getContextPath(originalPath: string): Promise<string> {
  */
 export function clearManifestCache(): void {
   cachedContentManifest = null;
-  cachedResearchManifest = null;
 }

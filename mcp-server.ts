@@ -282,7 +282,6 @@ type ContentEntity = z.infer<typeof ContentEntitySchema>;
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const CONTENT_DIRS = {
-  research: "./content/research",
   drafts: "./content/drafts",
   articles: "./content/articles",
 } as const;
@@ -613,65 +612,6 @@ function createCollectionTools(name: CollectionName) {
 }
 
 // ============================================================================
-// Research Tools
-// ============================================================================
-
-const researchTools = [
-  createTool({
-    id: "RESEARCH_TOPIC",
-    description:
-      "Create a research stub for a topic. Saves a template to the research collection for you to fill in.",
-    inputSchema: z.object({
-      topic: z.string().describe("The topic to research"),
-      questions: z
-        .array(z.string())
-        .optional()
-        .describe("Specific questions to answer"),
-    }),
-    outputSchema: z.object({
-      researchId: z.string(),
-      title: z.string(),
-      summary: z.string(),
-    }),
-    execute: async ({ context }) => {
-      const questions = context.questions ?? [
-        `What are the key facts about ${context.topic}?`,
-        `What are recent developments regarding ${context.topic}?`,
-        `What are different perspectives on ${context.topic}?`,
-      ];
-
-      let researchContent = `# Research: ${context.topic}\n\n`;
-      for (const question of questions) {
-        researchContent += `## ${question}\n\n*Add your research here...*\n\n`;
-      }
-
-      const slug = slugify(context.topic);
-      const frontmatter: Frontmatter = {
-        title: `Research: ${context.topic}`,
-        description: `Research notes on ${context.topic}`,
-        date: todayISO(),
-        tags: ["research"],
-        status: "draft",
-      };
-
-      await ensureDir(CONTENT_DIRS.research);
-      const markdown = serializeMarkdown(frontmatter, researchContent);
-      await writeFile(
-        join(CONTENT_DIRS.research, `${slug}.md`),
-        markdown,
-        "utf-8",
-      );
-
-      return {
-        researchId: slug,
-        title: `Research: ${context.topic}`,
-        summary: `Created research stub with ${questions.length} questions`,
-      };
-    },
-  }),
-];
-
-// ============================================================================
 // Search Tools - ripgrep/grep for finding references
 // ============================================================================
 
@@ -778,7 +718,7 @@ const searchTools = [
   createTool({
     id: "SEARCH_CONTENT",
     description:
-      "Search through content/ files (research, drafts, articles) for references and concepts. Uses ripgrep if available.",
+      "Search through content/ files (drafts, articles) for references and concepts. Uses ripgrep if available.",
     inputSchema: z.object({
       pattern: z.string().describe("Search pattern (regex supported)"),
       contextLines: z
@@ -790,7 +730,7 @@ const searchTools = [
         .default(false)
         .describe("Case-sensitive search"),
       collection: z
-        .enum(["all", "research", "drafts", "articles"])
+        .enum(["all", "drafts", "articles"])
         .default("all")
         .describe("Which collection to search"),
     }),
@@ -1562,12 +1502,8 @@ const wrapTools = (tools: ReturnType<typeof createTool>[]) =>
 
 const allTools = [
   // Content collections
-  ...wrapTools(createCollectionTools("research")),
   ...wrapTools(createCollectionTools("drafts")),
   ...wrapTools(createCollectionTools("articles")),
-
-  // Research tools
-  ...wrapTools(researchTools),
 
   // Search tools (ripgrep/grep)
   ...wrapTools(searchTools),

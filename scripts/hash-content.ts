@@ -99,9 +99,8 @@ async function main() {
   // Copy content from public/ to dist/ (Vite already does this, but ensure it's there)
   console.log("📁 Copying content...");
   copyDir(resolve(PUBLIC, "content"), resolve(DIST, "content"));
-  copyDir(resolve(PUBLIC, "research"), resolve(DIST, "research"));
   copyDir(resolve(PUBLIC, "bookmarks"), resolve(DIST, "bookmarks"));
-  console.log("  ✅ Content, research, bookmarks copied");
+  console.log("  ✅ Content, bookmarks copied");
 
   // Process context files with hashing
   console.log("\n📁 Processing context...");
