@@ -780,8 +780,9 @@ export function Bookmarks() {
     }
   }, [enrichQueue, status.isRunning]);
 
-  // Auto-enrich when selecting an unenriched row
+  // Auto-enrich when selecting an unenriched row (dev only)
   React.useEffect(() => {
+    if (!isDev) return; // Only auto-enrich in development
     if (
       selectedRowIndex === null ||
       status.isRunning ||

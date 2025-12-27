@@ -418,6 +418,7 @@ function createSQLiteContentTools() {
         title: z.string().optional(),
         description: z.string().optional(),
         content: z.string().optional(),
+        date: z.string().optional(),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).optional(),
       }),
@@ -429,6 +430,7 @@ function createSQLiteContentTools() {
           title: context.title,
           description: context.description,
           content: context.content,
+          date: context.date,
           status: context.status,
           tags: context.tags,
         });
@@ -596,6 +598,7 @@ function createSQLiteContentTools() {
         title: z.string().optional(),
         description: z.string().optional(),
         content: z.string().optional(),
+        date: z.string().optional(),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).optional(),
       }),
@@ -607,6 +610,7 @@ function createSQLiteContentTools() {
           title: context.title,
           description: context.description,
           content: context.content,
+          date: context.date,
           status: context.status,
           tags: context.tags,
         });
