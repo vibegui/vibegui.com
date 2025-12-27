@@ -1,152 +1,43 @@
-import { defineConfig, type Connect } from "vite";
+import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
-import { createHash } from "node:crypto";
-import {
-  readdirSync,
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  mkdirSync,
-} from "node:fs";
+import { writeFileSync } from "node:fs";
+
+// Load .env file for server-side use
+const env = loadEnv("development", process.cwd(), "");
+const MESH_GATEWAY_URL = env.MESH_GATEWAY_URL;
+const MESH_API_KEY = env.MESH_API_KEY;
 
 /**
- * Compute content hash (8 chars)
- */
-function hashContent(content: string): string {
-  return createHash("sha256").update(content).digest("hex").slice(0, 8);
-}
-
-/**
- * Generate content manifest from markdown files with content hashes.
- * The hashes are used by the post-build script to rename files.
- */
-function generateManifest() {
-  const articlesDir = resolve(__dirname, "content/articles");
-  const publicContentDir = resolve(__dirname, "public/content");
-
-  if (!existsSync(articlesDir)) {
-    return;
-  }
-
-  // Ensure public/content exists
-  if (!existsSync(publicContentDir)) {
-    mkdirSync(publicContentDir, { recursive: true });
-  }
-
-  const files = readdirSync(articlesDir).filter(
-    (f) => f.endsWith(".md") && !f.startsWith("."),
-  );
-
-  const allArticles = files
-    .map((file) => {
-      const content = readFileSync(resolve(articlesDir, file), "utf-8");
-      const contentHash = hashContent(content);
-
-      // Parse frontmatter
-      const match = content.match(/^---\n([\s\S]*?)\n---/);
-      const frontmatter: Record<string, string | string[]> = {};
-
-      if (match?.[1]) {
-        for (const line of match[1].split("\n")) {
-          const [key, ...rest] = line.split(": ");
-          if (key && rest.length) {
-            let value = rest.join(": ").trim();
-            // Handle arrays like tags
-            if (value.startsWith("[") && value.endsWith("]")) {
-              frontmatter[key] = JSON.parse(value.replace(/'/g, '"'));
-            } else {
-              // Remove quotes if present
-              if (
-                (value.startsWith('"') && value.endsWith('"')) ||
-                (value.startsWith("'") && value.endsWith("'"))
-              ) {
-                value = value.slice(1, -1);
-              }
-              frontmatter[key] = value;
-            }
-          }
-        }
-      }
-
-      const dateVal = frontmatter.date;
-      const dateStr =
-        typeof dateVal === "string"
-          ? dateVal
-          : new Date().toISOString().slice(0, 10);
-
-      const id = file.replace(".md", "");
-
-      return {
-        id,
-        hash: contentHash,
-        // In dev, path is unhashed; post-build script updates to hashed path
-        path: `articles/${file}`,
-        title: typeof frontmatter.title === "string" ? frontmatter.title : id,
-        description: frontmatter.description ?? null,
-        date: dateStr,
-        tags: frontmatter.tags ?? [],
-        status: frontmatter.status ?? "draft",
-      };
-    })
-    // Sort by date descending (newest first)
-    .sort((a, b) => b.date.localeCompare(a.date));
-
-  // Published articles for public manifest
-  const articles = allArticles.filter((a) => a.status === "published");
-
-  // Drafts only included in dev mode (detected by NODE_ENV or absence of build)
-  const isDev = process.env.NODE_ENV !== "production";
-  const drafts = isDev ? allArticles.filter((a) => a.status === "draft") : [];
-
-  const manifest = {
-    version: 1,
-    articles,
-    // Only include drafts in dev mode for local preview
-    ...(drafts.length > 0 && { drafts }),
-  };
-  writeFileSync(
-    resolve(publicContentDir, "manifest.json"),
-    JSON.stringify(manifest, null, 2),
-  );
-  console.log(
-    `📝 Generated manifest with ${articles.length} articles${drafts.length > 0 ? ` + ${drafts.length} drafts (dev only)` : ""}`,
-  );
-}
-
-/**
- * Vite plugin to generate manifest on startup and file changes
- */
-function contentManifestPlugin() {
-  return {
-    name: "content-manifest",
-    buildStart() {
-      generateManifest();
-    },
-    configureServer(server: {
-      watcher: { on: (event: string, cb: (path: string) => void) => void };
-    }) {
-      // Regenerate manifest when content changes
-      server.watcher.on("change", (path: string) => {
-        if (path.includes("content/articles")) {
-          generateManifest();
-        }
-      });
-      server.watcher.on("add", (path: string) => {
-        if (path.includes("content/articles")) {
-          generateManifest();
-        }
-      });
-    },
-  };
-}
-
-/**
- * API plugin for localhost-only operations like deleting bookmarks
+ * API plugin for bookmark operations using SQLite
  */
 function bookmarksApiPlugin() {
-  const CSV_PATH = resolve(__dirname, "public/bookmarks/links.csv");
+  // Lazy-load the database module to avoid issues during build
+  let dbModule: typeof import("./lib/db/index.ts") | null = null;
+  const getDb = async () => {
+    if (!dbModule) {
+      dbModule = await import("./lib/db/index.ts");
+    }
+    return dbModule;
+  };
+
+  // Regenerate the static JSON after database updates
+  const regenerateJson = async () => {
+    const db = await getDb();
+    const bookmarks = db.getAllBookmarks();
+    const minimal = bookmarks.map((b) => {
+      const obj: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(b)) {
+        if (v !== undefined && v !== null && v !== "") {
+          obj[k] = v;
+        }
+      }
+      return obj;
+    });
+    const outputPath = resolve(__dirname, "public/bookmarks/data.json");
+    writeFileSync(outputPath, JSON.stringify(minimal));
+  };
 
   return {
     name: "bookmarks-api",
@@ -159,45 +50,287 @@ function bookmarksApiPlugin() {
           res: import("http").ServerResponse,
           next: Connect.NextFunction,
         ) => {
+          // GET all bookmarks
+          if (req.url === "/api/bookmarks" && req.method === "GET") {
+            getDb()
+              .then((db) => {
+                const bookmarks = db.getAllBookmarks();
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify(bookmarks));
+              })
+              .catch((err) => {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              });
+            return;
+          }
+
+          // GET bookmark stats
+          if (req.url === "/api/bookmarks/stats" && req.method === "GET") {
+            getDb()
+              .then((db) => {
+                const stats = db.getBookmarkStats();
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify(stats));
+              })
+              .catch((err) => {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              });
+            return;
+          }
+
+          // DELETE a bookmark
           if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
             let body = "";
             req.on("data", (chunk: Buffer) => {
               body += chunk.toString();
             });
             req.on("end", () => {
+              getDb()
+                .then(async (db) => {
+                  const { url } = JSON.parse(body);
+                  if (!url) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ error: "URL required" }));
+                    return;
+                  }
+
+                  const deleted = db.deleteBookmark(url);
+                  if (!deleted) {
+                    res.statusCode = 404;
+                    res.end(JSON.stringify({ error: "Bookmark not found" }));
+                    return;
+                  }
+
+                  // Regenerate JSON after delete
+                  await regenerateJson();
+
+                  res.setHeader("Content-Type", "application/json");
+                  res.end(JSON.stringify({ success: true }));
+                })
+                .catch((err) => {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: (err as Error).message }));
+                });
+            });
+            return;
+          }
+
+          // UPDATE a bookmark (for enrichment)
+          if (req.url === "/api/bookmarks/update" && req.method === "POST") {
+            console.log("[API] /api/bookmarks/update called");
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", () => {
+              console.log("[API] Update body received, length:", body.length);
+              getDb()
+                .then(async (db) => {
+                  try {
+                    const { url, ...updates } = JSON.parse(body);
+                    console.log(
+                      "[API] Updating bookmark:",
+                      url,
+                      "fields:",
+                      Object.keys(updates),
+                    );
+                    if (!url) {
+                      res.statusCode = 400;
+                      res.end(JSON.stringify({ error: "URL required" }));
+                      return;
+                    }
+
+                    // Check if bookmark exists first
+                    const existing = db.getBookmarkByUrl(url);
+                    console.log(
+                      "[API] Existing bookmark:",
+                      existing?.id,
+                      existing?.title,
+                    );
+
+                    const updated = db.updateBookmark(url, updates);
+                    if (!updated) {
+                      console.log(
+                        "[API] Bookmark not found or update failed:",
+                        url,
+                      );
+                      res.statusCode = 404;
+                      res.end(JSON.stringify({ error: "Bookmark not found" }));
+                      return;
+                    }
+
+                    console.log("[API] Bookmark updated successfully:", url);
+                    console.log(
+                      "[API] Updated fields:",
+                      updated.stars,
+                      updated.icon,
+                      updated.insight_dev?.slice(0, 30),
+                    );
+
+                    // Regenerate JSON after update
+                    await regenerateJson();
+                    console.log("[API] JSON regenerated");
+
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify(updated));
+                  } catch (innerErr) {
+                    console.error("[API] Error in update:", innerErr);
+                    res.statusCode = 500;
+                    res.end(
+                      JSON.stringify({ error: (innerErr as Error).message }),
+                    );
+                  }
+                })
+                .catch((err) => {
+                  console.error("[API] Error loading db:", err);
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: (err as Error).message }));
+                });
+            });
+            return;
+          }
+
+          // DELETE a bookmark
+          if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", () => {
+              getDb()
+                .then(async (db) => {
+                  try {
+                    const { url } = JSON.parse(body);
+                    if (!url) {
+                      res.statusCode = 400;
+                      res.end(JSON.stringify({ error: "URL required" }));
+                      return;
+                    }
+
+                    const deleted = db.deleteBookmark(url);
+                    if (!deleted) {
+                      res.statusCode = 404;
+                      res.end(JSON.stringify({ error: "Bookmark not found" }));
+                      return;
+                    }
+
+                    // Regenerate JSON after delete
+                    await regenerateJson();
+
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ success: true }));
+                  } catch (innerErr) {
+                    res.statusCode = 500;
+                    res.end(
+                      JSON.stringify({ error: (innerErr as Error).message }),
+                    );
+                  }
+                })
+                .catch((err) => {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: (err as Error).message }));
+                });
+            });
+            return;
+          }
+
+          // CREATE a bookmark
+          if (req.url === "/api/bookmarks/create" && req.method === "POST") {
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", () => {
+              getDb()
+                .then((db) => {
+                  const bookmark = JSON.parse(body);
+                  if (!bookmark.url) {
+                    res.statusCode = 400;
+                    res.end(JSON.stringify({ error: "URL required" }));
+                    return;
+                  }
+
+                  const created = db.createBookmark(bookmark);
+                  res.setHeader("Content-Type", "application/json");
+                  res.statusCode = 201;
+                  res.end(JSON.stringify(created));
+                })
+                .catch((err) => {
+                  res.statusCode = 500;
+                  res.end(JSON.stringify({ error: (err as Error).message }));
+                });
+            });
+            return;
+          }
+
+          // Mesh proxy endpoint - forwards requests to mesh with authentication
+          if (req.url === "/api/mesh/call" && req.method === "POST") {
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", async () => {
               try {
-                const { url } = JSON.parse(body);
-                if (!url) {
-                  res.statusCode = 400;
-                  res.end(JSON.stringify({ error: "URL required" }));
+                const { toolName, args } = JSON.parse(body);
+
+                if (!MESH_GATEWAY_URL || !MESH_API_KEY) {
+                  res.statusCode = 500;
+                  res.end(
+                    JSON.stringify({
+                      error:
+                        "MESH_GATEWAY_URL and MESH_API_KEY env vars required in .env",
+                    }),
+                  );
                   return;
                 }
 
-                // Read CSV
-                const content = readFileSync(CSV_PATH, "utf-8");
-                const lines = content.split("\n");
-                const header = lines[0];
-                const dataLines = lines.slice(1);
-
-                // Filter out the URL
-                const newLines = dataLines.filter(
-                  (line) => !line.startsWith(url + ","),
+                console.log("[Mesh Proxy] Calling:", MESH_GATEWAY_URL);
+                console.log("[Mesh Proxy] Tool:", toolName);
+                console.log(
+                  "[Mesh Proxy] API Key prefix:",
+                  `${MESH_API_KEY?.slice(0, 10)}...`,
                 );
 
-                if (newLines.length === dataLines.length) {
-                  res.statusCode = 404;
-                  res.end(JSON.stringify({ error: "URL not found" }));
-                  return;
-                }
+                const meshResponse = await fetch(MESH_GATEWAY_URL, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Accept: "application/json, text/event-stream",
+                    Authorization: `Bearer ${MESH_API_KEY}`,
+                  },
+                  body: JSON.stringify({
+                    jsonrpc: "2.0",
+                    id: Date.now(),
+                    method: "tools/call",
+                    params: { name: toolName, arguments: args },
+                  }),
+                });
 
-                // Write back
-                const newContent = [header, ...newLines].join("\n");
-                writeFileSync(CSV_PATH, newContent);
+                const rawText = await meshResponse.text();
+                console.log(
+                  "[Mesh Proxy] Response status:",
+                  meshResponse.status,
+                );
+                console.log("[Mesh Proxy] Response:", rawText.slice(0, 200));
 
                 res.setHeader("Content-Type", "application/json");
-                res.end(
-                  JSON.stringify({ success: true, remaining: newLines.length }),
-                );
+                res.statusCode = meshResponse.status;
+
+                // Try to parse and re-stringify to ensure valid JSON
+                try {
+                  const parsed = JSON.parse(rawText);
+                  res.end(JSON.stringify(parsed));
+                } catch {
+                  // If parsing fails, wrap the raw text in an error response
+                  res.statusCode = 500;
+                  res.end(
+                    JSON.stringify({
+                      error: `Invalid JSON from mesh: ${rawText.slice(0, 500)}`,
+                    }),
+                  );
+                }
               } catch (err) {
                 res.statusCode = 500;
                 res.end(JSON.stringify({ error: (err as Error).message }));
@@ -205,6 +338,7 @@ function bookmarksApiPlugin() {
             });
             return;
           }
+
           next();
         },
       );
@@ -223,12 +357,7 @@ function bookmarksApiPlugin() {
  * - Auto-generated content manifest
  */
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    contentManifestPlugin(),
-    bookmarksApiPlugin(),
-  ],
+  plugins: [react(), tailwindcss(), bookmarksApiPlugin()],
 
   resolve: {
     alias: {
@@ -285,6 +414,10 @@ export default defineConfig({
     // Serve content files during development
     fs: {
       allow: [".", "content"],
+    },
+    // Don't trigger HMR for CSV files (we update them programmatically)
+    watch: {
+      ignored: ["**/public/bookmarks/**"],
     },
   },
 

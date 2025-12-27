@@ -2,7 +2,7 @@
  * Article Page
  *
  * Loads and renders a single article by slug.
- * Fetches markdown content using hashed paths from manifest.
+ * Fetches JSON content from the exported content files.
  */
 
 import { useState, useEffect } from "react";
@@ -11,10 +11,13 @@ import { marked } from "marked";
 import { getArticlePath } from "../lib/manifest";
 
 interface ArticleData {
+  slug: string;
   title: string;
   date: string;
   description?: string;
   content: string;
+  tags?: string[];
+  status: "draft" | "published";
 }
 
 function formatDate(dateStr: string): string {
@@ -24,36 +27,6 @@ function formatDate(dateStr: string): string {
     month: "long",
     day: "numeric",
   });
-}
-
-/**
- * Parse frontmatter from markdown
- */
-function parseFrontmatter(content: string): {
-  frontmatter: Record<string, string>;
-  body: string;
-} {
-  const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  if (!match) {
-    return { frontmatter: {}, body: content };
-  }
-
-  const [, yamlStr, body] = match;
-  const frontmatter: Record<string, string> = {};
-
-  for (const line of (yamlStr ?? "").split("\n")) {
-    const colonIndex = line.indexOf(":");
-    if (colonIndex > 0) {
-      const key = line.slice(0, colonIndex).trim();
-      let value = line.slice(colonIndex + 1).trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-      frontmatter[key] = value;
-    }
-  }
-
-  return { frontmatter, body: body ?? "" };
 }
 
 export function Article({ slug }: { slug: string }) {
@@ -67,7 +40,7 @@ export function Article({ slug }: { slug: string }) {
       setError(null);
 
       try {
-        // Get the hashed path from manifest
+        // Get the path from manifest
         const articlePath = await getArticlePath(slug);
         if (!articlePath) {
           throw new Error("Article not found");
@@ -78,15 +51,8 @@ export function Article({ slug }: { slug: string }) {
           throw new Error("Article not found");
         }
 
-        const raw = await response.text();
-        const { frontmatter, body } = parseFrontmatter(raw);
-
-        setArticle({
-          title: frontmatter.title ?? slug,
-          date: frontmatter.date ?? new Date().toISOString().split("T")[0]!,
-          description: frontmatter.description,
-          content: body,
-        });
+        const data = await response.json();
+        setArticle(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load article");
       }
@@ -127,6 +93,19 @@ export function Article({ slug }: { slug: string }) {
 
   return (
     <article className="container py-4">
+      {/* Draft badge */}
+      {article.status === "draft" && (
+        <div
+          className="inline-block mb-4 px-3 py-1 rounded-md text-sm font-medium"
+          style={{
+            backgroundColor: "var(--color-warning, #f59e0b)",
+            color: "#000",
+          }}
+        >
+          📝 Draft - Local Preview Only
+        </div>
+      )}
+
       {/* Constrain all content to prose width */}
       <div className="prose">
         <header className="mt-4 mb-8">
@@ -150,6 +129,22 @@ export function Article({ slug }: { slug: string }) {
             >
               {article.description}
             </p>
+          )}
+          {article.tags && article.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {article.tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="text-xs px-2 py-1 rounded-full"
+                  style={{
+                    backgroundColor: "var(--color-bg-tertiary)",
+                    color: "var(--color-fg-muted)",
+                  }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
           )}
         </header>
 

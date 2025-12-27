@@ -282,7 +282,6 @@ type ContentEntity = z.infer<typeof ContentEntitySchema>;
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
 const CONTENT_DIRS = {
-  ideas: "./content/ideas",
   research: "./content/research",
   drafts: "./content/drafts",
   articles: "./content/articles",
@@ -779,7 +778,7 @@ const searchTools = [
   createTool({
     id: "SEARCH_CONTENT",
     description:
-      "Search through content/ files (ideas, research, drafts, articles) for references and concepts. Uses ripgrep if available.",
+      "Search through content/ files (research, drafts, articles) for references and concepts. Uses ripgrep if available.",
     inputSchema: z.object({
       pattern: z.string().describe("Search pattern (regex supported)"),
       contextLines: z
@@ -791,7 +790,7 @@ const searchTools = [
         .default(false)
         .describe("Case-sensitive search"),
       collection: z
-        .enum(["all", "ideas", "research", "drafts", "articles"])
+        .enum(["all", "research", "drafts", "articles"])
         .default("all")
         .describe("Which collection to search"),
     }),
@@ -1563,7 +1562,6 @@ const wrapTools = (tools: ReturnType<typeof createTool>[]) =>
 
 const allTools = [
   // Content collections
-  ...wrapTools(createCollectionTools("ideas")),
   ...wrapTools(createCollectionTools("research")),
   ...wrapTools(createCollectionTools("drafts")),
   ...wrapTools(createCollectionTools("articles")),

@@ -106,7 +106,7 @@ export function Content() {
               </h2>
               {drafts.map((article) => (
                 <div
-                  key={article.id}
+                  key={article.slug}
                   style={{
                     position: "relative",
                   }}
@@ -130,7 +130,7 @@ export function Content() {
                     Draft
                   </div>
                   <ArticleCard
-                    slug={article.id}
+                    slug={article.slug}
                     title={article.title}
                     date={article.date}
                     description={article.description}
@@ -163,8 +163,8 @@ export function Content() {
               )}
               {articles.map((article, index) => (
                 <ArticleCard
-                  key={article.id}
-                  slug={article.id}
+                  key={article.slug}
+                  slug={article.slug}
                   title={article.title}
                   date={article.date}
                   description={article.description}

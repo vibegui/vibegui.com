@@ -148,7 +148,7 @@ describe("Build Size Constraints", () => {
 
     console.log(`Total app code: ${(appCodeSize / 1024).toFixed(2)}KB`);
 
-    // App code should stay lean - 50KB max
-    expect(appCodeSize).toBeLessThan(50 * 1024);
+    // App code should stay lean - 65KB max (bookmarks enrichment UI added ~10KB)
+    expect(appCodeSize).toBeLessThan(65 * 1024);
   });
 });

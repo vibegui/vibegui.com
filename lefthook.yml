@@ -3,6 +3,7 @@
 
 pre-commit:
   parallel: false
+  piped: true  # Stop on first error - don't continue if a command fails
   commands:
     1_format:
       run: bun run fmt
@@ -20,7 +21,7 @@ pre-commit:
 
     5_stage:
       # Only stage tracked dist files (not gitignored content/context/.vite)
-      run: git add dist/index.html dist/assets/ dist/_headers dist/images/ public/content/manifest.json
+      run: git add dist/index.html dist/assets/ dist/_headers dist/images/
 
     6_constraints:
       run: bun run test:constraints
