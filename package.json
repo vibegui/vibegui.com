@@ -7,6 +7,7 @@
     "dev": "bun run export && vite",
     "build": "bun run export && vite build && bun scripts/hash-content.ts",
     "export": "node --experimental-strip-types --experimental-sqlite scripts/export-content.ts && node --experimental-strip-types --experimental-sqlite scripts/export-bookmarks.ts",
+    "db:checkpoint": "sqlite3 data/bookmarks.db 'PRAGMA wal_checkpoint(TRUNCATE);' && sqlite3 data/content.db 'PRAGMA wal_checkpoint(TRUNCATE);'",
     "preview": "vite preview",
     "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/export-content.ts && node --no-warnings --experimental-strip-types --experimental-sqlite scripts/export-bookmarks.ts && node --experimental-strip-types scripts/hash-content.ts",
     "mcp:dev": "bun --watch main.ts",
