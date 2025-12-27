@@ -56,6 +56,27 @@ function getFavicon(url: string): string {
   }
 }
 
+// Extract platform from URL for filtering
+const PLATFORM_PATTERNS: Record<string, RegExp> = {
+  github: /github\.com/i,
+  linkedin: /linkedin\.com/i,
+  twitter: /twitter\.com|x\.com/i,
+  youtube: /youtube\.com|youtu\.be/i,
+  instagram: /instagram\.com/i,
+  medium: /medium\.com/i,
+  substack: /substack\.com/i,
+  reddit: /reddit\.com/i,
+  hackernews: /news\.ycombinator\.com/i,
+  discord: /discord\.com|discord\.gg/i,
+};
+
+function getPlatform(url: string): string | null {
+  for (const [platform, pattern] of Object.entries(PLATFORM_PATTERNS)) {
+    if (pattern.test(url)) return platform;
+  }
+  return null;
+}
+
 interface EnrichmentStatus {
   isRunning: boolean;
   current: string | null;
@@ -349,6 +370,9 @@ export function Bookmarks() {
   >(null);
   const [techFilter, setTechFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<"default" | "rating">("default");
+  const [minStars, setMinStars] = useState<number | null>(null);
+  const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   // Modal states - each stores the bookmark URL to show (insights first, then research, then content)
   const MODAL_TYPES = [
     "dev",
@@ -616,6 +640,18 @@ export function Bookmarks() {
     .sort((a, b) => b[1] - a[1])
     .map(([tag]) => tag);
 
+  // Collect platform counts for filter
+  const platformCounts: Record<string, number> = {};
+  for (const b of bookmarks) {
+    const platform = getPlatform(b.url);
+    if (platform) {
+      platformCounts[platform] = (platformCounts[platform] || 0) + 1;
+    }
+  }
+  const sortedPlatforms = Object.entries(platformCounts)
+    .sort((a, b) => b[1] - a[1])
+    .map(([p]) => p);
+
   const filtered = bookmarks
     .filter((b) => {
       if (showOnlyUnenriched && b.classified_at) return false;
@@ -630,6 +666,10 @@ export function Bookmarks() {
         return false;
       if (techFilter && !hasTag(b.tags, `tech:${techFilter}`)) return false;
       if (typeFilter && !hasTag(b.tags, `type:${typeFilter}`)) return false;
+      // Min stars filter
+      if (minStars !== null && (b.stars || 0) < minStars) return false;
+      // Platform filter
+      if (platformFilter && getPlatform(b.url) !== platformFilter) return false;
       if (search) {
         const s = search.toLowerCase();
         return (
@@ -641,13 +681,18 @@ export function Bookmarks() {
       }
       return true;
     })
-    // Sort: enriched first, then by stars (highest first), then unenriched
+    // Sort based on sortBy option
     .sort((a, b) => {
+      if (sortBy === "rating") {
+        // Pure rating sort: highest stars first, unenriched at bottom
+        return (b.stars || 0) - (a.stars || 0);
+      }
+      // Default: enriched first, then by stars
       const aEnriched = a.classified_at ? 1 : 0;
       const bEnriched = b.classified_at ? 1 : 0;
-      if (aEnriched !== bEnriched) return bEnriched - aEnriched; // enriched first
+      if (aEnriched !== bEnriched) return bEnriched - aEnriched;
       if (aEnriched && bEnriched) {
-        return (b.stars || 0) - (a.stars || 0); // higher stars first
+        return (b.stars || 0) - (a.stars || 0);
       }
       return 0;
     });
@@ -983,7 +1028,7 @@ export function Bookmarks() {
 
       {/* Content Type Filters */}
       {sortedTypeTags.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-3">
           <span
             className="text-xs py-1"
             style={{ color: "var(--color-fg-muted)" }}
@@ -1011,6 +1056,94 @@ export function Bookmarks() {
           ))}
         </div>
       )}
+
+      {/* Platform Filters */}
+      {sortedPlatforms.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-3">
+          <span
+            className="text-xs py-1"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            Platform:
+          </span>
+          {sortedPlatforms.map((platform) => (
+            <button
+              type="button"
+              key={platform}
+              onClick={() =>
+                setPlatformFilter(platform === platformFilter ? null : platform)
+              }
+              className="px-2 py-0.5 rounded text-xs font-medium transition-all"
+              style={{
+                backgroundColor:
+                  platformFilter === platform
+                    ? "#10b98130"
+                    : "var(--color-bg-secondary)",
+                color:
+                  platformFilter === platform
+                    ? "#10b981"
+                    : "var(--color-fg-muted)",
+                border: `1px solid ${platformFilter === platform ? "#10b981" : "var(--color-border)"}`,
+              }}
+            >
+              {platform} ({platformCounts[platform]})
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Rating Filter & Sort */}
+      <div className="flex flex-wrap gap-4 mb-6 items-center">
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs py-1"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            Min Stars:
+          </span>
+          {[1, 2, 3, 4, 5].map((stars) => (
+            <button
+              type="button"
+              key={stars}
+              onClick={() => setMinStars(minStars === stars ? null : stars)}
+              className="px-2 py-0.5 rounded text-xs font-medium transition-all"
+              style={{
+                backgroundColor:
+                  minStars === stars
+                    ? "#eab30830"
+                    : "var(--color-bg-secondary)",
+                color: minStars === stars ? "#eab308" : "var(--color-fg-muted)",
+                border: `1px solid ${minStars === stars ? "#eab308" : "var(--color-border)"}`,
+              }}
+            >
+              {"⭐".repeat(stars)}
+            </button>
+          ))}
+        </div>
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs py-1"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            Sort:
+          </span>
+          <button
+            type="button"
+            onClick={() =>
+              setSortBy(sortBy === "default" ? "rating" : "default")
+            }
+            className="px-2 py-0.5 rounded text-xs font-medium transition-all"
+            style={{
+              backgroundColor:
+                sortBy === "rating" ? "#8b5cf630" : "var(--color-bg-secondary)",
+              color: sortBy === "rating" ? "#8b5cf6" : "var(--color-fg-muted)",
+              border: `1px solid ${sortBy === "rating" ? "#8b5cf6" : "var(--color-border)"}`,
+            }}
+          >
+            {sortBy === "rating" ? "⭐ By Rating" : "📊 Default"}
+          </button>
+        </div>
+      </div>
 
       {/* Enrichment Workflow Panel - only in development */}
       {isDev && (
