@@ -15,9 +15,16 @@ export interface ArticleMeta {
   tags?: string[];
 }
 
+export interface ContextFile {
+  original: string;
+  path: string;
+  hash: string;
+}
+
 export interface ContentManifest {
   articles: ArticleMeta[];
   drafts: ArticleMeta[];
+  context?: ContextFile[];
 }
 
 export interface ResearchMeta {
@@ -31,6 +38,45 @@ export interface ResearchMeta {
 
 let cachedContentManifest: ContentManifest | null = null;
 let cachedResearchManifest: ResearchMeta[] | null = null;
+let cachedHashedManifest: ContentManifest | null = null;
+
+/**
+ * Get the manifest path - uses hashed manifest in production
+ */
+function getManifestPath(): string {
+  // In production, index.html has window.__MANIFEST_PATH__ injected
+  if (
+    typeof window !== "undefined" &&
+    (window as unknown as { __MANIFEST_PATH__?: string }).__MANIFEST_PATH__
+  ) {
+    return (window as unknown as { __MANIFEST_PATH__: string })
+      .__MANIFEST_PATH__;
+  }
+  return "/content/manifest.json";
+}
+
+/**
+ * Load the hashed manifest (includes context files in production)
+ */
+async function loadHashedManifest(): Promise<ContentManifest | null> {
+  if (cachedHashedManifest) {
+    return cachedHashedManifest;
+  }
+
+  try {
+    const manifestPath = getManifestPath();
+    const response = await fetch(manifestPath);
+    if (!response.ok) {
+      return null;
+    }
+
+    const data = await response.json();
+    cachedHashedManifest = data;
+    return cachedHashedManifest;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Load the content manifest (articles and drafts)
@@ -72,7 +118,7 @@ export async function loadManifest(): Promise<ContentManifest | null> {
           tags: a.tags,
         }),
       );
-      cachedContentManifest = { articles, drafts };
+      cachedContentManifest = { articles, drafts, context: data.context };
       return cachedContentManifest;
     }
 
@@ -149,10 +195,22 @@ export async function getResearchPath(slug: string): Promise<string | null> {
 }
 
 /**
- * Get a context file's content path (legacy - context is still markdown)
+ * Get a context file's content path
+ * Uses hashed paths in production, direct paths in development
  */
 export async function getContextPath(originalPath: string): Promise<string> {
-  // Context files are still served as markdown from /context/
+  // Try to get hashed path from manifest (production)
+  const manifest = await loadHashedManifest();
+  if (manifest?.context) {
+    const contextFile = manifest.context.find(
+      (c) => c.original === originalPath,
+    );
+    if (contextFile) {
+      return `/context/${contextFile.path}`;
+    }
+  }
+
+  // Fallback to direct path (development)
   return `/context/${originalPath}.md`;
 }
 

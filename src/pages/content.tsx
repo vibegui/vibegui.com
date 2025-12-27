@@ -70,7 +70,7 @@ export function Content() {
               </div>
               <button
                 onClick={() => setShowDrafts(!showDrafts)}
-                className="px-3 py-1.5 rounded-md text-sm font-medium transition-colors"
+                className="px-4 py-2.5 rounded-md text-sm font-medium transition-colors min-h-[44px]"
                 style={{
                   backgroundColor: showDrafts
                     ? "var(--color-accent)"
