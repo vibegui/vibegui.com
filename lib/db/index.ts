@@ -1,11 +1,11 @@
 /**
  * SQLite Database for Bookmarks
  *
- * Uses better-sqlite3 for synchronous, embedded SQLite operations.
+ * Uses Node 22's native node:sqlite for zero-dependency SQLite operations.
  * Database file is stored in data/bookmarks.db
  */
 
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { join, dirname } from "node:path";
 import { mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -20,8 +20,7 @@ if (!existsSync(DATA_DIR)) {
 }
 
 // Initialize database
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
+const db = new DatabaseSync(DB_PATH);
 
 // Create tables if they don't exist
 db.exec(`
@@ -142,7 +141,7 @@ const deleteByUrlStmt = db.prepare("DELETE FROM bookmarks WHERE url = ?");
 
 // Get all bookmarks
 export function getAllBookmarks(): Bookmark[] {
-  const rows = selectAllStmt.all() as BookmarkRow[];
+  const rows = selectAllStmt.all() as unknown as BookmarkRow[];
 
   return rows.map((row) => {
     const tags = (selectTagsStmt.all(row.id) as { tag: string }[]).map(
@@ -203,7 +202,7 @@ export function createBookmark(bookmark: Bookmark): Bookmark {
     bookmark.classified_at || null,
   );
 
-  const bookmarkId = result.lastInsertRowid as number;
+  const bookmarkId = Number(result.lastInsertRowid);
 
   // Insert tags
   if (bookmark.tags && bookmark.tags.length > 0) {
@@ -224,10 +223,11 @@ export function updateBookmark(
   if (!existing || !existing.id) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
 
   // Build dynamic update query
-  const fieldMap: Record<string, unknown> = {
+  type SQLValue = string | number | null | undefined;
+  const fieldMap: Record<string, SQLValue> = {
     title: updates.title,
     description: updates.description,
     research_raw: updates.research_raw,
@@ -246,7 +246,7 @@ export function updateBookmark(
   for (const [field, value] of Object.entries(fieldMap)) {
     if (value !== undefined) {
       fields.push(`${field} = ?`);
-      values.push(value);
+      values.push(value ?? null);
     }
   }
 
@@ -321,38 +321,33 @@ export function bulkInsertBookmarks(bookmarks: Bookmark[]): number {
 
   let count = 0;
 
-  const transaction = db.transaction(() => {
-    for (const bookmark of bookmarks) {
-      insertBookmark.run(
-        bookmark.url,
-        bookmark.title || null,
-        bookmark.description || null,
-        bookmark.research_raw || null,
-        bookmark.exa_content || null,
-        bookmark.researched_at || null,
-        bookmark.stars || null,
-        bookmark.reading_time_min || null,
-        bookmark.language || null,
-        bookmark.icon || null,
-        bookmark.insight_dev || null,
-        bookmark.insight_founder || null,
-        bookmark.insight_investor || null,
-        bookmark.classified_at || null,
-      );
+  for (const bookmark of bookmarks) {
+    insertBookmark.run(
+      bookmark.url,
+      bookmark.title || null,
+      bookmark.description || null,
+      bookmark.research_raw || null,
+      bookmark.exa_content || null,
+      bookmark.researched_at || null,
+      bookmark.stars || null,
+      bookmark.reading_time_min || null,
+      bookmark.language || null,
+      bookmark.icon || null,
+      bookmark.insight_dev || null,
+      bookmark.insight_founder || null,
+      bookmark.insight_investor || null,
+      bookmark.classified_at || null,
+    );
 
-      const row = getIdByUrlStmt.get(bookmark.url) as
-        | { id: number }
-        | undefined;
-      if (row && bookmark.tags) {
-        for (const tag of bookmark.tags) {
-          insertTagStmt.run(row.id, tag);
-        }
+    const row = getIdByUrlStmt.get(bookmark.url) as { id: number } | undefined;
+    if (row && bookmark.tags) {
+      for (const tag of bookmark.tags) {
+        insertTagStmt.run(row.id, tag);
       }
-      count++;
     }
-  });
+    count++;
+  }
 
-  transaction();
   return count;
 }
 

@@ -6,7 +6,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAllBookmarks } from "../lib/db/index.js";
+import { getAllBookmarks } from "../lib/db/index.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, "..", "public", "bookmarks");

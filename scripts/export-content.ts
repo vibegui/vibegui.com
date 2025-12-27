@@ -9,7 +9,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getArticles, getDrafts } from "../lib/db/content.js";
+import { getArticles, getDrafts } from "../lib/db/content.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, "..", "public", "content");

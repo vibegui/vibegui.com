@@ -1,12 +1,12 @@
 /**
  * SQLite Database for Articles and Drafts
  *
- * Uses better-sqlite3 for synchronous, embedded SQLite operations.
+ * Uses Node 22's native node:sqlite for zero-dependency SQLite operations.
  * Database file is stored in data/content.db
  * Articles and drafts are in the same table, differentiated by status field.
  */
 
-import Database from "better-sqlite3";
+import { DatabaseSync } from "node:sqlite";
 import { join, dirname } from "node:path";
 import { mkdirSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -21,8 +21,7 @@ if (!existsSync(DATA_DIR)) {
 }
 
 // Initialize database
-const db = new Database(DB_PATH);
-db.pragma("journal_mode = WAL");
+const db = new DatabaseSync(DB_PATH);
 
 // Create tables if they don't exist
 db.exec(`
@@ -111,7 +110,7 @@ const deleteBySlugStmt = db.prepare("DELETE FROM content WHERE slug = ?");
 
 // Get all content
 export function getAllContent(): Content[] {
-  const rows = selectAllStmt.all() as ContentRow[];
+  const rows = selectAllStmt.all() as unknown as ContentRow[];
 
   return rows.map((row) => {
     const tags = (selectTagsStmt.all(row.id) as { tag: string }[]).map(
@@ -123,7 +122,7 @@ export function getAllContent(): Content[] {
 
 // Get content by status (articles = published, drafts = draft)
 export function getContentByStatus(status: "draft" | "published"): Content[] {
-  const rows = selectByStatusStmt.all(status) as ContentRow[];
+  const rows = selectByStatusStmt.all(status) as unknown as ContentRow[];
 
   return rows.map((row) => {
     const tags = (selectTagsStmt.all(row.id) as { tag: string }[]).map(
@@ -181,7 +180,7 @@ export function createContent(content: Content): Content {
     content.status,
   );
 
-  const contentId = result.lastInsertRowid as number;
+  const contentId = Number(result.lastInsertRowid);
 
   // Insert tags
   if (content.tags && content.tags.length > 0) {
@@ -202,9 +201,10 @@ export function updateContent(
   if (!existing || !existing.id) return null;
 
   const fields: string[] = [];
-  const values: unknown[] = [];
+  const values: (string | number | null)[] = [];
 
-  const fieldMap: Record<string, unknown> = {
+  type SQLValue = string | number | null | undefined;
+  const fieldMap: Record<string, SQLValue> = {
     title: updates.title,
     description: updates.description,
     content: updates.content,
@@ -215,7 +215,7 @@ export function updateContent(
   for (const [field, value] of Object.entries(fieldMap)) {
     if (value !== undefined) {
       fields.push(`${field} = ?`);
-      values.push(value);
+      values.push(value ?? null);
     }
   }
 
@@ -298,29 +298,26 @@ export function bulkInsertContent(items: Content[]): number {
 
   let count = 0;
 
-  const transaction = db.transaction(() => {
-    for (const item of items) {
-      insertContent.run(
-        item.slug,
-        item.title,
-        item.description || null,
-        item.content,
-        item.date,
-        item.status,
-      );
+  for (const item of items) {
+    insertContent.run(
+      item.slug,
+      item.title,
+      item.description || null,
+      item.content,
+      item.date,
+      item.status,
+    );
 
-      const row = getIdBySlugStmt.get(item.slug) as { id: number } | undefined;
-      if (row && item.tags) {
-        deleteTagsStmt.run(row.id);
-        for (const tag of item.tags) {
-          insertTagStmt.run(row.id, tag);
-        }
+    const row = getIdBySlugStmt.get(item.slug) as { id: number } | undefined;
+    if (row && item.tags) {
+      deleteTagsStmt.run(row.id);
+      for (const tag of item.tags) {
+        insertTagStmt.run(row.id, tag);
       }
-      count++;
     }
-  });
+    count++;
+  }
 
-  transaction();
   return count;
 }
 
