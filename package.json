@@ -24,7 +24,9 @@
     "test:constraints": "bun test tests/constraints/",
     "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints && bun run test:e2e",
     "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true",
-    "optimize:images": "bun scripts/optimize-images.ts"
+    "optimize:images": "bun scripts/optimize-images.ts",
+    "backup": "bun scripts/backup-supabase.ts",
+    "restore": "bun scripts/restore-supabase.ts"
   },
   "mcp": {
     "scripts": {

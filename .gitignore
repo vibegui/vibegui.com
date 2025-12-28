@@ -53,3 +53,5 @@ data/*.db-wal
 
 # Bookmarks DB (now in Supabase, keep locally as backup)
 data/bookmarks.db
+
+supabase/

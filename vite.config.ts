@@ -39,9 +39,61 @@ async function callMcpTool(toolName: string, args: Record<string, unknown>) {
 }
 
 /**
- * Execute SQL via Supabase MCP
+ * Request queue to serialize Supabase calls (prevents 429 rate limiting)
  */
-async function executeSupabaseSql(query: string) {
+class SupabaseRequestQueue {
+  private queue: Array<{
+    query: string;
+    resolve: (value: unknown) => void;
+    reject: (error: Error) => void;
+  }> = [];
+  private processing = false;
+  private lastRequestTime = 0;
+  private readonly minDelayMs = 100; // Minimum 100ms between requests
+
+  async execute(query: string): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      this.queue.push({ query, resolve, reject });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue(): Promise<void> {
+    if (this.processing || this.queue.length === 0) return;
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const item = this.queue.shift();
+      if (!item) continue;
+
+      // Ensure minimum delay between requests
+      const timeSinceLastRequest = Date.now() - this.lastRequestTime;
+      if (timeSinceLastRequest < this.minDelayMs) {
+        await new Promise((r) =>
+          setTimeout(r, this.minDelayMs - timeSinceLastRequest),
+        );
+      }
+
+      try {
+        const result = await executeSupabaseSqlDirect(item.query);
+        this.lastRequestTime = Date.now();
+        item.resolve(result);
+      } catch (err) {
+        this.lastRequestTime = Date.now();
+        item.reject(err as Error);
+      }
+    }
+
+    this.processing = false;
+  }
+}
+
+const supabaseQueue = new SupabaseRequestQueue();
+
+/**
+ * Execute SQL via Supabase MCP (direct, no queueing)
+ */
+async function executeSupabaseSqlDirect(query: string) {
   const result = await callMcpTool("execute_sql", { query });
   // Parse the result - MCP returns content array
   if (result?.content?.[0]?.text) {
@@ -78,14 +130,31 @@ async function executeSupabaseSql(query: string) {
 }
 
 /**
+ * Execute SQL via Supabase MCP (queued - prevents 429 rate limiting)
+ */
+async function executeSupabaseSql(query: string) {
+  return supabaseQueue.execute(query);
+}
+
+/**
  * API plugin for bookmark operations using Supabase via MCP
  */
 function bookmarksApiPlugin() {
-  // Helper to escape SQL strings safely
+  // Helper to escape SQL strings safely using dollar-quoting
+  // This avoids issues with backslashes and quotes in content
   const escapeSQL = (str: string | null | undefined): string => {
     if (str === null || str === undefined) return "NULL";
-    // Double single quotes for PostgreSQL escaping
-    return `'${str.replace(/'/g, "''")}'`;
+    // Use dollar-quoting to avoid escaping issues entirely
+    // If string contains $$, use a unique tag
+    if (!str.includes("$$")) {
+      return `$$${str}$$`;
+    }
+    // Find a safe delimiter that doesn't appear in the string
+    let tag = "q";
+    while (str.includes(`$${tag}$`)) {
+      tag += "q";
+    }
+    return `$${tag}$${str}$${tag}$`;
   };
 
   return {
@@ -131,8 +200,11 @@ function bookmarksApiPlugin() {
               ),
             ])
               .then(([totalRes, enrichedRes, tagsRes]) => {
-                const total = totalRes?.[0]?.total || 0;
-                const enriched = enrichedRes?.[0]?.enriched || 0;
+                const total =
+                  (totalRes as Array<{ total: number }>)?.[0]?.total || 0;
+                const enriched =
+                  (enrichedRes as Array<{ enriched: number }>)?.[0]?.enriched ||
+                  0;
                 res.setHeader("Content-Type", "application/json");
                 res.end(
                   JSON.stringify({
@@ -198,7 +270,20 @@ function bookmarksApiPlugin() {
                 `;
                 console.log("[API] Update query:", updateQuery.slice(0, 200));
 
-                const result = await executeSupabaseSql(updateQuery);
+                let result;
+                try {
+                  result = await executeSupabaseSql(updateQuery);
+                } catch (sqlErr) {
+                  console.error("[API] SQL execution failed:", sqlErr);
+                  res.statusCode = 500;
+                  res.end(
+                    JSON.stringify({
+                      error: `SQL error: ${(sqlErr as Error).message}`,
+                    }),
+                  );
+                  return;
+                }
+
                 console.log(
                   "[API] Update result type:",
                   typeof result,
@@ -206,15 +291,33 @@ function bookmarksApiPlugin() {
                 );
                 console.log(
                   "[API] Update result:",
-                  JSON.stringify(result)?.slice(0, 300),
+                  JSON.stringify(result)?.slice(0, 500),
                 );
+
+                // Handle case where result is a string (error message or empty)
+                if (typeof result === "string") {
+                  console.log("[API] Result is string:", result.slice(0, 200));
+                  // Check if it contains error info
+                  if (result.toLowerCase().includes("error")) {
+                    res.statusCode = 500;
+                    res.end(JSON.stringify({ error: result }));
+                    return;
+                  }
+                }
 
                 const updated = Array.isArray(result) ? result[0] : result;
 
                 if (!updated || !updated.id) {
-                  console.log("[API] No bookmark returned from update");
+                  console.log(
+                    "[API] No bookmark returned from update, result was:",
+                    JSON.stringify(result)?.slice(0, 200),
+                  );
                   res.statusCode = 404;
-                  res.end(JSON.stringify({ error: "Bookmark not found" }));
+                  res.end(
+                    JSON.stringify({
+                      error: "Bookmark not found or update returned no data",
+                    }),
+                  );
                   return;
                 }
 
@@ -249,6 +352,175 @@ function bookmarksApiPlugin() {
             return;
           }
 
+          // BATCH UPDATE bookmarks (for enrichment) via Supabase MCP
+          // Accepts array of bookmarks, updates ALL in a single SQL transaction
+          if (
+            req.url === "/api/bookmarks/batch-update" &&
+            req.method === "POST"
+          ) {
+            console.log("[API] /api/bookmarks/batch-update called");
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", async () => {
+              try {
+                const { bookmarks: bookmarksToUpdate } = JSON.parse(body);
+                console.log(
+                  "[API] Batch updating",
+                  bookmarksToUpdate?.length,
+                  "bookmarks in single transaction",
+                );
+
+                if (
+                  !bookmarksToUpdate ||
+                  !Array.isArray(bookmarksToUpdate) ||
+                  bookmarksToUpdate.length === 0
+                ) {
+                  res.statusCode = 400;
+                  res.end(
+                    JSON.stringify({ error: "bookmarks array required" }),
+                  );
+                  return;
+                }
+
+                // Exclude generated/system columns from updates
+                const excludeFields = new Set([
+                  "id",
+                  "created_at",
+                  "updated_at",
+                  "search_vector",
+                  "embedding",
+                  "url", // URL is the key, not updatable
+                  "tags", // Handled separately
+                ]);
+
+                // Build a single SQL transaction with all updates
+                const updateStatements: string[] = [];
+                const tagData: Array<{ url: string; tags: string[] }> = [];
+
+                for (const bookmarkData of bookmarksToUpdate) {
+                  const { url, tags, ...updates } = bookmarkData;
+                  if (!url) continue;
+
+                  // Build SET clause for this bookmark
+                  const setClauses: string[] = [];
+                  for (const [key, value] of Object.entries(updates)) {
+                    if (value === undefined || excludeFields.has(key)) continue;
+                    if (value === null) {
+                      setClauses.push(`${key} = NULL`);
+                    } else if (typeof value === "number") {
+                      setClauses.push(`${key} = ${value}`);
+                    } else {
+                      setClauses.push(`${key} = ${escapeSQL(String(value))}`);
+                    }
+                  }
+                  setClauses.push("updated_at = NOW()");
+
+                  updateStatements.push(
+                    `UPDATE bookmarks SET ${setClauses.join(", ")} WHERE url = ${escapeSQL(url)};`,
+                  );
+
+                  // Collect tags for batch processing
+                  if (tags && Array.isArray(tags)) {
+                    tagData.push({ url, tags });
+                  }
+                }
+
+                // Execute all updates in a single transaction
+                const transactionSql = `
+                  BEGIN;
+                  ${updateStatements.join("\n")}
+                  COMMIT;
+                `;
+
+                console.log(
+                  "[API] Executing batch transaction:",
+                  updateStatements.length,
+                  "updates",
+                );
+                await executeSupabaseSql(transactionSql);
+
+                // Now handle tags - first get all bookmark IDs we need
+                if (tagData.length > 0) {
+                  const urls = tagData.map((t) => escapeSQL(t.url)).join(", ");
+                  const bookmarkIds = (await executeSupabaseSql(
+                    `SELECT id, url FROM bookmarks WHERE url IN (${urls})`,
+                  )) as Array<{ id: number; url: string }>;
+
+                  const urlToId = new Map(
+                    bookmarkIds.map((b) => [b.url, b.id]),
+                  );
+
+                  // Build batch delete + insert for tags
+                  const idsToDelete = tagData
+                    .map((t) => urlToId.get(t.url))
+                    .filter(Boolean);
+
+                  if (idsToDelete.length > 0) {
+                    await executeSupabaseSql(
+                      `DELETE FROM bookmark_tags WHERE bookmark_id IN (${idsToDelete.join(", ")})`,
+                    );
+                  }
+
+                  // Batch insert all tags
+                  const allTagValues: string[] = [];
+                  for (const { url, tags } of tagData) {
+                    const id = urlToId.get(url);
+                    if (id && tags.length > 0) {
+                      for (const tag of tags) {
+                        allTagValues.push(`(${id}, ${escapeSQL(tag)})`);
+                      }
+                    }
+                  }
+
+                  if (allTagValues.length > 0) {
+                    await executeSupabaseSql(
+                      `INSERT INTO bookmark_tags (bookmark_id, tag) VALUES ${allTagValues.join(", ")}`,
+                    );
+                  }
+                }
+
+                // Fetch updated bookmarks to return
+                const updatedUrls = bookmarksToUpdate
+                  .map((b: { url?: string }) => b.url)
+                  .filter((u): u is string => Boolean(u))
+                  .map((u) => escapeSQL(u))
+                  .join(", ");
+
+                const updatedBookmarks = (await executeSupabaseSql(`
+                  SELECT b.*, array_agg(t.tag) FILTER (WHERE t.tag IS NOT NULL) as tags
+                  FROM bookmarks b
+                  LEFT JOIN bookmark_tags t ON b.id = t.bookmark_id
+                  WHERE b.url IN (${updatedUrls})
+                  GROUP BY b.id
+                `)) as Array<Record<string, unknown>>;
+
+                const results = updatedBookmarks.map((b) => ({
+                  url: b.url as string,
+                  success: true,
+                  data: b,
+                }));
+
+                console.log(
+                  "[API] Batch update complete:",
+                  results.filter((r) => r.success).length,
+                  "succeeded,",
+                  results.filter((r) => !r.success).length,
+                  "failed",
+                );
+
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify({ results }));
+              } catch (err) {
+                console.error("[API] Batch update error:", err);
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
+            });
+            return;
+          }
+
           // DELETE a bookmark via Supabase MCP
           if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
             let body = "";
@@ -265,9 +537,9 @@ function bookmarksApiPlugin() {
                 }
 
                 // First get the bookmark ID for tag deletion
-                const bookmark = await executeSupabaseSql(
+                const bookmark = (await executeSupabaseSql(
                   `SELECT id FROM bookmarks WHERE url = ${escapeSQL(url)}`,
-                );
+                )) as Array<{ id: number }>;
                 const id = bookmark?.[0]?.id;
 
                 if (!id) {
@@ -323,9 +595,9 @@ function bookmarksApiPlugin() {
 
                 if (!created) {
                   // Bookmark already exists, fetch it
-                  const existing = await executeSupabaseSql(
+                  const existing = (await executeSupabaseSql(
                     `SELECT * FROM bookmarks WHERE url = ${escapeSQL(url)}`,
-                  );
+                  )) as Array<Record<string, unknown>>;
                   res.setHeader("Content-Type", "application/json");
                   res.end(JSON.stringify(existing?.[0] || { url }));
                   return;
