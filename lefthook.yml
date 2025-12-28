@@ -20,14 +20,12 @@ pre-commit:
       run: bun run build
 
     5_checkpoint_db:
-      # Checkpoint SQLite WAL to main db file before committing
-      run: |
-        sqlite3 data/bookmarks.db "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true
-        sqlite3 data/content.db "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true
+      # Checkpoint SQLite WAL to main db file before committing (content.db only, bookmarks in Supabase)
+      run: sqlite3 data/content.db "PRAGMA wal_checkpoint(TRUNCATE);" 2>/dev/null || true
 
     6_stage:
-      # Only stage tracked dist files (not gitignored content/context/bookmarks/.vite)
-      run: git add dist/index.html dist/assets/ dist/_headers dist/images/ data/*.db
+      # Only stage tracked dist files (not gitignored content/context/.vite)
+      run: git add dist/index.html dist/assets/ dist/_headers dist/images/ data/content.db
 
     7_constraints:
       run: bun run test:constraints

@@ -284,6 +284,28 @@ function slugify(title: string): string {
 }
 
 // ============================================================================
+// Auto-Export on Content Changes
+// ============================================================================
+
+/**
+ * Trigger content export after changes so dev server picks them up.
+ * Runs in the background - doesn't block the response.
+ */
+function triggerExport() {
+  try {
+    // Run export in background
+    spawn("bun", ["run", "export"], {
+      cwd: process.cwd(),
+      stdio: "ignore",
+      detached: true,
+    }).unref();
+    console.log("[MCP] Triggered content export");
+  } catch (err) {
+    console.error("[MCP] Failed to trigger export:", err);
+  }
+}
+
+// ============================================================================
 // SQLite-Based Content Tools
 // ============================================================================
 
@@ -392,6 +414,8 @@ function createSQLiteContentTools() {
           tags: context.tags,
         });
 
+        triggerExport(); // Auto-export for dev server
+
         const now = new Date().toISOString();
         return {
           item: {
@@ -437,6 +461,8 @@ function createSQLiteContentTools() {
 
         if (!updated) throw new Error(`Content not found: ${context.id}`);
 
+        triggerExport(); // Auto-export for dev server
+
         const now = new Date().toISOString();
         return {
           item: {
@@ -468,6 +494,7 @@ function createSQLiteContentTools() {
       execute: async ({ context }) => {
         const success = contentDb.deleteContent(context.id);
         if (!success) throw new Error(`Content not found: ${context.id}`);
+        triggerExport(); // Auto-export for dev server
         return { success: true, id: context.id };
       },
     }),
@@ -572,6 +599,8 @@ function createSQLiteContentTools() {
           tags: context.tags,
         });
 
+        triggerExport(); // Auto-export for dev server
+
         const now = new Date().toISOString();
         return {
           item: {
@@ -617,6 +646,8 @@ function createSQLiteContentTools() {
 
         if (!updated) throw new Error(`Content not found: ${context.id}`);
 
+        triggerExport(); // Auto-export for dev server
+
         const now = new Date().toISOString();
         return {
           item: {
@@ -648,7 +679,208 @@ function createSQLiteContentTools() {
       execute: async ({ context }) => {
         const success = contentDb.deleteContent(context.id);
         if (!success) throw new Error(`Content not found: ${context.id}`);
+        triggerExport(); // Auto-export for dev server
         return { success: true, id: context.id };
+      },
+    }),
+
+    // CONTENT SEARCH_REPLACE - Piecemeal editing like Cursor
+    createTool({
+      id: "CONTENT_SEARCH_REPLACE",
+      description:
+        "Replace text in content using search/replace. Use this for precise edits without sending the entire content. The old_string must match exactly (including whitespace).",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content to edit"),
+        old_string: z.string().describe("The exact text to find and replace"),
+        new_string: z.string().describe("The replacement text"),
+        replace_all: z
+          .boolean()
+          .default(false)
+          .describe("Replace all occurrences (default: first only)"),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        replacements: z.number().describe("Number of replacements made"),
+        preview: z.string().describe("Preview of the change context"),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) throw new Error(`Content not found: ${context.id}`);
+
+        const oldContent = content.content;
+        if (!oldContent.includes(context.old_string)) {
+          throw new Error(
+            `old_string not found in content. Make sure it matches exactly including whitespace.`,
+          );
+        }
+
+        let newContent: string;
+        let replacements: number;
+
+        if (context.replace_all) {
+          const parts = oldContent.split(context.old_string);
+          replacements = parts.length - 1;
+          newContent = parts.join(context.new_string);
+        } else {
+          replacements = 1;
+          newContent = oldContent.replace(
+            context.old_string,
+            context.new_string,
+          );
+        }
+
+        contentDb.updateContent(context.id, { content: newContent });
+        triggerExport();
+
+        // Generate preview context (show 50 chars before/after first replacement)
+        const idx = newContent.indexOf(context.new_string);
+        const start = Math.max(0, idx - 50);
+        const end = Math.min(
+          newContent.length,
+          idx + context.new_string.length + 50,
+        );
+        const preview =
+          (start > 0 ? "..." : "") +
+          newContent.slice(start, end) +
+          (end < newContent.length ? "..." : "");
+
+        return { success: true, replacements, preview };
+      },
+    }),
+
+    // CONTENT APPEND - Add text to end of content
+    createTool({
+      id: "CONTENT_APPEND",
+      description: "Append text to the end of content",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content"),
+        text: z.string().describe("Text to append"),
+        separator: z
+          .string()
+          .default("\n\n")
+          .describe("Separator between existing content and appended text"),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        newLength: z.number(),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) throw new Error(`Content not found: ${context.id}`);
+
+        const newContent = content.content + context.separator + context.text;
+        contentDb.updateContent(context.id, { content: newContent });
+        triggerExport();
+
+        return { success: true, newLength: newContent.length };
+      },
+    }),
+
+    // CONTENT PREPEND - Add text to beginning of content
+    createTool({
+      id: "CONTENT_PREPEND",
+      description: "Prepend text to the beginning of content",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content"),
+        text: z.string().describe("Text to prepend"),
+        separator: z
+          .string()
+          .default("\n\n")
+          .describe("Separator between prepended text and existing content"),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        newLength: z.number(),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) throw new Error(`Content not found: ${context.id}`);
+
+        const newContent = context.text + context.separator + content.content;
+        contentDb.updateContent(context.id, { content: newContent });
+        triggerExport();
+
+        return { success: true, newLength: newContent.length };
+      },
+    }),
+
+    // CONTENT INSERT_AFTER - Insert text after a marker
+    createTool({
+      id: "CONTENT_INSERT_AFTER",
+      description: "Insert text after a specific marker in content",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content"),
+        marker: z.string().describe("The text to insert after"),
+        text: z.string().describe("Text to insert"),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        preview: z.string(),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) throw new Error(`Content not found: ${context.id}`);
+
+        if (!content.content.includes(context.marker)) {
+          throw new Error(`Marker not found in content`);
+        }
+
+        const newContent = content.content.replace(
+          context.marker,
+          context.marker + context.text,
+        );
+        contentDb.updateContent(context.id, { content: newContent });
+        triggerExport();
+
+        const idx = newContent.indexOf(context.marker);
+        const start = Math.max(0, idx - 20);
+        const end = Math.min(
+          newContent.length,
+          idx + context.marker.length + context.text.length + 20,
+        );
+        const preview = newContent.slice(start, end);
+
+        return { success: true, preview };
+      },
+    }),
+
+    // CONTENT INSERT_BEFORE - Insert text before a marker
+    createTool({
+      id: "CONTENT_INSERT_BEFORE",
+      description: "Insert text before a specific marker in content",
+      inputSchema: z.object({
+        id: z.string().describe("The slug/ID of the content"),
+        marker: z.string().describe("The text to insert before"),
+        text: z.string().describe("Text to insert"),
+      }),
+      outputSchema: z.object({
+        success: z.boolean(),
+        preview: z.string(),
+      }),
+      execute: async ({ context }) => {
+        const content = contentDb.getContentBySlug(context.id);
+        if (!content) throw new Error(`Content not found: ${context.id}`);
+
+        if (!content.content.includes(context.marker)) {
+          throw new Error(`Marker not found in content`);
+        }
+
+        const newContent = content.content.replace(
+          context.marker,
+          context.text + context.marker,
+        );
+        contentDb.updateContent(context.id, { content: newContent });
+        triggerExport();
+
+        const idx = newContent.indexOf(context.text);
+        const start = Math.max(0, idx - 20);
+        const end = Math.min(
+          newContent.length,
+          idx + context.text.length + context.marker.length + 20,
+        );
+        const preview = newContent.slice(start, end);
+
+        return { success: true, preview };
       },
     }),
   ];

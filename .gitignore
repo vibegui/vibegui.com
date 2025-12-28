@@ -47,6 +47,9 @@ playwright-report/
 
 temp/
 
-# SQLite WAL temp files (not the db itself)
+# SQLite WAL temp files
 data/*.db-shm
 data/*.db-wal
+
+# Bookmarks DB (now in Supabase, keep locally as backup)
+data/bookmarks.db
