@@ -99,5 +99,9 @@
     "@modelcontextprotocol/sdk": "1.20.2",
     "@types/plist": "^3.0.5",
     "plist": "^3.1.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.89.0",
+    "postgres": "^3.4.7"
   }
 }

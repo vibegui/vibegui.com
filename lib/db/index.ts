@@ -95,6 +95,8 @@ db.exec(`
     insight_founder TEXT,
     insight_investor TEXT,
     classified_at TEXT,
+    -- Original content publish date (if available)
+    published_at TEXT,
     -- Timestamps
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
@@ -130,6 +132,7 @@ export interface BookmarkRow {
   insight_founder: string | null;
   insight_investor: string | null;
   classified_at: string | null;
+  published_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -151,6 +154,7 @@ export interface Bookmark {
   insight_founder?: string;
   insight_investor?: string;
   classified_at?: string;
+  published_at?: string;
 }
 
 // Convert database row to Bookmark object
@@ -172,6 +176,7 @@ function rowToBookmark(row: BookmarkRow, tags: string[]): Bookmark {
     insight_founder: row.insight_founder || undefined,
     insight_investor: row.insight_investor || undefined,
     classified_at: row.classified_at || undefined,
+    published_at: row.published_at || undefined,
   };
 }
 
@@ -233,8 +238,8 @@ export function createBookmark(bookmark: Bookmark): Bookmark {
       research_raw, exa_content, researched_at,
       stars, reading_time_min, language, icon,
       insight_dev, insight_founder, insight_investor,
-      classified_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      classified_at, published_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -252,6 +257,7 @@ export function createBookmark(bookmark: Bookmark): Bookmark {
     bookmark.insight_founder || null,
     bookmark.insight_investor || null,
     bookmark.classified_at || null,
+    bookmark.published_at || null,
   );
 
   const bookmarkId = Number(result.lastInsertRowid);
@@ -293,6 +299,7 @@ export function updateBookmark(
     insight_founder: updates.insight_founder,
     insight_investor: updates.insight_investor,
     classified_at: updates.classified_at,
+    published_at: updates.published_at,
   };
 
   for (const [field, value] of Object.entries(fieldMap)) {
@@ -367,8 +374,8 @@ export function bulkInsertBookmarks(bookmarks: Bookmark[]): number {
       research_raw, exa_content, researched_at,
       stars, reading_time_min, language, icon,
       insight_dev, insight_founder, insight_investor,
-      classified_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      classified_at, published_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   let count = 0;
@@ -389,6 +396,7 @@ export function bulkInsertBookmarks(bookmarks: Bookmark[]): number {
       bookmark.insight_founder || null,
       bookmark.insight_investor || null,
       bookmark.classified_at || null,
+      bookmark.published_at || null,
     );
 
     const row = getIdByUrlStmt.get(bookmark.url) as { id: number } | undefined;

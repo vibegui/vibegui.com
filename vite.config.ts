@@ -2,7 +2,6 @@ import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
-import { writeFileSync } from "node:fs";
 
 // Load .env file for server-side use
 const env = loadEnv("development", process.cwd(), "");
@@ -10,33 +9,83 @@ const MESH_GATEWAY_URL = env.MESH_GATEWAY_URL;
 const MESH_API_KEY = env.MESH_API_KEY;
 
 /**
- * API plugin for bookmark operations using SQLite
+ * Helper to call MCP tools via Mesh gateway
  */
-function bookmarksApiPlugin() {
-  // Lazy-load the database module to avoid issues during build
-  let dbModule: typeof import("./lib/db/index.ts") | null = null;
-  const getDb = async () => {
-    if (!dbModule) {
-      dbModule = await import("./lib/db/index.ts");
-    }
-    return dbModule;
-  };
+async function callMcpTool(toolName: string, args: Record<string, unknown>) {
+  if (!MESH_GATEWAY_URL || !MESH_API_KEY) {
+    throw new Error("MESH_GATEWAY_URL and MESH_API_KEY required");
+  }
 
-  // Regenerate the static JSON after database updates
-  const regenerateJson = async () => {
-    const db = await getDb();
-    const bookmarks = db.getAllBookmarks();
-    const minimal = bookmarks.map((b) => {
-      const obj: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(b)) {
-        if (v !== undefined && v !== null && v !== "") {
-          obj[k] = v;
+  const response = await fetch(MESH_GATEWAY_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+      Authorization: `Bearer ${MESH_API_KEY}`,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: Date.now(),
+      method: "tools/call",
+      params: { name: toolName, arguments: args },
+    }),
+  });
+
+  const result = await response.json();
+  if (result.error) {
+    throw new Error(result.error.message || JSON.stringify(result.error));
+  }
+  return result.result;
+}
+
+/**
+ * Execute SQL via Supabase MCP
+ */
+async function executeSupabaseSql(query: string) {
+  const result = await callMcpTool("execute_sql", { query });
+  // Parse the result - MCP returns content array
+  if (result?.content?.[0]?.text) {
+    const text = result.content[0].text;
+
+    // Supabase MCP wraps results in <untrusted-data-xxx> tags
+    const untrustedMatch = text.match(
+      /<untrusted-data[^>]*>([\s\S]*?)<\/untrusted-data/,
+    );
+    const dataText = untrustedMatch ? untrustedMatch[1].trim() : text;
+
+    // Find JSON array or object in the text
+    const jsonMatch = dataText.match(/(\[[\s\S]*\]|\{[\s\S]*\})/);
+    if (jsonMatch) {
+      let jsonStr = jsonMatch[1];
+
+      // First attempt: parse directly
+      try {
+        return JSON.parse(jsonStr);
+      } catch {
+        // Second attempt: unescape if double-escaped
+        try {
+          jsonStr = jsonStr.replace(/\\"/g, '"').replace(/\\\\/g, "\\");
+          return JSON.parse(jsonStr);
+        } catch (e) {
+          console.error("[Supabase MCP] JSON parse failed:", e);
         }
       }
-      return obj;
-    });
-    const outputPath = resolve(__dirname, "public/bookmarks/data.json");
-    writeFileSync(outputPath, JSON.stringify(minimal));
+    }
+
+    return dataText;
+  }
+  return result;
+}
+
+/**
+ * API plugin for bookmark operations using Supabase via MCP
+ */
+function bookmarksApiPlugin() {
+  // Helper to escape SQL strings safely
+  const escapeSQL = (str: string | null | undefined): string => {
+    if (str === null || str === undefined) return "NULL";
+    // Double single quotes for PostgreSQL escaping
+    return `'${str.replace(/'/g, "''")}'`;
   };
 
   return {
@@ -50,13 +99,18 @@ function bookmarksApiPlugin() {
           res: import("http").ServerResponse,
           next: Connect.NextFunction,
         ) => {
-          // GET all bookmarks
+          // GET all bookmarks (via Supabase MCP)
           if (req.url === "/api/bookmarks" && req.method === "GET") {
-            getDb()
-              .then((db) => {
-                const bookmarks = db.getAllBookmarks();
+            executeSupabaseSql(`
+              SELECT b.*, array_agg(t.tag) FILTER (WHERE t.tag IS NOT NULL) as tags
+              FROM bookmarks b
+              LEFT JOIN bookmark_tags t ON b.id = t.bookmark_id
+              GROUP BY b.id
+              ORDER BY b.id
+            `)
+              .then((bookmarks) => {
                 res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify(bookmarks));
+                res.end(JSON.stringify(bookmarks || []));
               })
               .catch((err) => {
                 res.statusCode = 500;
@@ -65,13 +119,29 @@ function bookmarksApiPlugin() {
             return;
           }
 
-          // GET bookmark stats
+          // GET bookmark stats (via Supabase MCP)
           if (req.url === "/api/bookmarks/stats" && req.method === "GET") {
-            getDb()
-              .then((db) => {
-                const stats = db.getBookmarkStats();
+            Promise.all([
+              executeSupabaseSql("SELECT COUNT(*) as total FROM bookmarks"),
+              executeSupabaseSql(
+                "SELECT COUNT(*) as enriched FROM bookmarks WHERE classified_at IS NOT NULL",
+              ),
+              executeSupabaseSql(
+                "SELECT tag, COUNT(*) as count FROM bookmark_tags GROUP BY tag ORDER BY count DESC LIMIT 50",
+              ),
+            ])
+              .then(([totalRes, enrichedRes, tagsRes]) => {
+                const total = totalRes?.[0]?.total || 0;
+                const enriched = enrichedRes?.[0]?.enriched || 0;
                 res.setHeader("Content-Type", "application/json");
-                res.end(JSON.stringify(stats));
+                res.end(
+                  JSON.stringify({
+                    total: Number(total),
+                    enriched: Number(enriched),
+                    pending: Number(total) - Number(enriched),
+                    tagCounts: tagsRes || [],
+                  }),
+                );
               })
               .catch((err) => {
                 res.statusCode = 500;
@@ -80,187 +150,205 @@ function bookmarksApiPlugin() {
             return;
           }
 
-          // DELETE a bookmark
-          if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
-            let body = "";
-            req.on("data", (chunk: Buffer) => {
-              body += chunk.toString();
-            });
-            req.on("end", () => {
-              getDb()
-                .then(async (db) => {
-                  const { url } = JSON.parse(body);
-                  if (!url) {
-                    res.statusCode = 400;
-                    res.end(JSON.stringify({ error: "URL required" }));
-                    return;
-                  }
-
-                  const deleted = db.deleteBookmark(url);
-                  if (!deleted) {
-                    res.statusCode = 404;
-                    res.end(JSON.stringify({ error: "Bookmark not found" }));
-                    return;
-                  }
-
-                  // Regenerate JSON after delete
-                  await regenerateJson();
-
-                  res.setHeader("Content-Type", "application/json");
-                  res.end(JSON.stringify({ success: true }));
-                })
-                .catch((err) => {
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ error: (err as Error).message }));
-                });
-            });
-            return;
-          }
-
-          // UPDATE a bookmark (for enrichment)
+          // UPDATE a bookmark (for enrichment) via Supabase MCP
           if (req.url === "/api/bookmarks/update" && req.method === "POST") {
             console.log("[API] /api/bookmarks/update called");
             let body = "";
             req.on("data", (chunk: Buffer) => {
               body += chunk.toString();
             });
-            req.on("end", () => {
-              console.log("[API] Update body received, length:", body.length);
-              getDb()
-                .then(async (db) => {
-                  try {
-                    const { url, ...updates } = JSON.parse(body);
-                    console.log(
-                      "[API] Updating bookmark:",
-                      url,
-                      "fields:",
-                      Object.keys(updates),
-                    );
-                    if (!url) {
-                      res.statusCode = 400;
-                      res.end(JSON.stringify({ error: "URL required" }));
-                      return;
-                    }
+            req.on("end", async () => {
+              try {
+                const { url, tags, ...updates } = JSON.parse(body);
+                console.log("[API] Updating bookmark:", url);
 
-                    // Check if bookmark exists first
-                    const existing = db.getBookmarkByUrl(url);
-                    console.log(
-                      "[API] Existing bookmark:",
-                      existing?.id,
-                      existing?.title,
-                    );
+                if (!url) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: "URL required" }));
+                  return;
+                }
 
-                    const updated = db.updateBookmark(url, updates);
-                    if (!updated) {
-                      console.log(
-                        "[API] Bookmark not found or update failed:",
-                        url,
-                      );
-                      res.statusCode = 404;
-                      res.end(JSON.stringify({ error: "Bookmark not found" }));
-                      return;
-                    }
+                // Build SET clause for update (exclude generated/system columns)
+                const excludeFields = new Set([
+                  "id",
+                  "created_at",
+                  "updated_at",
+                  "search_vector", // generated column
+                  "embedding", // vector column, updated separately
+                ]);
+                const setClauses: string[] = [];
+                for (const [key, value] of Object.entries(updates)) {
+                  if (value === undefined || excludeFields.has(key)) continue;
+                  if (value === null) {
+                    setClauses.push(`${key} = NULL`);
+                  } else if (typeof value === "number") {
+                    setClauses.push(`${key} = ${value}`);
+                  } else {
+                    setClauses.push(`${key} = ${escapeSQL(String(value))}`);
+                  }
+                }
+                setClauses.push("updated_at = NOW()");
 
-                    console.log("[API] Bookmark updated successfully:", url);
-                    console.log(
-                      "[API] Updated fields:",
-                      updated.stars,
-                      updated.icon,
-                      updated.insight_dev?.slice(0, 30),
-                    );
+                // Update bookmark
+                const updateQuery = `
+                  UPDATE bookmarks 
+                  SET ${setClauses.join(", ")}
+                  WHERE url = ${escapeSQL(url)}
+                  RETURNING *
+                `;
+                console.log("[API] Update query:", updateQuery.slice(0, 200));
 
-                    // Regenerate JSON after update
-                    await regenerateJson();
-                    console.log("[API] JSON regenerated");
+                const result = await executeSupabaseSql(updateQuery);
+                console.log(
+                  "[API] Update result type:",
+                  typeof result,
+                  Array.isArray(result),
+                );
+                console.log(
+                  "[API] Update result:",
+                  JSON.stringify(result)?.slice(0, 300),
+                );
 
-                    res.setHeader("Content-Type", "application/json");
-                    res.end(JSON.stringify(updated));
-                  } catch (innerErr) {
-                    console.error("[API] Error in update:", innerErr);
-                    res.statusCode = 500;
-                    res.end(
-                      JSON.stringify({ error: (innerErr as Error).message }),
+                const updated = Array.isArray(result) ? result[0] : result;
+
+                if (!updated || !updated.id) {
+                  console.log("[API] No bookmark returned from update");
+                  res.statusCode = 404;
+                  res.end(JSON.stringify({ error: "Bookmark not found" }));
+                  return;
+                }
+
+                // Handle tags if provided
+                if (tags && Array.isArray(tags) && updated.id) {
+                  // Delete existing tags
+                  await executeSupabaseSql(
+                    `DELETE FROM bookmark_tags WHERE bookmark_id = ${updated.id}`,
+                  );
+
+                  // Insert new tags
+                  if (tags.length > 0) {
+                    const tagValues = tags
+                      .map((t: string) => `(${updated.id}, ${escapeSQL(t)})`)
+                      .join(", ");
+                    await executeSupabaseSql(
+                      `INSERT INTO bookmark_tags (bookmark_id, tag) VALUES ${tagValues}`,
                     );
                   }
-                })
-                .catch((err) => {
-                  console.error("[API] Error loading db:", err);
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ error: (err as Error).message }));
-                });
+                  updated.tags = tags;
+                }
+
+                console.log("[API] Bookmark updated:", updated.id);
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify(updated));
+              } catch (err) {
+                console.error("[API] Error in update:", err);
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
             });
             return;
           }
 
-          // DELETE a bookmark
+          // DELETE a bookmark via Supabase MCP
           if (req.url === "/api/bookmarks/delete" && req.method === "POST") {
             let body = "";
             req.on("data", (chunk: Buffer) => {
               body += chunk.toString();
             });
-            req.on("end", () => {
-              getDb()
-                .then(async (db) => {
-                  try {
-                    const { url } = JSON.parse(body);
-                    if (!url) {
-                      res.statusCode = 400;
-                      res.end(JSON.stringify({ error: "URL required" }));
-                      return;
-                    }
+            req.on("end", async () => {
+              try {
+                const { url } = JSON.parse(body);
+                if (!url) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: "URL required" }));
+                  return;
+                }
 
-                    const deleted = db.deleteBookmark(url);
-                    if (!deleted) {
-                      res.statusCode = 404;
-                      res.end(JSON.stringify({ error: "Bookmark not found" }));
-                      return;
-                    }
+                // First get the bookmark ID for tag deletion
+                const bookmark = await executeSupabaseSql(
+                  `SELECT id FROM bookmarks WHERE url = ${escapeSQL(url)}`,
+                );
+                const id = bookmark?.[0]?.id;
 
-                    // Regenerate JSON after delete
-                    await regenerateJson();
+                if (!id) {
+                  res.statusCode = 404;
+                  res.end(JSON.stringify({ error: "Bookmark not found" }));
+                  return;
+                }
 
-                    res.setHeader("Content-Type", "application/json");
-                    res.end(JSON.stringify({ success: true }));
-                  } catch (innerErr) {
-                    res.statusCode = 500;
-                    res.end(
-                      JSON.stringify({ error: (innerErr as Error).message }),
-                    );
-                  }
-                })
-                .catch((err) => {
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ error: (err as Error).message }));
-                });
+                // Delete tags first (foreign key)
+                await executeSupabaseSql(
+                  `DELETE FROM bookmark_tags WHERE bookmark_id = ${id}`,
+                );
+
+                // Delete bookmark
+                await executeSupabaseSql(
+                  `DELETE FROM bookmarks WHERE id = ${id}`,
+                );
+
+                res.setHeader("Content-Type", "application/json");
+                res.end(JSON.stringify({ success: true }));
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
             });
             return;
           }
 
-          // CREATE a bookmark
+          // CREATE a bookmark via Supabase MCP
           if (req.url === "/api/bookmarks/create" && req.method === "POST") {
             let body = "";
             req.on("data", (chunk: Buffer) => {
               body += chunk.toString();
             });
-            req.on("end", () => {
-              getDb()
-                .then((db) => {
-                  const bookmark = JSON.parse(body);
-                  if (!bookmark.url) {
-                    res.statusCode = 400;
-                    res.end(JSON.stringify({ error: "URL required" }));
-                    return;
-                  }
+            req.on("end", async () => {
+              try {
+                const { url, title, description, tags } = JSON.parse(body);
+                if (!url) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: "URL required" }));
+                  return;
+                }
 
-                  const created = db.createBookmark(bookmark);
+                const insertQuery = `
+                  INSERT INTO bookmarks (url, title, description)
+                  VALUES (${escapeSQL(url)}, ${escapeSQL(title)}, ${escapeSQL(description)})
+                  ON CONFLICT (url) DO NOTHING
+                  RETURNING *
+                `;
+
+                const result = await executeSupabaseSql(insertQuery);
+                const created = Array.isArray(result) ? result[0] : result;
+
+                if (!created) {
+                  // Bookmark already exists, fetch it
+                  const existing = await executeSupabaseSql(
+                    `SELECT * FROM bookmarks WHERE url = ${escapeSQL(url)}`,
+                  );
                   res.setHeader("Content-Type", "application/json");
-                  res.statusCode = 201;
-                  res.end(JSON.stringify(created));
-                })
-                .catch((err) => {
-                  res.statusCode = 500;
-                  res.end(JSON.stringify({ error: (err as Error).message }));
-                });
+                  res.end(JSON.stringify(existing?.[0] || { url }));
+                  return;
+                }
+
+                // Handle tags if provided
+                if (tags && Array.isArray(tags) && created.id) {
+                  const tagValues = tags
+                    .map((t: string) => `(${created.id}, ${escapeSQL(t)})`)
+                    .join(", ");
+                  await executeSupabaseSql(
+                    `INSERT INTO bookmark_tags (bookmark_id, tag) VALUES ${tagValues}`,
+                  );
+                  created.tags = tags;
+                }
+
+                res.setHeader("Content-Type", "application/json");
+                res.statusCode = 201;
+                res.end(JSON.stringify(created));
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
             });
             return;
           }

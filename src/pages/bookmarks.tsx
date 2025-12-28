@@ -6,33 +6,22 @@
  * - Table view with all enrichment fields
  * - "Start Enriching" workflow that calls local mesh
  * - Research and classification via Perplexity + Claude
+ *
+ * Data source:
+ * - Production: Supabase (read-only via anon key)
+ * - Development: Supabase + MCP for writes
  */
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { marked } from "marked";
 import { PageHeader } from "../components/page-header";
+import {
+  getAllBookmarks,
+  type Bookmark as SupabaseBookmark,
+} from "../../lib/supabase";
 
-interface Bookmark {
-  id?: number;
-  url: string;
-  title?: string;
-  description?: string;
-  // Enrichment fields - Step 1: Research
-  research_raw?: string;
-  exa_content?: string;
-  researched_at?: string;
-  // Enrichment fields - Step 2: Classification
-  stars?: number;
-  reading_time_min?: number;
-  language?: string;
-  icon?: string;
-  tags?: string[];
-  // Audience-specific insights
-  insight_dev?: string;
-  insight_founder?: string;
-  insight_investor?: string;
-  classified_at?: string;
-}
+// Use the Supabase Bookmark type with some optional fields for local state
+type Bookmark = SupabaseBookmark;
 
 // Tag type helpers
 function getTagsByType(tags: string[] | undefined, type: string): string[] {
@@ -89,8 +78,8 @@ interface EnrichmentStatus {
 }
 
 const WORKFLOW_STEPS = [
-  { id: 1, name: "Fetch", description: "Perplexity + Exa in parallel" },
-  { id: 2, name: "Classify", description: "Claude Haiku analysis" },
+  { id: 1, name: "Fetch", description: "Perplexity + Firecrawl in parallel" },
+  { id: 2, name: "Classify", description: "Gemini 2.5 Flash analysis" },
   { id: 3, name: "Save", description: "Persist enriched data" },
 ];
 
@@ -102,7 +91,7 @@ const TRACK_CONFIG = {
 
 // Note: Bookmarks are now loaded from SQLite via /api/bookmarks
 
-function StarRating({ stars }: { stars?: number }) {
+function StarRating({ stars }: { stars?: number | null }) {
   if (!stars) return <span className="text-gray-400">—</span>;
   return (
     <span title={`${stars}/5`}>
@@ -140,29 +129,56 @@ async function enrichBookmark(
   bookmark: Bookmark,
   onStep: (stepNum: number, message: string) => void,
 ): Promise<Bookmark> {
-  // Step 1: Fetch research + content in parallel
-  onStep(1, "Fetching from Perplexity + Exa...");
+  // Step 1: Fetch research + page content in parallel
+  onStep(1, "Fetching from Perplexity + Firecrawl...");
 
-  // Run Perplexity and Exa in parallel
-  const [researchResult, exaResult] = await Promise.all([
-    callMeshTool("ASK_PERPLEXITY", {
-      query: `What is ${bookmark.url}? Brief overview: purpose, features, target audience, key insights. Is it still active?`,
-      model: "sonar",
-      max_tokens: 1500,
-    }) as Promise<{
-      answer?: string;
-      content?: Array<{ type: string; text: string }>;
-      structuredContent?: { answer?: string };
-    }>,
-    callMeshTool("web_search_exa", {
-      query: bookmark.url,
-      numResults: 3,
-      livecrawl: "preferred",
-    }) as Promise<{
-      content?: Array<{ type: string; text: string }>;
-      results?: Array<{ title?: string; text?: string; url?: string }>;
-    }>,
+  // Run Perplexity and Firecrawl in parallel
+  // Note: Official @perplexity-ai/mcp-server uses messages array format
+  type ToolResult = {
+    answer?: string;
+    content?: Array<{ type: string; text: string }> | string;
+    structuredContent?: { answer?: string };
+    results?: Array<{ title?: string; text?: string; url?: string }>;
+    isError?: boolean;
+    // Firecrawl response
+    markdown?: string;
+    metadata?: Record<string, unknown>;
+  };
+
+  const [researchResult, firecrawlResult] = await Promise.all([
+    callMeshTool("perplexity_ask", {
+      messages: [
+        {
+          role: "user",
+          content: `Research ${bookmark.url}:
+
+1. WHAT: One-sentence description. Key features.
+2. TECH: Stack, languages, open source? GitHub stats if available.
+3. BUSINESS: Pricing model, competitors, traction (users/funding).
+4. TEAM: Who made it? Background.
+5. STATUS: Last update, actively maintained?
+6. DATE: Original release/publish date (YYYY-MM-DD if possible).
+
+Be factual and concise.`,
+        },
+      ],
+    }) as Promise<ToolResult>,
+    callMeshTool("firecrawl_scrape", {
+      url: bookmark.url,
+      formats: ["markdown"],
+      onlyMainContent: true,
+    }) as Promise<ToolResult>,
   ]);
+
+  // Check for errors in Perplexity response
+  if (researchResult.isError) {
+    const errorText = Array.isArray(researchResult.content)
+      ? researchResult.content.find((c) => c.type === "text")?.text
+      : typeof researchResult.content === "string"
+        ? researchResult.content
+        : "Unknown error";
+    throw new Error(`Perplexity research failed: ${errorText}`);
+  }
 
   // Extract research text from Perplexity response
   let research = "";
@@ -175,8 +191,21 @@ async function enrichBookmark(
     if (textContent?.text) {
       try {
         const parsed = JSON.parse(textContent.text);
+        // Check if parsed result is an error
+        if (parsed.isError || parsed.error) {
+          throw new Error(
+            `Perplexity research failed: ${parsed.error || parsed.text || "Unknown error"}`,
+          );
+        }
         research = parsed.answer ?? textContent.text;
-      } catch {
+      } catch (e) {
+        // If it's our thrown error, rethrow it
+        if (
+          e instanceof Error &&
+          e.message.includes("Perplexity research failed")
+        ) {
+          throw e;
+        }
         research = textContent.text;
       }
     }
@@ -184,121 +213,171 @@ async function enrichBookmark(
     research = researchResult.content;
   }
 
-  // Extract content from Exa response
-  let exaContent = "";
-  if (Array.isArray(exaResult.content)) {
-    const textContent = exaResult.content.find((c) => c.type === "text");
+  // If we still don't have research, fail early
+  if (
+    !research ||
+    research.includes("MCP error") ||
+    research.includes("Invalid arguments")
+  ) {
+    throw new Error(`Perplexity research failed: ${research || "No response"}`);
+  }
+
+  // Extract content from Firecrawl response
+  let pageContent = "";
+  let publishedAt: string | undefined;
+
+  // Firecrawl returns { markdown: "...", metadata: {...} } directly
+  if (typeof firecrawlResult.markdown === "string") {
+    pageContent = firecrawlResult.markdown;
+  } else if (Array.isArray(firecrawlResult.content)) {
+    // Sometimes wrapped in content array
+    const textContent = firecrawlResult.content.find((c) => c.type === "text");
     if (textContent?.text) {
       try {
         const parsed = JSON.parse(textContent.text);
-        if (parsed.context) {
-          exaContent = parsed.context;
-        } else if (Array.isArray(parsed.results)) {
-          exaContent = parsed.results
-            .map(
-              (r: { title?: string; text?: string }) =>
-                `${r.title || ""}\n${r.text || ""}`,
-            )
-            .join("\n\n");
-        }
+        pageContent = parsed.markdown || textContent.text;
       } catch {
-        exaContent = textContent.text;
+        pageContent = textContent.text;
       }
     }
-  } else if (Array.isArray(exaResult.results)) {
-    exaContent = exaResult.results
-      .map((r) => `${r.title || ""}\n${r.text || ""}`)
-      .join("\n\n");
+  }
+
+  // Try to extract publish date from Firecrawl metadata
+  // Common metadata fields: article:published_time, datePublished, og:article:published_time
+  const metadata = firecrawlResult.metadata as
+    | Record<string, unknown>
+    | undefined;
+  if (metadata) {
+    const dateFields = [
+      "article:published_time",
+      "og:article:published_time",
+      "datePublished",
+      "publishedTime",
+      "date",
+      "pubdate",
+      "publish_date",
+      "created",
+      "createdAt",
+    ];
+    for (const field of dateFields) {
+      const value = metadata[field];
+      if (value && typeof value === "string") {
+        // Validate it looks like a date
+        const parsed = new Date(value);
+        if (!Number.isNaN(parsed.getTime())) {
+          publishedAt = parsed.toISOString();
+          console.log(
+            `[Enrichment] Found publish date from metadata.${field}:`,
+            publishedAt,
+          );
+          break;
+        }
+      }
+    }
   }
 
   const researchedAt = new Date().toISOString();
 
   // Debug: log what we're sending to the AI
   console.log("[Enrichment] Research length:", research.length);
-  console.log("[Enrichment] Exa content length:", exaContent.length);
+  console.log("[Enrichment] Page content length:", pageContent.length);
 
-  // Step 2: Classify with Claude Sonnet
-  onStep(2, "Classifying with Claude Sonnet...");
-  const classifyResult = (await callMeshTool("LLM_DO_GENERATE", {
-    modelId: "anthropic/claude-sonnet-4",
-    callOptions: {
-      prompt: [
-        {
-          role: "system",
-          content: `You are a harsh tech curator. Analyze the resource and return ONLY a JSON object (no markdown, no explanation):
+  // Step 2: Classify with OpenRouter (Gemini 2.5 Flash)
+  onStep(2, "Classifying with Gemini 2.5 Flash...");
+  const classifyResult = (await callMeshTool("mcp_openrouter_chat_completion", {
+    model: "google/gemini-2.5-flash",
+    messages: [
+      {
+        role: "system",
+        content: `You are a senior tech analyst writing thoughtful reviews for a curated resource library. Analyze the resource and return ONLY a JSON object (no markdown, no explanation):
 
 {
   "stars": <number 1-5>,
   "language": "<en|pt|etc>",
-  "icon": "<single emoji representing this resource>",
-  "title": "<improved short catchy title>",
-  "description": "<1-2 sentence description>",
+  "icon": "<single emoji>",
+  "title": "<catchy title>",
+  "description": "<1-2 sentences>",
   "tags": ["tech:typescript", "persona:mcp_developer", "type:tool"],
-  "insight_dev": "<1-2 sentences: Key insight for AI/MCP developers>",
-  "insight_founder": "<1-2 sentences: Key insight for startup founders>",
-  "insight_investor": "<1-2 sentences: Key insight for VC investors>"
+  "insight_dev": "<3 paragraphs, technical focus, separated by spaces not newlines>",
+  "insight_founder": "<3 paragraphs, business focus, separated by spaces not newlines>",
+  "insight_investor": "<3 paragraphs, market focus, separated by spaces not newlines>",
+  "published_at": "<ISO date or null>"
 }
 
-STAR RATING GUIDE - BE HARSH AND USE THE FULL RANGE:
-- 1 star: Garbage, spam, broken, outdated, or irrelevant
-- 2 stars: Mediocre, nothing special, generic content, or poorly executed
-- 3 stars: Decent, useful but not remarkable, average quality
-- 4 stars: Good, valuable content, well-made, worth bookmarking
-- 5 stars: Exceptional, must-read, groundbreaking, or extremely valuable
+PUBLISH DATE - Extract the original publication/release date (be thorough!):
+- FIRST check RESEARCH section - Perplexity often finds release dates, launch dates, announcement dates
+- THEN check PAGE CONTENT for bylines, headers, footers, metadata
+- Look for ANY date mentioned: "Published March 2024", "v1.0 released Jan 15, 2024", "Announced at X conference 2023"
+- For GitHub repos: look for "first commit", "initial release", "created" dates in the research
+- For blog posts: byline dates, "Posted on", "Updated:", footer dates
+- For products/tools: launch date, first version release, announcement date
+- Format as ISO 8601 (e.g., "2024-03-15T00:00:00.000Z") - use first of month if only month/year given
+- ONLY return null if genuinely no date indicators exist (e.g., evergreen documentation pages)
 
-Most resources should be 2-3 stars. Only give 4-5 to truly excellent content. Don't hesitate to give 1-2 for low quality.
+STAR RATING GUIDE - BE HARSH:
+- 1 star: Garbage, spam, broken, outdated, or irrelevant
+- 2 stars: Mediocre, nothing special, generic content
+- 3 stars: Decent, useful but not remarkable
+- 4 stars: Good, valuable, well-made
+- 5 stars: Exceptional, must-read, groundbreaking
+
+Most resources should be 2-3 stars. Reserve 4-5 for truly excellent content.
+
+INSIGHT REQUIREMENTS - Each insight is 3 SHORT paragraphs (2-3 sentences each), deeply focused on that persona's UNIQUE concerns. DO NOT blend perspectives - each persona cares about DIFFERENT things:
+
+insight_dev (MCP/AI Developer - TECHNICAL ONLY):
+Paragraph 1 - IMPLEMENTATION: Tech stack, architecture, code quality, API design, dependencies. How is it built? What languages/frameworks? Is the code clean?
+Paragraph 2 - INTEGRATION: How does it fit with MCP, Claude, agents, existing tools? What's the learning curve? Documentation quality? Examples available?
+Paragraph 3 - VERDICT: Should a developer use this? What are the gotchas, limitations, alternatives? Time investment worth it?
+DO NOT mention business models, markets, or investment - that's not your concern.
+
+insight_founder (Startup Founder - BUSINESS/STRATEGY ONLY):
+Paragraph 1 - OPPORTUNITY: What problem does this solve? Who has this pain? Is this a vitamin or painkiller? Market timing?
+Paragraph 2 - COMPETITIVE: Build vs buy vs partner? Could this be a feature or a company? Who are competitors? What's the moat?
+Paragraph 3 - ACTION: Should you integrate this, compete with it, or ignore it? What's the strategic move for YOUR startup?
+DO NOT mention technical implementation details - that's not your concern.
+
+insight_investor (VC Investor - MARKET/INVESTMENT ONLY):
+Paragraph 1 - MARKET: TAM/SAM/SOM? What macro trend does this ride? Is this a growing or shrinking market?
+Paragraph 2 - THESIS: Does this represent an investable category? What would a winning company here look like? Who's funded in this space?
+Paragraph 3 - SIGNALS: Traction indicators? Team quality? What would make you take a meeting vs pass?
+DO NOT mention code quality or startup tactics - focus on MARKET OPPORTUNITY and INVESTMENT LOGIC.
+
+CRITICAL JSON RULES (FOLLOW EXACTLY):
+- EVERY property MUST have a comma after it EXCEPT the last one
+- Escape all quotes inside strings with backslash: \\"
+- NO newlines inside string values - use spaces instead
+- NO trailing comma after the last property (published_at)
+- Each insight is ONE LONG STRING with paragraphs separated by double spaces
 
 Tags must include at least one persona tag: persona:mcp_developer, persona:startup_founder, or persona:vc_investor.`,
-        },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Analyze this resource:
+      },
+      {
+        role: "user",
+        content: `Analyze this resource:
 
 URL: ${bookmark.url}
 Title: ${bookmark.title || "Unknown"}
 Description: ${bookmark.description || "No description"}
 
-Research:
-${research.slice(0, 2000)}
+RESEARCH (from Perplexity):
+${research}
 
-${exaContent ? `Page Content:\n${exaContent.slice(0, 1500)}` : ""}`,
-            },
-          ],
-        },
-      ],
-      temperature: 0.2,
-      maxOutputTokens: 1500,
-    },
-  })) as {
-    content?: Array<{ type: string; text: string }>;
-    text?: string;
-  };
+${pageContent ? `PAGE CONTENT (from Firecrawl):\n${pageContent}` : ""}`,
+      },
+    ],
+    temperature: 0.3,
+  })) as string | { content?: Array<{ type: string; text: string }> };
 
-  // Extract classification text from response - may be double-nested
+  // Extract text from OpenRouter response - may be string or { content: [{ type, text }] }
   let classText = "";
-  if (typeof classifyResult.text === "string") {
-    classText = classifyResult.text;
-  } else if (Array.isArray(classifyResult.content)) {
+  if (typeof classifyResult === "string") {
+    classText = classifyResult;
+  } else if (classifyResult?.content && Array.isArray(classifyResult.content)) {
     const textContent = classifyResult.content.find((c) => c.type === "text");
-    let rawText = textContent?.text ?? "";
-
-    // Check if the text is itself a JSON with content array (double-nested from OpenRouter)
-    try {
-      const parsed = JSON.parse(rawText);
-      if (Array.isArray(parsed.content)) {
-        const innerText = parsed.content.find(
-          (c: { type: string; text?: string }) => c.type === "text",
-        );
-        rawText = innerText?.text ?? rawText;
-      }
-    } catch {
-      // Not nested JSON, use as-is
-    }
-
-    classText = rawText;
+    classText = textContent?.text ?? "";
+  } else {
+    classText = JSON.stringify(classifyResult);
   }
 
   // Debug: log the raw response
@@ -311,7 +390,61 @@ ${exaContent ? `Page Content:\n${exaContent.slice(0, 1500)}` : ""}`,
     );
   }
 
-  const c = JSON.parse(jsonMatch[0]);
+  // Attempt to parse JSON, with fallback sanitization for common issues
+  interface Classification {
+    stars?: number;
+    language?: string;
+    icon?: string;
+    title?: string;
+    description?: string;
+    tags?: string[];
+    insight_dev?: string;
+    insight_founder?: string;
+    insight_investor?: string;
+    published_at?: string | null;
+  }
+
+  let c: Classification;
+  try {
+    c = JSON.parse(jsonMatch[0]) as Classification;
+  } catch (parseError) {
+    // Try to fix common JSON issues
+    let sanitized = jsonMatch[0]
+      // Remove problematic control characters
+      .split("")
+      .map((char) => {
+        const code = char.charCodeAt(0);
+        // Replace control chars (0-8, 11-12, 14-31) with space, keep tab/newline/cr
+        if (
+          (code >= 0 && code <= 8) ||
+          code === 11 ||
+          code === 12 ||
+          (code >= 14 && code <= 31)
+        ) {
+          return " ";
+        }
+        return char;
+      })
+      .join("");
+
+    // Fix missing commas between properties: "...(whitespace)"(property) -> "...(whitespace),"(property)
+    // This catches when Claude forgets a comma after a long string value
+    sanitized = sanitized.replace(/"\s*\n\s*"/g, '",\n  "');
+
+    try {
+      c = JSON.parse(sanitized) as Classification;
+      console.log("[Enrichment] Fixed JSON after sanitization");
+    } catch {
+      // Last resort: log the error location
+      const err = parseError as Error;
+      console.error("[Enrichment] JSON parse error:", err.message);
+      console.error(
+        "[Enrichment] Problematic JSON:",
+        jsonMatch[0].slice(0, 1000),
+      );
+      throw new Error(`${bookmark.title || bookmark.url}: ${err.message}`);
+    }
+  }
 
   // Debug: log parsed fields
   console.log("[Enrichment] Parsed fields:", {
@@ -337,19 +470,23 @@ ${exaContent ? `Page Content:\n${exaContent.slice(0, 1500)}` : ""}`,
   // Return enriched bookmark (Step 3: Save happens in caller)
   return {
     ...bookmark,
-    research_raw: research,
-    exa_content: exaContent || undefined,
+    perplexity_research: research,
+    firecrawl_content: pageContent || null,
     researched_at: researchedAt,
     title: c.title || bookmark.title,
     description: c.description || bookmark.description,
     stars,
     tags,
-    language: c.language,
-    icon: c.icon,
-    insight_dev: c.insight_dev,
-    insight_founder: c.insight_founder,
-    insight_investor: c.insight_investor,
+    language: c.language || null,
+    icon: c.icon || null,
+    insight_dev: c.insight_dev || null,
+    insight_founder: c.insight_founder || null,
+    insight_investor: c.insight_investor || null,
     classified_at: new Date().toISOString(),
+    // Prefer metadata publish date, fall back to AI-extracted date
+    published_at:
+      publishedAt ||
+      (c.published_at && c.published_at !== "null" ? c.published_at : null),
   };
 }
 
@@ -370,7 +507,7 @@ export function Bookmarks() {
   >(null);
   const [techFilter, setTechFilter] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"default" | "rating">("default");
+  const [sortBy, setSortBy] = useState<"none" | "rating" | "alpha">("none");
   const [minStars, setMinStars] = useState<number | null>(null);
   const [platformFilter, setPlatformFilter] = useState<string | null>(null);
   // Modal states - each stores the bookmark URL to show (insights first, then research, then content)
@@ -400,8 +537,18 @@ export function Bookmarks() {
 
   // Enrichment queue
   const [enrichQueue, setEnrichQueue] = useState<string[]>([]);
+  // Track failed enrichments with their error messages
+  const [failedUrls, setFailedUrls] = useState<Map<string, string>>(new Map());
+  // Batch size for enrichment
+  const [batchSize, setBatchSize] = useState(5);
 
   const queueEnrichment = (url: string) => {
+    // Clear any previous error for this URL when re-queuing
+    setFailedUrls((prev) => {
+      const next = new Map(prev);
+      next.delete(url);
+      return next;
+    });
     setEnrichQueue((prev) => {
       if (prev.includes(url)) return prev; // Already queued
       return [...prev, url];
@@ -441,8 +588,8 @@ export function Bookmarks() {
     if (bookmark.insight_dev) available.push("dev");
     if (bookmark.insight_founder) available.push("founder");
     if (bookmark.insight_investor) available.push("investor");
-    if (bookmark.research_raw) available.push("research");
-    if (bookmark.exa_content) available.push("exa");
+    if (bookmark.perplexity_research) available.push("research");
+    if (bookmark.firecrawl_content) available.push("exa");
     return available;
   };
 
@@ -580,21 +727,23 @@ export function Bookmarks() {
   });
   const abortRef = useRef(false);
 
-  // Fetch bookmarks from static JSON (generated from SQLite at build/dev start)
-  useEffect(() => {
-    const fetchBookmarks = async () => {
-      try {
-        const res = await fetch("/bookmarks/data.json");
-        if (!res.ok) throw new Error("Failed to load bookmarks");
-        const data = await res.json();
-        setBookmarks(data);
-        setLoading(false);
-      } catch (err) {
-        setError((err as Error).message);
-        setLoading(false);
-      }
-    };
-    fetchBookmarks();
+  // Fetch bookmarks from Supabase
+  const loadBookmarks = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllBookmarks();
+      setBookmarks(data);
+      setLoading(false);
+    } catch (err) {
+      setError((err as Error).message);
+      setLoading(false);
+    }
+  };
+
+  // Initial load - runs once on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally runs only on mount
+  React.useEffect(() => {
+    loadBookmarks();
   }, []);
 
   const unenriched = bookmarks.filter((b) => !b.classified_at);
@@ -683,16 +832,17 @@ export function Bookmarks() {
     })
     // Sort based on sortBy option
     .sort((a, b) => {
+      if (sortBy === "none") {
+        // No sorting - maintain original database order
+        return 0;
+      }
       if (sortBy === "rating") {
-        // Pure rating sort: highest stars first, unenriched at bottom
+        // Rating sort: highest stars first, unenriched at bottom
         return (b.stars || 0) - (a.stars || 0);
       }
-      // Default: enriched first, then by stars
-      const aEnriched = a.classified_at ? 1 : 0;
-      const bEnriched = b.classified_at ? 1 : 0;
-      if (aEnriched !== bEnriched) return bEnriched - aEnriched;
-      if (aEnriched && bEnriched) {
-        return (b.stars || 0) - (a.stars || 0);
+      if (sortBy === "alpha") {
+        // Alphabetical by title
+        return (a.title || a.url).localeCompare(b.title || b.url);
       }
       return 0;
     });
@@ -755,32 +905,36 @@ export function Bookmarks() {
         lastResult: `✓ ${bookmark.title || bookmark.url}`,
       }));
     } catch (err) {
+      const errorMsg = (err as Error).message;
+      setFailedUrls((prev) => new Map(prev).set(bookmark.url, errorMsg));
       setStatus((s) => ({
         ...s,
         isRunning: false,
-        errors: [...s.errors, `${bookmark.url}: ${(err as Error).message}`],
+        errors: [...s.errors, `${bookmark.url}: ${errorMsg}`],
       }));
     }
   };
 
   // Process enrichment queue
+  // biome-ignore lint/correctness/useExhaustiveDependencies: bookmarks and enrichSpecificBookmark are stable references
   React.useEffect(() => {
     if (status.isRunning || enrichQueue.length === 0) return;
 
     const nextUrl = enrichQueue[0];
     const bookmark = bookmarks.find((b) => b.url === nextUrl);
 
-    if (bookmark && !bookmark.classified_at) {
-      // Remove from queue and start enriching
-      setEnrichQueue((prev) => prev.slice(1));
+    // Remove from queue
+    setEnrichQueue((prev) => prev.slice(1));
+
+    if (bookmark) {
+      // Start enriching (works for both new and re-enrichment)
       enrichSpecificBookmark(bookmark);
-    } else {
-      // Already enriched or not found, skip
-      setEnrichQueue((prev) => prev.slice(1));
     }
+    // If bookmark not found, it's already removed from queue
   }, [enrichQueue, status.isRunning]);
 
   // Auto-enrich when selecting an unenriched row (dev only)
+  // biome-ignore lint/correctness/useExhaustiveDependencies: only trigger on selectedRowIndex change
   React.useEffect(() => {
     if (!isDev) return; // Only auto-enrich in development
     if (
@@ -875,6 +1029,7 @@ export function Bookmarks() {
         }));
       } catch (err) {
         const errorMsg = (err as Error).message;
+        setFailedUrls((prev) => new Map(prev).set(bookmark.url, errorMsg));
         setStatus((s) => ({
           ...s,
           errors: [...s.errors, `${bookmark.title}: ${errorMsg}`],
@@ -1121,126 +1276,150 @@ export function Bookmarks() {
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <span
-            className="text-xs py-1"
+            className="text-xs py-1 mr-1"
             style={{ color: "var(--color-fg-muted)" }}
           >
             Sort:
           </span>
-          <button
-            type="button"
-            onClick={() =>
-              setSortBy(sortBy === "default" ? "rating" : "default")
-            }
-            className="px-2 py-0.5 rounded text-xs font-medium transition-all"
-            style={{
-              backgroundColor:
-                sortBy === "rating" ? "#8b5cf630" : "var(--color-bg-secondary)",
-              color: sortBy === "rating" ? "#8b5cf6" : "var(--color-fg-muted)",
-              border: `1px solid ${sortBy === "rating" ? "#8b5cf6" : "var(--color-border)"}`,
-            }}
-          >
-            {sortBy === "rating" ? "⭐ By Rating" : "📊 Default"}
-          </button>
+          {(["none", "rating", "alpha"] as const).map((option) => {
+            const isActive = sortBy === option;
+            const labels = { none: "—", rating: "⭐", alpha: "A-Z" };
+            const titles = {
+              none: "No sorting",
+              rating: "Sort by rating",
+              alpha: "Sort alphabetically",
+            };
+            return (
+              <button
+                key={option}
+                type="button"
+                onClick={() => setSortBy(option)}
+                className="px-2 py-0.5 rounded text-xs font-medium transition-all cursor-pointer"
+                style={{
+                  backgroundColor: isActive
+                    ? "#8b5cf630"
+                    : "var(--color-bg-secondary)",
+                  color: isActive ? "#8b5cf6" : "var(--color-fg-muted)",
+                  border: `1px solid ${isActive ? "#8b5cf6" : "var(--color-border)"}`,
+                }}
+                title={titles[option]}
+              >
+                {labels[option]}
+              </button>
+            );
+          })}
         </div>
       </div>
 
       {/* Enrichment Workflow Panel - only in development */}
       {isDev && (
         <div
-          className="mb-6 p-4 rounded-lg"
+          className="mb-8 p-5 rounded-xl"
           style={{
             backgroundColor: "var(--color-bg-secondary)",
-            border: `1px solid ${status.isRunning ? "var(--color-accent)" : "var(--color-border)"}`,
+            border: `2px solid ${status.isRunning ? "var(--color-accent)" : "var(--color-border)"}`,
           }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-4">
               <span
-                className="text-lg font-medium"
+                className="text-xl font-semibold"
                 style={{ color: "var(--color-fg)" }}
               >
                 🔬 Enrichment Workflow
               </span>
               {status.isRunning && (
                 <span
-                  className="px-2 py-0.5 rounded text-xs animate-pulse"
+                  className="px-3 py-1 rounded-full text-xs font-medium animate-pulse"
                   style={{ backgroundColor: "#f5930030", color: "#f59300" }}
                 >
                   Running
                 </span>
               )}
-            </div>
-            <div className="flex items-center gap-2">
-              {!status.isRunning ? (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => startEnrichment(1)}
-                    disabled={unenriched.length === 0}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor:
-                        unenriched.length > 0
-                          ? "var(--color-accent)"
-                          : "var(--color-bg)",
-                      color:
-                        unenriched.length > 0
-                          ? "#000"
-                          : "var(--color-fg-muted)",
-                    }}
-                  >
-                    🚀 Next
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => startEnrichment(10)}
-                    disabled={unenriched.length === 0}
-                    className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                    style={{
-                      backgroundColor:
-                        unenriched.length > 0
-                          ? "var(--color-accent)"
-                          : "var(--color-bg)",
-                      color:
-                        unenriched.length > 0
-                          ? "#000"
-                          : "var(--color-fg-muted)",
-                    }}
-                  >
-                    🚀 Next 10
-                  </button>
-                </>
-              ) : (
-                <button
-                  type="button"
-                  onClick={stopEnrichment}
-                  className="px-4 py-2 rounded-lg text-sm font-medium"
-                  style={{ backgroundColor: "#ef4444", color: "white" }}
-                >
-                  ⏹ Stop
-                </button>
-              )}
               {enrichQueue.length > 0 && (
                 <span
-                  className="px-2 py-1 rounded text-xs font-medium"
+                  className="px-3 py-1 rounded-full text-xs font-medium"
                   style={{ backgroundColor: "#8b5cf620", color: "#8b5cf6" }}
                 >
                   📋 {enrichQueue.length} queued
                 </span>
               )}
             </div>
+            <div className="flex items-center gap-3">
+              {!status.isRunning ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="batch-size-input"
+                      className="text-sm"
+                      style={{ color: "var(--color-fg-muted)" }}
+                    >
+                      Batch:
+                    </label>
+                    <input
+                      id="batch-size-input"
+                      type="number"
+                      min={1}
+                      max={Math.min(50, unenriched.length)}
+                      value={batchSize}
+                      onChange={(e) =>
+                        setBatchSize(
+                          Math.max(
+                            1,
+                            Math.min(50, Number.parseInt(e.target.value) || 1),
+                          ),
+                        )
+                      }
+                      className="w-16 px-2 py-1.5 rounded-lg text-sm text-center font-medium"
+                      style={{
+                        backgroundColor: "var(--color-bg)",
+                        border: "1px solid var(--color-border)",
+                        color: "var(--color-fg)",
+                      }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => startEnrichment(batchSize)}
+                    disabled={unenriched.length === 0}
+                    className="px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
+                    style={{
+                      backgroundColor:
+                        unenriched.length > 0
+                          ? "var(--color-accent)"
+                          : "var(--color-bg)",
+                      color:
+                        unenriched.length > 0
+                          ? "#000"
+                          : "var(--color-fg-muted)",
+                    }}
+                  >
+                    🚀 Start
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={stopEnrichment}
+                  className="px-5 py-2 rounded-lg text-sm font-semibold transition-all hover:scale-105"
+                  style={{ backgroundColor: "#ef4444", color: "white" }}
+                >
+                  ⏹ Stop
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Workflow Steps */}
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-3 mb-4">
             {WORKFLOW_STEPS.map((step, idx) => (
               <React.Fragment key={step.id}>
                 {idx > 0 && (
                   <div
-                    className="h-0.5 w-8"
+                    className="h-0.5 w-10"
                     style={{
                       backgroundColor:
                         status.currentStep > step.id
@@ -1252,13 +1431,13 @@ export function Bookmarks() {
                   />
                 )}
                 <div
-                  className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all"
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm transition-all"
                   style={{
                     backgroundColor:
                       status.currentStep === step.id
                         ? "var(--color-accent)"
                         : status.currentStep > step.id
-                          ? "#10b98130"
+                          ? "#10b98120"
                           : "var(--color-bg)",
                     color:
                       status.currentStep === step.id
@@ -1275,10 +1454,10 @@ export function Bookmarks() {
                     }`,
                   }}
                 >
-                  <span className="font-medium">
+                  <span className="font-semibold">
                     {status.currentStep > step.id ? "✓" : step.id}
                   </span>
-                  <span>{step.name}</span>
+                  <span className="font-medium">{step.name}</span>
                 </div>
               </React.Fragment>
             ))}
@@ -1286,33 +1465,48 @@ export function Bookmarks() {
 
           {/* Current Status */}
           <div
-            className="flex items-center justify-between text-sm p-2 rounded"
+            className="flex items-center justify-between text-sm p-3 rounded-lg"
             style={{ backgroundColor: "var(--color-bg)" }}
           >
             <div style={{ color: "var(--color-fg-muted)" }}>
               {status.isRunning ? (
-                <>
+                <span className="flex items-center gap-2">
                   <span
-                    className="font-medium"
+                    className="font-semibold"
                     style={{ color: "var(--color-fg)" }}
                   >
                     {status.current}
                   </span>
-                  {" · "}
-                  {status.stepMessage}
-                </>
+                  <span style={{ color: "var(--color-fg-muted)" }}>·</span>
+                  <span>{status.stepMessage}</span>
+                </span>
               ) : (
-                <>
-                  {unenriched.length} bookmarks pending enrichment
-                  {status.lastResult && ` · Last: ${status.lastResult}`}
-                </>
+                <span className="flex items-center gap-2">
+                  <span className="font-medium">{unenriched.length}</span>
+                  <span>bookmarks pending</span>
+                  {status.lastResult && (
+                    <>
+                      <span style={{ color: "var(--color-fg-muted)" }}>·</span>
+                      <span>Last: {status.lastResult}</span>
+                    </>
+                  )}
+                </span>
               )}
             </div>
-            <div style={{ color: "var(--color-fg-muted)" }}>
-              {status.processed}/{status.total || unenriched.length} processed
+            <div
+              className="flex items-center gap-2"
+              style={{ color: "var(--color-fg-muted)" }}
+            >
+              <span className="font-medium">
+                {status.processed}/{status.total || unenriched.length}
+              </span>
+              <span>processed</span>
               {status.errors.length > 0 && (
-                <span className="ml-2 text-red-400">
-                  ({status.errors.length} errors)
+                <span
+                  className="ml-1 px-2 py-0.5 rounded text-xs"
+                  style={{ backgroundColor: "#ef444420", color: "#ef4444" }}
+                >
+                  {status.errors.length} errors
                 </span>
               )}
             </div>
@@ -1372,7 +1566,21 @@ export function Bookmarks() {
                 >
                   Rating
                 </th>
-                <th className="text-left p-3 font-medium">Insights</th>
+                <th className="text-left p-3 pl-6 font-medium">Insights</th>
+                <th
+                  className="text-center p-3 font-medium"
+                  style={{ width: "100px" }}
+                >
+                  Published
+                </th>
+                {isDev && (
+                  <th
+                    className="text-center p-3 font-medium"
+                    style={{ width: "80px" }}
+                  >
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
@@ -1381,22 +1589,61 @@ export function Bookmarks() {
                   status.current === bookmark.title ||
                   status.current === bookmark.url;
                 const isSelected = selectedRowIndex === i;
+                const errorMessage = failedUrls.get(bookmark.url);
+                const hasFailed = !!errorMessage;
 
                 return (
                   <tr
                     key={`${bookmark.url}-${i}`}
                     id={`bookmark-row-${i}`}
+                    tabIndex={0}
                     className="hover:bg-(--color-bg) transition-colors group cursor-pointer"
                     style={{
                       borderBottom: "1px solid var(--color-border)",
-                      backgroundColor: isSelected
-                        ? "var(--color-accent-muted, rgba(59, 130, 246, 0.1))"
-                        : undefined,
-                      outline: isSelected
-                        ? "2px solid var(--color-accent)"
-                        : undefined,
+                      backgroundColor: hasFailed
+                        ? "rgba(239, 68, 68, 0.1)"
+                        : isSelected
+                          ? "var(--color-accent-muted, rgba(59, 130, 246, 0.1))"
+                          : undefined,
+                      outline: hasFailed
+                        ? "2px solid rgba(239, 68, 68, 0.5)"
+                        : isSelected
+                          ? "2px solid var(--color-accent)"
+                          : undefined,
                     }}
-                    onClick={() => setSelectedRowIndex(i)}
+                    onClick={() => {
+                      setSelectedRowIndex(i);
+                      // Open modal with first available insight, or dev by default
+                      const available = getAvailableModals(bookmark);
+                      const modalType = available.includes("dev")
+                        ? "dev"
+                        : available.includes("founder")
+                          ? "founder"
+                          : available.includes("investor")
+                            ? "investor"
+                            : available[0] || "dev";
+                      openModal(modalType, bookmark.url);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedRowIndex(i);
+                        const available = getAvailableModals(bookmark);
+                        const modalType = available.includes("dev")
+                          ? "dev"
+                          : available.includes("founder")
+                            ? "founder"
+                            : available.includes("investor")
+                              ? "investor"
+                              : available[0] || "dev";
+                        openModal(modalType, bookmark.url);
+                      }
+                    }}
+                    title={
+                      hasFailed
+                        ? `Error: ${errorMessage}`
+                        : "Click to view insights"
+                    }
                   >
                     {/* Icon */}
                     <td className="p-3 text-center">
@@ -1447,7 +1694,8 @@ export function Bookmarks() {
                       {bookmark.classified_at ? (
                         <button
                           type="button"
-                          onClick={() => {
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedRowIndex(i);
                             openModal("dev", bookmark.url);
                           }}
@@ -1471,51 +1719,18 @@ export function Bookmarks() {
                       )}
                     </td>
 
-                    {/* Insight buttons */}
-                    <td className="p-3">
-                      <div className="flex gap-1 flex-wrap">
-                        {bookmark.research_raw && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedRowIndex(i);
-                              openModal("research", bookmark.url);
-                            }}
-                            className="px-2 py-1 rounded text-xs transition-colors"
-                            style={{
-                              backgroundColor: "#3b82f620",
-                              color: "#3b82f6",
-                            }}
-                            title="Research"
-                          >
-                            🔬
-                          </button>
-                        )}
-                        {bookmark.exa_content && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedRowIndex(i);
-                              openModal("exa", bookmark.url);
-                            }}
-                            className="px-2 py-1 rounded text-xs transition-colors"
-                            style={{
-                              backgroundColor: "#06b6d420",
-                              color: "#06b6d4",
-                            }}
-                            title="Page Content"
-                          >
-                            🌐
-                          </button>
-                        )}
+                    {/* Insight buttons - order: dev, founder, investor, research, exa */}
+                    <td className="p-3 pl-6">
+                      <div className="flex gap-2 flex-wrap">
                         {bookmark.insight_dev && (
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedRowIndex(i);
                               openModal("dev", bookmark.url);
                             }}
-                            className="px-2 py-1 rounded text-xs transition-colors"
+                            className="px-2 py-1 rounded text-xs transition-colors cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: "#8b5cf620",
                               color: "#8b5cf6",
@@ -1528,11 +1743,12 @@ export function Bookmarks() {
                         {bookmark.insight_founder && (
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedRowIndex(i);
                               openModal("founder", bookmark.url);
                             }}
-                            className="px-2 py-1 rounded text-xs transition-colors"
+                            className="px-2 py-1 rounded text-xs transition-colors cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: "#f5930020",
                               color: "#f59300",
@@ -1545,11 +1761,12 @@ export function Bookmarks() {
                         {bookmark.insight_investor && (
                           <button
                             type="button"
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSelectedRowIndex(i);
                               openModal("investor", bookmark.url);
                             }}
-                            className="px-2 py-1 rounded text-xs transition-colors"
+                            className="px-2 py-1 rounded text-xs transition-colors cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: "#10b98120",
                               color: "#10b981",
@@ -1559,45 +1776,109 @@ export function Bookmarks() {
                             💰
                           </button>
                         )}
-                        {/* Enrich button for unenriched bookmarks - dev only */}
-                        {isDev &&
-                          !bookmark.classified_at &&
-                          (() => {
-                            const queuePos = enrichQueue.indexOf(bookmark.url);
-                            const isCurrentlyEnriching =
-                              status.isRunning &&
-                              status.current ===
-                                (bookmark.title || bookmark.url);
+                        {bookmark.perplexity_research && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRowIndex(i);
+                              openModal("research", bookmark.url);
+                            }}
+                            className="px-2 py-1 rounded text-xs transition-colors cursor-pointer hover:scale-110"
+                            style={{
+                              backgroundColor: "#3b82f620",
+                              color: "#3b82f6",
+                            }}
+                            title="Research"
+                          >
+                            🔬
+                          </button>
+                        )}
+                        {bookmark.firecrawl_content && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRowIndex(i);
+                              openModal("exa", bookmark.url);
+                            }}
+                            className="px-2 py-1 rounded text-xs transition-colors cursor-pointer hover:scale-110"
+                            style={{
+                              backgroundColor: "#06b6d420",
+                              color: "#06b6d4",
+                            }}
+                            title="Page Content"
+                          >
+                            🌐
+                          </button>
+                        )}
+                      </div>
+                    </td>
 
-                            if (isCurrentlyEnriching) {
-                              return (
-                                <span
-                                  className="px-2 py-1 rounded text-xs animate-pulse"
-                                  style={{
-                                    backgroundColor: "#f59e0b20",
-                                    color: "#f59e0b",
-                                  }}
-                                >
-                                  ⏳ Enriching...
-                                </span>
-                              );
-                            }
+                    {/* Published date column */}
+                    <td className="p-3 text-center">
+                      {bookmark.published_at ? (
+                        <span
+                          className="text-xs"
+                          style={{ color: "var(--color-fg-muted)" }}
+                          title={new Date(
+                            bookmark.published_at,
+                          ).toLocaleString()}
+                        >
+                          {new Date(bookmark.published_at).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </span>
+                      ) : (
+                        <span className="text-gray-500 text-xs">—</span>
+                      )}
+                    </td>
 
-                            if (queuePos >= 0) {
-                              return (
-                                <span
-                                  className="px-2 py-1 rounded text-xs"
-                                  style={{
-                                    backgroundColor: "#8b5cf620",
-                                    color: "#8b5cf6",
-                                  }}
-                                  title={`Queue position: ${queuePos + 1}`}
-                                >
-                                  #{queuePos + 1} queued
-                                </span>
-                              );
-                            }
+                    {/* Actions column - dev only */}
+                    {isDev && (
+                      <td className="p-3 text-center">
+                        {(() => {
+                          const queuePos = enrichQueue.indexOf(bookmark.url);
+                          const isCurrentlyEnriching =
+                            status.isRunning &&
+                            status.current === (bookmark.title || bookmark.url);
+                          const isEnriched = !!bookmark.classified_at;
 
+                          if (isCurrentlyEnriching) {
+                            return (
+                              <span
+                                className="px-2 py-1 rounded text-xs animate-pulse"
+                                style={{
+                                  backgroundColor: "#f59e0b20",
+                                  color: "#f59e0b",
+                                }}
+                              >
+                                ⏳
+                              </span>
+                            );
+                          }
+
+                          if (queuePos >= 0) {
+                            return (
+                              <span
+                                className="px-2 py-1 rounded text-xs"
+                                style={{
+                                  backgroundColor: "#8b5cf620",
+                                  color: "#8b5cf6",
+                                }}
+                                title={`Queue position: ${queuePos + 1}`}
+                              >
+                                #{queuePos + 1}
+                              </span>
+                            );
+                          }
+
+                          // Show error state with retry button
+                          if (hasFailed) {
                             return (
                               <button
                                 type="button"
@@ -1605,19 +1886,49 @@ export function Bookmarks() {
                                   e.stopPropagation();
                                   queueEnrichment(bookmark.url);
                                 }}
-                                className="px-2 py-1 rounded text-xs transition-colors hover:scale-105"
+                                className="px-2 py-1 rounded text-xs transition-colors hover:scale-105 cursor-pointer"
                                 style={{
-                                  backgroundColor: "var(--color-accent)",
-                                  color: "#000",
+                                  backgroundColor: "rgba(239, 68, 68, 0.2)",
+                                  color: "#ef4444",
                                 }}
-                                title="Click to enrich this bookmark"
+                                title={`Failed: ${errorMessage}\nClick to retry`}
                               >
-                                ✨ Enrich
+                                ⚠️ Retry
                               </button>
                             );
-                          })()}
-                      </div>
-                    </td>
+                          }
+
+                          return (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                queueEnrichment(bookmark.url);
+                              }}
+                              className="px-2 py-1 rounded text-xs transition-colors hover:scale-105 cursor-pointer"
+                              style={{
+                                backgroundColor: isEnriched
+                                  ? "var(--color-bg-subtle)"
+                                  : "var(--color-accent)",
+                                color: isEnriched
+                                  ? "var(--color-fg-muted)"
+                                  : "#000",
+                                border: isEnriched
+                                  ? "1px solid var(--color-border)"
+                                  : "none",
+                              }}
+                              title={
+                                isEnriched
+                                  ? "Re-enrich this bookmark"
+                                  : "Enrich this bookmark"
+                              }
+                            >
+                              {isEnriched ? "🔄" : "✨"}
+                            </button>
+                          );
+                        })()}
+                      </td>
+                    )}
                   </tr>
                 );
               })}
@@ -1701,6 +2012,9 @@ export function Bookmarks() {
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.7)" }}
           onClick={() => setDeleteConfirm(null)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setDeleteConfirm(null);
+          }}
         >
           <dialog
             ref={(el) => el?.focus()}
@@ -1712,6 +2026,9 @@ export function Bookmarks() {
               border: "2px solid #ef4444",
             }}
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") setDeleteConfirm(null);
+            }}
           >
             <h3 className="text-xl font-bold mb-2" style={{ color: "#ef4444" }}>
               🗑️ Delete Bookmark?
@@ -1773,14 +2090,15 @@ export function Bookmarks() {
             research: {
               icon: "🔬",
               title: "Research",
-              content: modalBookmark.research_raw || "No research available.",
+              content:
+                modalBookmark.perplexity_research || "No research available.",
               color: "#3b82f6",
             },
             exa: {
               icon: "🌐",
               title: "Page Content",
               content:
-                modalBookmark.exa_content || "No page content available.",
+                modalBookmark.firecrawl_content || "No page content available.",
               color: "#06b6d4",
             },
             dev: {
@@ -1823,7 +2141,7 @@ export function Bookmarks() {
                 ref={(el) => el?.focus()}
                 open
                 tabIndex={-1}
-                className="max-w-3xl w-full h-[70vh] rounded-xl p-0 m-0 flex flex-col outline-none"
+                className="max-w-3xl w-full h-[85vh] sm:h-[70vh] rounded-none sm:rounded-xl p-0 m-0 flex flex-col outline-none"
                 style={{
                   backgroundColor: "var(--color-bg)",
                   border: `2px solid ${config.color}40`,
@@ -1876,56 +2194,181 @@ export function Bookmarks() {
                   }
                 }}
               >
-                {/* Fixed Header */}
+                {/* Fixed Header - Title, URL, Tags, Close button */}
                 <div
-                  className="flex items-start justify-between p-4 border-b"
+                  className="flex flex-col sm:flex-row sm:items-start justify-between p-3 sm:p-4 border-b gap-2"
                   style={{ borderColor: "var(--color-border)" }}
                 >
-                  <div>
-                    <h3
-                      className="text-xl font-bold flex items-center gap-2"
-                      style={{ color: config.color }}
-                    >
-                      <span>{config.icon}</span>
-                      <span>{config.title}</span>
-                    </h3>
-                    <div
-                      className="font-medium mt-1"
-                      style={{ color: "var(--color-fg)" }}
-                    >
-                      {modalBookmark.title}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <h3
+                          className="text-lg sm:text-xl font-bold truncate"
+                          style={{ color: "var(--color-fg)" }}
+                        >
+                          {modalBookmark.icon && (
+                            <span className="mr-2">{modalBookmark.icon}</span>
+                          )}
+                          {modalBookmark.title}
+                        </h3>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <a
+                            href={modalBookmark.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs sm:text-sm hover:underline truncate"
+                            style={{ color: "var(--color-accent)" }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {modalBookmark.url}
+                          </a>
+                          {modalBookmark.published_at && (
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: "var(--color-bg-secondary)",
+                                color: "var(--color-fg-muted)",
+                              }}
+                              title={`Published: ${new Date(modalBookmark.published_at).toLocaleString()}`}
+                            >
+                              📅{" "}
+                              {new Date(
+                                modalBookmark.published_at,
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* Tags - visible on larger screens */}
+                      <div className="hidden sm:flex flex-wrap gap-1 max-w-[200px] justify-end">
+                        {modalBookmark.tags?.slice(0, 4).map((tag) => (
+                          <span
+                            key={tag}
+                            className="px-1.5 py-0.5 rounded text-xs"
+                            style={{
+                              backgroundColor: tag.startsWith("tech:")
+                                ? "#3b82f620"
+                                : tag.startsWith("persona:")
+                                  ? "#8b5cf620"
+                                  : "#6b728020",
+                              color: tag.startsWith("tech:")
+                                ? "#3b82f6"
+                                : tag.startsWith("persona:")
+                                  ? "#8b5cf6"
+                                  : "var(--color-fg-muted)",
+                            }}
+                          >
+                            {tag.replace(
+                              /^(tech:|persona:|type:|category:)/,
+                              "",
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={closeModal}
+                        className="p-1.5 sm:p-2 rounded-lg hover:bg-opacity-80 transition-colors shrink-0"
+                        style={{
+                          backgroundColor: "var(--color-bg-secondary)",
+                          color: "var(--color-fg-muted)",
+                        }}
+                      >
+                        ✕
+                      </button>
                     </div>
-                    <a
-                      href={modalBookmark.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm hover:underline"
-                      style={{ color: "var(--color-accent)" }}
-                    >
-                      {modalBookmark.url}
-                    </a>
+                    {/* Tags - mobile, shown below title */}
+                    <div className="flex sm:hidden flex-wrap gap-1 mt-2">
+                      {modalBookmark.tags?.slice(0, 4).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-1.5 py-0.5 rounded text-xs"
+                          style={{
+                            backgroundColor: tag.startsWith("tech:")
+                              ? "#3b82f620"
+                              : tag.startsWith("persona:")
+                                ? "#8b5cf620"
+                                : "#6b728020",
+                            color: tag.startsWith("tech:")
+                              ? "#3b82f6"
+                              : tag.startsWith("persona:")
+                                ? "#8b5cf6"
+                                : "var(--color-fg-muted)",
+                          }}
+                        >
+                          {tag.replace(/^(tech:|persona:|type:|category:)/, "")}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="p-2 rounded-lg hover:bg-opacity-80 transition-colors"
-                    style={{
-                      backgroundColor: "var(--color-bg-secondary)",
-                      color: "var(--color-fg-muted)",
-                    }}
-                  >
-                    ✕
-                  </button>
+                </div>
+
+                {/* Insight Tabs */}
+                <div
+                  className="flex gap-1 px-3 sm:px-4 py-2 border-b overflow-x-auto"
+                  style={{ borderColor: "var(--color-border)" }}
+                >
+                  {availableModals.map((modalType) => {
+                    const tabConfigs: Record<
+                      string,
+                      { icon: string; label: string; color: string }
+                    > = {
+                      dev: { icon: "🔌", label: "Developer", color: "#8b5cf6" },
+                      founder: {
+                        icon: "🚀",
+                        label: "Founder",
+                        color: "#f59300",
+                      },
+                      investor: {
+                        icon: "💰",
+                        label: "Investor",
+                        color: "#10b981",
+                      },
+                      research: {
+                        icon: "🔬",
+                        label: "Research",
+                        color: "#3b82f6",
+                      },
+                      exa: { icon: "🌐", label: "Content", color: "#06b6d4" },
+                    };
+                    const tab = tabConfigs[modalType];
+                    if (!tab) return null;
+                    const isActive = activeModal.type === modalType;
+                    return (
+                      <button
+                        key={modalType}
+                        type="button"
+                        onClick={() => openModal(modalType, modalBookmark.url)}
+                        className="px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap"
+                        style={{
+                          backgroundColor: isActive
+                            ? `${tab.color}20`
+                            : "transparent",
+                          color: isActive ? tab.color : "var(--color-fg-muted)",
+                          border: isActive
+                            ? `1px solid ${tab.color}40`
+                            : "1px solid transparent",
+                        }}
+                      >
+                        <span className="mr-1">{tab.icon}</span>
+                        <span className="hidden sm:inline">{tab.label}</span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 {/* Scrollable Content */}
-                <div className="flex-1 overflow-y-auto p-4">
+                <div className="flex-1 overflow-y-auto p-3 sm:p-4">
                   <div
-                    className="prose prose-sm max-w-none p-4 rounded-lg"
+                    className="prose prose-sm max-w-none p-3 sm:p-4 rounded-lg text-sm sm:text-base"
                     style={{
                       backgroundColor: "var(--color-bg-secondary)",
                       borderLeft: `3px solid ${config.color}`,
-                      lineHeight: 1.6,
+                      lineHeight: 1.7,
                     }}
                     // biome-ignore lint/security/noDangerouslySetInnerHtml: markdown rendering
                     dangerouslySetInnerHTML={{
@@ -1936,79 +2379,79 @@ export function Bookmarks() {
                   />
                 </div>
 
-                {/* Fixed Footer - single row */}
+                {/* Fixed Footer - simplified for mobile */}
                 <div
-                  className="p-3 border-t flex items-center justify-between gap-2"
+                  className="p-2 sm:p-3 border-t flex items-center justify-between gap-2"
                   style={{
                     borderColor: "var(--color-border)",
                     backgroundColor: "var(--color-bg)",
                   }}
                 >
-                  {/* Left: Prev/Next */}
+                  {/* Left: Navigate between bookmarks */}
                   <div className="flex gap-1">
-                    {availableModals.length > 1 && (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => navigateModal("prev")}
-                          className="px-2 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                          style={{
-                            backgroundColor: "var(--color-bg-secondary)",
-                            color: "var(--color-fg)",
-                            border: "1px solid var(--color-border)",
-                          }}
-                          title="Previous (←)"
-                        >
-                          ←
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => navigateModal("next")}
-                          className="px-2 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                          style={{
-                            backgroundColor: "var(--color-bg-secondary)",
-                            color: "var(--color-fg)",
-                            border: "1px solid var(--color-border)",
-                          }}
-                          title="Next (→)"
-                        >
-                          →
-                        </button>
-                      </>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = filteredRef.current;
+                        if (selectedRowIndex !== null && selectedRowIndex > 0) {
+                          const prevIndex = selectedRowIndex - 1;
+                          setSelectedRowIndex(prevIndex);
+                          const prevBookmark = list[prevIndex];
+                          if (prevBookmark && activeModal.type) {
+                            setActiveModal({
+                              type: activeModal.type,
+                              url: prevBookmark.url,
+                            });
+                          }
+                        }
+                      }}
+                      disabled={
+                        selectedRowIndex === null || selectedRowIndex === 0
+                      }
+                      className="px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-30"
+                      style={{
+                        backgroundColor: "var(--color-bg-secondary)",
+                        color: "var(--color-fg)",
+                        border: "1px solid var(--color-border)",
+                      }}
+                      title="Previous bookmark (↑/k)"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const list = filteredRef.current;
+                        if (
+                          selectedRowIndex !== null &&
+                          selectedRowIndex < list.length - 1
+                        ) {
+                          const nextIndex = selectedRowIndex + 1;
+                          setSelectedRowIndex(nextIndex);
+                          const nextBookmark = list[nextIndex];
+                          if (nextBookmark && activeModal.type) {
+                            setActiveModal({
+                              type: activeModal.type,
+                              url: nextBookmark.url,
+                            });
+                          }
+                        }
+                      }}
+                      disabled={
+                        selectedRowIndex === null ||
+                        selectedRowIndex >= filteredRef.current.length - 1
+                      }
+                      className="px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-30"
+                      style={{
+                        backgroundColor: "var(--color-bg-secondary)",
+                        color: "var(--color-fg)",
+                        border: "1px solid var(--color-border)",
+                      }}
+                      title="Next bookmark (↓/j)"
+                    >
+                      ↓
+                    </button>
                   </div>
-
-                  {/* Center: Modal type indicators */}
-                  {availableModals.length > 1 && (
-                    <div className="flex items-center gap-1">
-                      {availableModals.map((type) => {
-                        const isActive = type === activeModal.type;
-                        const typeConfig = configs[type];
-                        if (!typeConfig) return null;
-                        return (
-                          <button
-                            key={type}
-                            type="button"
-                            onClick={() =>
-                              activeModal.url &&
-                              setActiveModal({ type, url: activeModal.url })
-                            }
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-sm transition-all"
-                            style={{
-                              backgroundColor: isActive
-                                ? typeConfig.color
-                                : "var(--color-bg-secondary)",
-                              opacity: isActive ? 1 : 0.5,
-                              transform: isActive ? "scale(1.1)" : "scale(1)",
-                            }}
-                            title={typeConfig.title}
-                          >
-                            {typeConfig.icon}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
 
                   {/* Right: Copy/Close */}
                   <div className="flex gap-1">
@@ -2017,7 +2460,7 @@ export function Bookmarks() {
                       onClick={async () => {
                         await navigator.clipboard.writeText(config.content);
                       }}
-                      className="px-2 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                      className="px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                       style={{
                         backgroundColor: "var(--color-bg-secondary)",
                         color: "var(--color-fg)",
@@ -2030,7 +2473,7 @@ export function Bookmarks() {
                     <button
                       type="button"
                       onClick={closeModal}
-                      className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+                      className="px-2 sm:px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
                       style={{
                         backgroundColor: config.color,
                         color: "#000",

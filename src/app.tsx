@@ -5,14 +5,18 @@
  * without external dependencies.
  */
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { Header } from "./components/header";
 import { Article } from "./pages/article";
-import { Bookmarks } from "./pages/bookmarks";
 import { Commitment } from "./pages/commitment";
 import { Content } from "./pages/content";
 import { Context, ContextDoc } from "./pages/context";
 import { updateCanonical } from "./hooks/use-canonical";
+
+// Lazy load Bookmarks page (includes Supabase client ~50KB)
+const Bookmarks = React.lazy(() =>
+  import("./pages/bookmarks").then((m) => ({ default: m.Bookmarks })),
+);
 
 type Route =
   | { type: "content" }
@@ -127,7 +131,15 @@ function RouteContent({ route }: { route: Route }) {
     case "article":
       return <Article slug={route.slug} />;
     case "bookmarks":
-      return <Bookmarks />;
+      return (
+        <Suspense
+          fallback={
+            <div className="container py-16 text-center">Loading...</div>
+          }
+        >
+          <Bookmarks />
+        </Suspense>
+      );
     case "commitment":
       return <Commitment />;
     case "context":
