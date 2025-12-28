@@ -42,6 +42,8 @@ if (isBun) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { Database } = (await import("bun:sqlite")) as any;
   const bunDb = new Database(DB_PATH);
+  // Disable WAL mode - write directly to the db file like normal humans
+  bunDb.exec("PRAGMA journal_mode = DELETE;");
   db = {
     exec: (sql: string) => bunDb.exec(sql),
     prepare: (sql: string) => {
@@ -58,6 +60,8 @@ if (isBun) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { DatabaseSync } = (await import("node:sqlite")) as any;
   const nodeDb = new DatabaseSync(DB_PATH);
+  // Disable WAL mode - write directly to the db file like normal humans
+  nodeDb.exec("PRAGMA journal_mode = DELETE;");
   db = {
     exec: (sql: string) => nodeDb.exec(sql),
     prepare: (sql: string) => {
