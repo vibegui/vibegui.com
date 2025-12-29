@@ -17,6 +17,9 @@ import { updateCanonical } from "./hooks/use-canonical";
 const Bookmarks = React.lazy(() =>
   import("./pages/bookmarks").then((m) => ({ default: m.Bookmarks })),
 );
+const BookmarksEdit = React.lazy(() =>
+  import("./pages/bookmarks-edit").then((m) => ({ default: m.BookmarksEdit })),
+);
 const Roadmap = React.lazy(() =>
   import("./pages/roadmap").then((m) => ({ default: m.Roadmap })),
 );
@@ -25,6 +28,7 @@ type Route =
   | { type: "content" }
   | { type: "article"; slug: string }
   | { type: "bookmarks" }
+  | { type: "bookmarks-edit" }
   | { type: "roadmap" }
   | { type: "commitment" }
   | { type: "context" }
@@ -34,6 +38,9 @@ type Route =
 function parseRoute(pathname: string): Route {
   if (pathname === "/" || pathname === "" || pathname === "/content") {
     return { type: "content" };
+  }
+  if (pathname === "/bookmarks/edit" || pathname === "/bookmarks/edit/") {
+    return { type: "bookmarks-edit" };
   }
   if (pathname === "/bookmarks" || pathname === "/bookmarks/") {
     return { type: "bookmarks" };
@@ -145,6 +152,16 @@ function RouteContent({ route }: { route: Route }) {
           }
         >
           <Bookmarks />
+        </Suspense>
+      );
+    case "bookmarks-edit":
+      return (
+        <Suspense
+          fallback={
+            <div className="container py-16 text-center">Loading...</div>
+          }
+        >
+          <BookmarksEdit />
         </Suspense>
       );
     case "roadmap":

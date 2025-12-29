@@ -568,6 +568,37 @@ function bookmarksApiPlugin() {
             return;
           }
 
+          // CHECK if a bookmark URL already exists
+          if (req.url === "/api/bookmarks/check" && req.method === "POST") {
+            let body = "";
+            req.on("data", (chunk: Buffer) => {
+              body += chunk.toString();
+            });
+            req.on("end", async () => {
+              try {
+                const { url } = JSON.parse(body);
+                if (!url) {
+                  res.statusCode = 400;
+                  res.end(JSON.stringify({ error: "URL required" }));
+                  return;
+                }
+
+                const result = (await executeSupabaseSql(
+                  `SELECT id FROM bookmarks WHERE url = ${escapeSQL(url)} LIMIT 1`,
+                )) as Array<{ id: number }>;
+
+                res.setHeader("Content-Type", "application/json");
+                res.end(
+                  JSON.stringify({ exists: result && result.length > 0 }),
+                );
+              } catch (err) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ error: (err as Error).message }));
+              }
+            });
+            return;
+          }
+
           // CREATE a bookmark via Supabase MCP
           if (req.url === "/api/bookmarks/create" && req.method === "POST") {
             let body = "";
