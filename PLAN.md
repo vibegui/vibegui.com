@@ -355,11 +355,7 @@ Same pattern as Ideas:
 
 Same pattern:
 
-- [ ] `COLLECTION_DRAFTS_LIST`
-- [ ] `COLLECTION_DRAFTS_GET`
-- [ ] `COLLECTION_DRAFTS_CREATE`
-- [ ] `COLLECTION_DRAFTS_UPDATE`
-- [ ] `COLLECTION_DRAFTS_DELETE`
+- [x] Removed separate DRAFTS tools - use ARTICLES with status: "draft"
 
 **Deliverable**: Drafts collection fully functional
 

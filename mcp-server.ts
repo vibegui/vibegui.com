@@ -30,7 +30,7 @@ import {
 } from "./lib/bookmarks/index.ts";
 import * as contentDb from "./lib/db/content.ts";
 import * as learningsDb from "./lib/db/learnings.ts";
-import type { Project, ActionItem } from "./lib/db/content.ts";
+import type { Project } from "./lib/db/content.ts";
 
 // ============================================================================
 // WhatsApp Bridge - WebSocket Server
@@ -316,195 +316,11 @@ function triggerExport() {
  */
 function createSQLiteContentTools() {
   return [
-    // DRAFTS LIST
-    createTool({
-      id: "COLLECTION_DRAFTS_LIST",
-      description: "List all drafts with optional filtering",
-      inputSchema: z.object({
-        status: z.enum(["draft", "published"]).optional(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
-      }),
-      outputSchema: z.object({
-        items: z.array(ContentEntitySchema.omit({ content: true })),
-        totalCount: z.number(),
-        hasMore: z.boolean(),
-      }),
-      execute: async ({ context }) => {
-        const allContent = context.status
-          ? contentDb.getContentByStatus(context.status)
-          : contentDb.getDrafts();
-
-        const now = new Date().toISOString();
-        const items = allContent.map((c) => ({
-          id: c.slug,
-          title: c.title,
-          description: c.description,
-          date: c.date,
-          status: c.status,
-          tags: c.tags,
-          created_at: now,
-          updated_at: now,
-        }));
-
-        const paginated = items.slice(
-          context.offset,
-          context.offset + context.limit,
-        );
-
-        return {
-          items: paginated,
-          totalCount: items.length,
-          hasMore: items.length > context.offset + context.limit,
-        };
-      },
-    }),
-
-    // DRAFTS GET
-    createTool({
-      id: "COLLECTION_DRAFTS_GET",
-      description: "Get a single draft by ID (slug)",
-      inputSchema: z.object({
-        id: z.string().describe("The slug/ID of the content"),
-      }),
-      outputSchema: z.object({
-        item: ContentEntitySchema.nullable(),
-      }),
-      execute: async ({ context }) => {
-        const content = contentDb.getContentBySlug(context.id);
-        if (!content) return { item: null };
-        const now = new Date().toISOString();
-        return {
-          item: {
-            id: content.slug,
-            title: content.title,
-            description: content.description,
-            content: content.content,
-            date: content.date,
-            status: content.status,
-            tags: content.tags,
-            created_at: now,
-            updated_at: now,
-          },
-        };
-      },
-    }),
-
-    // DRAFTS CREATE
-    createTool({
-      id: "COLLECTION_DRAFTS_CREATE",
-      description: "Create a new draft",
-      inputSchema: z.object({
-        title: z.string(),
-        description: z.string().optional(),
-        content: z.string().default(""),
-        tags: z.array(z.string()).optional(),
-        status: z.enum(["draft", "published"]).default("draft"),
-      }),
-      outputSchema: z.object({
-        item: ContentEntitySchema,
-      }),
-      execute: async ({ context }) => {
-        const slug = slugify(context.title);
-        const created = contentDb.createContent({
-          slug,
-          title: context.title,
-          description: context.description,
-          content: context.content,
-          date: todayISO(),
-          status: context.status,
-          tags: context.tags,
-        });
-
-        triggerExport(); // Auto-export for dev server
-
-        const now = new Date().toISOString();
-        return {
-          item: {
-            id: created.slug,
-            title: created.title,
-            description: created.description,
-            content: created.content,
-            date: created.date,
-            status: created.status,
-            tags: created.tags,
-            created_at: now,
-            updated_at: now,
-          },
-        };
-      },
-    }),
-
-    // DRAFTS UPDATE
-    createTool({
-      id: "COLLECTION_DRAFTS_UPDATE",
-      description: "Update an existing draft",
-      inputSchema: z.object({
-        id: z.string(),
-        title: z.string().optional(),
-        description: z.string().optional(),
-        content: z.string().optional(),
-        date: z.string().optional(),
-        tags: z.array(z.string()).optional(),
-        status: z.enum(["draft", "published"]).optional(),
-      }),
-      outputSchema: z.object({
-        item: ContentEntitySchema,
-      }),
-      execute: async ({ context }) => {
-        const updated = contentDb.updateContent(context.id, {
-          title: context.title,
-          description: context.description,
-          content: context.content,
-          date: context.date,
-          status: context.status,
-          tags: context.tags,
-        });
-
-        if (!updated) throw new Error(`Content not found: ${context.id}`);
-
-        triggerExport(); // Auto-export for dev server
-
-        const now = new Date().toISOString();
-        return {
-          item: {
-            id: updated.slug,
-            title: updated.title,
-            description: updated.description,
-            content: updated.content,
-            date: updated.date,
-            status: updated.status,
-            tags: updated.tags,
-            created_at: now,
-            updated_at: now,
-          },
-        };
-      },
-    }),
-
-    // DRAFTS DELETE
-    createTool({
-      id: "COLLECTION_DRAFTS_DELETE",
-      description: "Delete a draft",
-      inputSchema: z.object({
-        id: z.string(),
-      }),
-      outputSchema: z.object({
-        success: z.boolean(),
-        id: z.string(),
-      }),
-      execute: async ({ context }) => {
-        const success = contentDb.deleteContent(context.id);
-        if (!success) throw new Error(`Content not found: ${context.id}`);
-        triggerExport(); // Auto-export for dev server
-        return { success: true, id: context.id };
-      },
-    }),
-
-    // ARTICLES LIST
+    // ARTICLES LIST - returns all content (filter by status if needed)
     createTool({
       id: "COLLECTION_ARTICLES_LIST",
-      description: "List all articles with optional filtering",
+      description:
+        "List all articles with optional filtering by status (draft/published)",
       inputSchema: z.object({
         status: z.enum(["draft", "published"]).optional(),
         limit: z.number().default(50),
@@ -518,7 +334,7 @@ function createSQLiteContentTools() {
       execute: async ({ context }) => {
         const allContent = context.status
           ? contentDb.getContentByStatus(context.status)
-          : contentDb.getArticles();
+          : contentDb.getAllContent();
 
         const now = new Date().toISOString();
         const items = allContent.map((c) => ({
@@ -578,13 +394,14 @@ function createSQLiteContentTools() {
     // ARTICLES CREATE
     createTool({
       id: "COLLECTION_ARTICLES_CREATE",
-      description: "Create a new article",
+      description:
+        "Create a new article (set status to 'draft' or 'published')",
       inputSchema: z.object({
         title: z.string(),
         description: z.string().optional(),
         content: z.string().default(""),
         tags: z.array(z.string()).optional(),
-        status: z.enum(["draft", "published"]).default("draft"),
+        status: z.enum(["draft", "published"]).default("published"),
       }),
       outputSchema: z.object({
         item: ContentEntitySchema,

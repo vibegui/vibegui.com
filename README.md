@@ -116,7 +116,7 @@ Instead of managing markdown files in folders, all content lives in SQLite datab
 
 | Database | Purpose |
 |----------|---------|
-| `data/content.db` | Articles and drafts with tags |
+| `data/content.db` | Articles (with status: draft/published) |
 | `data/bookmarks.db` | 400+ curated links with AI enrichment |
 
 **Benefits:**

@@ -1,9 +1,9 @@
 /**
- * SQLite Database for Articles and Drafts
+ * SQLite Database for Articles
  *
  * Runtime-aware: uses bun:sqlite when running in Bun, node:sqlite in Node.
  * Database file is stored in data/content.db
- * Articles and drafts are in the same table, differentiated by status field.
+ * Articles have a status field (draft/published) - no separate collections.
  */
 
 import { join, dirname } from "node:path";

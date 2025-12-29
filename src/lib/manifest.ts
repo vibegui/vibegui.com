@@ -2,7 +2,7 @@
  * Content Manifest Utilities
  *
  * Handles loading content from JSON files generated from SQLite.
- * Content is fetched from /content/manifest.json (articles/drafts).
+ * Articles have a status field (draft/published) - no separate drafts array.
  */
 
 export interface ArticleMeta {
@@ -49,7 +49,6 @@ export interface ContextFile {
 
 export interface ContentManifest {
   articles: ArticleMeta[];
-  drafts: ArticleMeta[];
   projects?: Project[];
   context?: ContextFile[];
 }
@@ -96,8 +95,7 @@ async function loadHashedManifest(): Promise<ContentManifest | null> {
 }
 
 /**
- * Load the content manifest (articles and drafts)
- * Handles both legacy format (object with articles/drafts) and new format (array)
+ * Load the content manifest (articles with status field)
  */
 export async function loadManifest(): Promise<ContentManifest | null> {
   if (cachedContentManifest) {
@@ -113,44 +111,25 @@ export async function loadManifest(): Promise<ContentManifest | null> {
 
     const data = await response.json();
 
-    // Handle object format (with articles/drafts/projects arrays)
-    if (data.articles || data.drafts || data.projects) {
-      const articles: ArticleMeta[] = (data.articles || []).map(
-        (a: Record<string, unknown>) => ({
-          slug: a.slug || a.id,
-          title: a.title,
-          description: a.description,
-          date: a.date,
-          status: a.status || "published",
-          tags: a.tags,
-        }),
-      );
-      const drafts: ArticleMeta[] = (data.drafts || []).map(
-        (a: Record<string, unknown>) => ({
-          slug: a.slug || a.id,
-          title: a.title,
-          description: a.description,
-          date: a.date,
-          status: a.status || "draft",
-          tags: a.tags,
-        }),
-      );
-      const projects: Project[] = data.projects || [];
-      cachedContentManifest = {
-        articles,
-        drafts,
-        projects,
-        context: data.context,
-      };
-      return cachedContentManifest;
-    }
+    // Articles array with status field (draft/published)
+    const articles: ArticleMeta[] = (data.articles || []).map(
+      (a: Record<string, unknown>) => ({
+        slug: a.slug || a.id,
+        title: a.title,
+        description: a.description,
+        date: a.date,
+        status: a.status || "published",
+        tags: a.tags,
+      }),
+    );
 
-    // Handle new format (simple array)
-    const items: ArticleMeta[] = Array.isArray(data) ? data : [];
-    const articles = items.filter((item) => item.status === "published");
-    const drafts = items.filter((item) => item.status === "draft");
+    const projects: Project[] = data.projects || [];
 
-    cachedContentManifest = { articles, drafts };
+    cachedContentManifest = {
+      articles,
+      projects,
+      context: data.context,
+    };
     return cachedContentManifest;
   } catch (error) {
     console.error("Error loading content manifest:", error);
@@ -160,24 +139,15 @@ export async function loadManifest(): Promise<ContentManifest | null> {
 
 /**
  * Get an article's content path by slug
- * Searches both published articles and drafts (dev mode)
- * Returns path to JSON file (new format) or markdown file (legacy)
+ * Searches all articles (both published and drafts)
  */
 export async function getArticlePath(slug: string): Promise<string | null> {
   const manifest = await loadManifest();
   if (!manifest) return null;
 
-  // Search in published articles first
-  let article = manifest.articles.find((a) => a.slug === slug);
-
-  // If not found, search in drafts (dev mode)
-  if (!article) {
-    article = manifest.drafts.find((a) => a.slug === slug);
-  }
-
+  const article = manifest.articles.find((a) => a.slug === slug);
   if (!article) return null;
 
-  // Try JSON first (new SQLite export format), fallback to legacy markdown
   return `/content/${article.slug}.json`;
 }
 

@@ -97,8 +97,7 @@ When recording learnings, always specify the `project` field so learnings can be
 
 This repo uses an MCP server for content management. Key tools:
 
-- `COLLECTION_ARTICLES_*` — CRUD for blog posts
-- `COLLECTION_DRAFTS_*` — CRUD for drafts
+- `COLLECTION_ARTICLES_*` — CRUD for blog posts (use `status: "draft"` or `"published"`)
 - `CONTENT_SEARCH_REPLACE` — Edit content without full rewrites
 - `SEARCH_CONTENT` / `SEARCH_CONTEXT` — Find references
 

@@ -1,8 +1,9 @@
 /**
  * Content Page (Home)
  *
- * The main landing page displaying published articles.
- * In dev mode, shows a toggle to preview drafts (local-only).
+ * The main landing page displaying articles.
+ * Articles have a status field (draft/published).
+ * In dev mode, drafts are included and shown with a toggle.
  */
 
 import { useState, useEffect } from "react";
@@ -11,22 +12,22 @@ import { PageHeader } from "../components/page-header";
 import { loadManifest, type ArticleMeta } from "../lib/manifest";
 
 export function Content() {
-  const [articles, setArticles] = useState<ArticleMeta[]>([]);
-  const [drafts, setDrafts] = useState<ArticleMeta[]>([]);
+  const [allArticles, setAllArticles] = useState<ArticleMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDrafts, setShowDrafts] = useState(true);
 
   useEffect(() => {
     const loadArticles = async () => {
       const manifest = await loadManifest();
-      setArticles(manifest?.articles ?? []);
-      setDrafts(manifest?.drafts ?? []);
+      setAllArticles(manifest?.articles ?? []);
       setLoading(false);
     };
 
     loadArticles();
   }, []);
 
+  const drafts = allArticles.filter((a) => a.status === "draft");
+  const published = allArticles.filter((a) => a.status === "published");
   const hasDrafts = drafts.length > 0;
 
   return (
@@ -69,6 +70,7 @@ export function Content() {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => setShowDrafts(!showDrafts)}
                 className="px-4 py-2.5 rounded-md text-sm font-medium transition-colors min-h-[44px]"
                 style={{
@@ -142,7 +144,7 @@ export function Content() {
           )}
 
           {/* Published articles */}
-          {articles.length === 0 && !hasDrafts ? (
+          {published.length === 0 && !hasDrafts ? (
             <div
               className="p-6 rounded-lg text-center"
               style={{ backgroundColor: "var(--color-bg-secondary)" }}
@@ -153,7 +155,7 @@ export function Content() {
             </div>
           ) : (
             <>
-              {hasDrafts && showDrafts && articles.length > 0 && (
+              {hasDrafts && showDrafts && published.length > 0 && (
                 <h2
                   className="text-lg font-semibold mb-4"
                   style={{ color: "var(--color-fg-muted)" }}
@@ -161,7 +163,7 @@ export function Content() {
                   Published
                 </h2>
               )}
-              {articles.map((article, index) => (
+              {published.map((article, index) => (
                 <ArticleCard
                   key={article.slug}
                   slug={article.slug}
