@@ -31,9 +31,9 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
 
   // Default header for blog home
   return (
-    <div className="mb-6">
+    <div className="mb-6 flex flex-wrap gap-3">
       <div
-        className="inline-block px-4 py-3 rounded-2xl text-sm"
+        className="px-4 py-3 rounded-2xl text-sm"
         style={{
           backgroundColor: "var(--color-bg-secondary)",
           color: "var(--color-fg)",
@@ -66,6 +66,31 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
           in Brazil.
         </div>
       </div>
+
+      <a
+        href="/bookmarks"
+        className="px-4 py-3 rounded-2xl text-sm block hover:scale-[1.02] transition-transform"
+        style={{
+          backgroundColor: "var(--color-bg-secondary)",
+          color: "var(--color-fg)",
+        }}
+      >
+        <div className="flex items-center gap-2">
+          <span
+            className="text-xs font-semibold px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: "var(--color-accent)",
+              color: "var(--color-bg)",
+            }}
+          >
+            new
+          </span>
+          <span className="font-semibold">vibegui Bookmarks</span>
+        </div>
+        <div style={{ color: "var(--color-fg-muted)" }} className="mt-1">
+          An AI-curated list of relevant articles and projects.
+        </div>
+      </a>
     </div>
   );
 }

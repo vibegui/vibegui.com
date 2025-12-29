@@ -2192,8 +2192,132 @@ export function Bookmarks() {
             </div>
           </div>
         )}
+        {/* Mobile Card Layout */}
+        <div className="lg:hidden space-y-3">
+          {filtered.map((bookmark, i) => {
+            const isProcessing =
+              status.current === bookmark.title ||
+              status.current === bookmark.url;
+            const errorMessage = failedUrls.get(bookmark.url);
+            const hasFailed = !!errorMessage;
+
+            return (
+              <button
+                type="button"
+                key={`mobile-${bookmark.url}-${i}`}
+                className="rounded-xl p-4 cursor-pointer active:scale-[0.98] transition-transform w-full text-left"
+                style={{
+                  backgroundColor: hasFailed
+                    ? "rgba(239, 68, 68, 0.1)"
+                    : "var(--color-bg-secondary)",
+                  border: hasFailed
+                    ? "2px solid rgba(239, 68, 68, 0.5)"
+                    : "1px solid var(--color-border)",
+                }}
+                onClick={() => {
+                  setSelectedRowIndex(i);
+                  openModal(bookmark.url);
+                }}
+              >
+                <div className="flex gap-3">
+                  <span className="text-2xl">{bookmark.icon || "🔗"}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="font-semibold truncate"
+                        style={{ color: "var(--color-fg)" }}
+                      >
+                        {bookmark.title || new URL(bookmark.url).hostname}
+                      </span>
+                      {bookmark.classified_at && (
+                        <span className="shrink-0">
+                          <StarRating stars={bookmark.stars} />
+                        </span>
+                      )}
+                    </div>
+                    <p
+                      className="text-sm mt-1 line-clamp-2"
+                      style={{ color: "var(--color-fg-muted)" }}
+                    >
+                      {bookmark.description}
+                    </p>
+                    <a
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs mt-2 truncate block"
+                      style={{ color: "var(--color-accent)" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {bookmark.url}
+                    </a>
+                    {bookmark.classified_at && (
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(bookmark.url, "dev");
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "#8b5cf620",
+                            color: "#8b5cf6",
+                          }}
+                        >
+                          🔌 Dev
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(bookmark.url, "founder");
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "#f5930020",
+                            color: "#f59300",
+                          }}
+                        >
+                          🚀 Founder
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openModal(bookmark.url, "investor");
+                          }}
+                          className="px-2.5 py-1.5 rounded-lg text-xs"
+                          style={{
+                            backgroundColor: "#10b98120",
+                            color: "#10b981",
+                          }}
+                        >
+                          💰 Investor
+                        </button>
+                      </div>
+                    )}
+                    {isProcessing && (
+                      <span
+                        className="inline-block mt-2 px-2 py-0.5 rounded text-xs animate-pulse"
+                        style={{
+                          backgroundColor: "#f5930020",
+                          color: "#f59300",
+                        }}
+                      >
+                        Processing...
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Desktop Table Layout */}
         <div
-          className="rounded-lg overflow-hidden"
+          className="rounded-lg overflow-hidden hidden lg:block"
           style={{
             backgroundColor: "var(--color-bg-secondary)",
             border: "1px solid var(--color-border)",
