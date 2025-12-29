@@ -755,6 +755,9 @@ export function Bookmarks() {
   const [batchSize, setBatchSize] = useState(5);
   // Parallel workers count
   const [parallelCount, setParallelCount] = useState(3);
+  // New URL import
+  const [newUrlInput, setNewUrlInput] = useState("");
+  const [importingUrl, setImportingUrl] = useState(false);
   // Track active workers
   const [activeWorkers, setActiveWorkers] = useState<Set<string>>(new Set());
   // Enrichment step selection (which steps to run)
@@ -1468,6 +1471,142 @@ export function Bookmarks() {
     setStatus((s) => ({ ...s, stepMessage: "Stopping..." }));
   };
 
+  // Import a new URL and trigger enrichment
+  const importNewUrl = async () => {
+    const url = newUrlInput.trim();
+    if (!url) return;
+
+    // Validate URL
+    try {
+      new URL(url);
+    } catch {
+      setStatus((s) => ({
+        ...s,
+        errors: [...s.errors, `Invalid URL: ${url}`],
+      }));
+      return;
+    }
+
+    // Check if URL already exists
+    if (bookmarks.some((b) => b.url === url)) {
+      setStatus((s) => ({
+        ...s,
+        errors: [...s.errors, `URL already exists: ${url}`],
+      }));
+      return;
+    }
+
+    setImportingUrl(true);
+    setNewUrlInput("");
+
+    try {
+      // First, add the URL to the database
+      const addRes = await fetch("/api/bookmarks/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+
+      if (!addRes.ok) {
+        const errText = await addRes.text();
+        throw new Error(`Failed to add URL: ${errText}`);
+      }
+
+      // Create a temporary bookmark object for enrichment
+      const tempBookmark: Bookmark = {
+        id: 0, // Temporary ID
+        url,
+        title: null,
+        description: null,
+        stars: null,
+        icon: null,
+        classified_at: null,
+        published_at: null,
+        tags: [],
+      };
+
+      // Add to local state immediately
+      setBookmarks((prev) => [tempBookmark, ...prev]);
+
+      // Trigger enrichment
+      setStatus({
+        isRunning: true,
+        current: url,
+        currentStep: 0,
+        stepMessage: "Starting enrichment...",
+        processed: 0,
+        total: 1,
+        errors: [],
+        lastResult: null,
+      });
+
+      const enrichedBookmark = await enrichBookmark(
+        tempBookmark,
+        (stepNum, message) => {
+          setStatus((s) => ({
+            ...s,
+            currentStep: stepNum,
+            stepMessage: message,
+          }));
+        },
+        {
+          runResearch: enrichSteps.research,
+          runContent: enrichSteps.content,
+          runAnalysis: enrichSteps.analysis,
+        },
+      );
+
+      // Save the enriched bookmark
+      const saveRes = await fetch("/api/bookmarks/update", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(enrichedBookmark),
+      });
+
+      if (!saveRes.ok) {
+        throw new Error(`Failed to save enriched bookmark: ${saveRes.status}`);
+      }
+
+      // Update local state with enriched data
+      setBookmarks((prev) =>
+        prev.map((b) =>
+          b.url === url
+            ? {
+                ...b,
+                title: enrichedBookmark.title,
+                description: enrichedBookmark.description,
+                icon: enrichedBookmark.icon,
+                stars: enrichedBookmark.stars,
+                classified_at: enrichedBookmark.classified_at,
+                published_at: enrichedBookmark.published_at,
+                tags: enrichedBookmark.tags,
+              }
+            : b,
+        ),
+      );
+
+      // Clear the bookmark cache
+      clearBookmarkCache();
+
+      setStatus((s) => ({
+        ...s,
+        isRunning: false,
+        processed: 1,
+        stepMessage: "Done!",
+        lastResult: `✓ ${url}`,
+      }));
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      setStatus((s) => ({
+        ...s,
+        isRunning: false,
+        errors: [...s.errors, `Import failed: ${errMsg}`],
+      }));
+    } finally {
+      setImportingUrl(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="container py-16 text-center">
@@ -1674,6 +1813,48 @@ export function Bookmarks() {
                       }}
                     />
                   </div>
+                </div>
+              )}
+
+              {/* Import URL */}
+              {!status.isRunning && (
+                <div className="flex items-center gap-2 border-l border-[var(--color-border)] pl-4">
+                  <input
+                    type="url"
+                    placeholder="Import new URL..."
+                    value={newUrlInput}
+                    onChange={(e) => setNewUrlInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && newUrlInput.trim()) {
+                        importNewUrl();
+                      }
+                    }}
+                    disabled={importingUrl}
+                    className="w-48 px-2 py-1 rounded text-xs"
+                    style={{
+                      backgroundColor: "var(--color-bg)",
+                      border: "1px solid var(--color-border)",
+                      color: "var(--color-fg)",
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={importNewUrl}
+                    disabled={!newUrlInput.trim() || importingUrl}
+                    className="px-2 py-1 rounded text-xs font-semibold transition-all hover:scale-105"
+                    style={{
+                      backgroundColor:
+                        newUrlInput.trim() && !importingUrl
+                          ? "#10b981"
+                          : "var(--color-bg)",
+                      color:
+                        newUrlInput.trim() && !importingUrl
+                          ? "#fff"
+                          : "var(--color-fg-muted)",
+                    }}
+                  >
+                    {importingUrl ? "..." : "➕"}
+                  </button>
                 </div>
               )}
 
