@@ -111,16 +111,18 @@ async function main() {
   mkdirSync(distContext, { recursive: true });
   const contextFiles = processContextDirectory(CONTEXT_DIR, distContext);
 
-  // Read content manifest for article info
+  // Read content manifest (articles, drafts, projects)
   const contentManifestPath = resolve(DIST, "content", "manifest.json");
-  const articles = existsSync(contentManifestPath)
+  const contentManifest = existsSync(contentManifestPath)
     ? JSON.parse(readFileSync(contentManifestPath, "utf-8"))
-    : [];
+    : { articles: [], drafts: [], projects: [] };
 
-  // Build final manifest
+  // Build final manifest - preserve the full structure
   const finalManifest = {
     version: 1,
-    articles,
+    articles: contentManifest.articles || [],
+    drafts: contentManifest.drafts || [],
+    projects: contentManifest.projects || [],
     context: contextFiles,
   };
 
@@ -152,7 +154,9 @@ async function main() {
   console.log(`  ✅ Injected manifest path`);
 
   console.log("\n✨ Done!");
-  console.log(`   Articles: ${articles.length}`);
+  console.log(`   Articles: ${finalManifest.articles.length}`);
+  console.log(`   Drafts: ${finalManifest.drafts.length}`);
+  console.log(`   Projects: ${finalManifest.projects.length}`);
   console.log(`   Context: ${contextFiles.length}\n`);
 }
 
