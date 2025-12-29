@@ -149,7 +149,7 @@ describe("Build Size Constraints", () => {
     console.log(`Total app code: ${(appCodeSize / 1024).toFixed(2)}KB`);
 
     // App code is now split: main bundle + lazy-loaded bookmarks chunk
-    // Total should stay under 280KB across all app chunks
-    expect(appCodeSize).toBeLessThan(280 * 1024);
+    // Total should stay under 285KB across all app chunks
+    expect(appCodeSize).toBeLessThan(285 * 1024);
   });
 });

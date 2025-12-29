@@ -2566,6 +2566,12 @@ export function BookmarksEdit() {
                   >
                     Published
                   </th>
+                  <th
+                    className="text-center p-3 font-medium"
+                    style={{ width: "100px" }}
+                  >
+                    Analyzed
+                  </th>
                   {isDev && (
                     <th
                       className="text-center p-3 font-medium"
@@ -2832,6 +2838,29 @@ export function BookmarksEdit() {
                                 year: "numeric",
                               },
                             )}
+                          </span>
+                        ) : (
+                          <span className="text-gray-500 text-xs">—</span>
+                        )}
+                      </td>
+
+                      {/* Analyzed date column */}
+                      <td className="p-3 text-center">
+                        {bookmark.classified_at ? (
+                          <span
+                            className="text-xs"
+                            style={{ color: "var(--color-fg-muted)" }}
+                            title={new Date(
+                              bookmark.classified_at,
+                            ).toLocaleString()}
+                          >
+                            {new Date(
+                              bookmark.classified_at,
+                            ).toLocaleDateString("en-US", {
+                              month: "numeric",
+                              day: "numeric",
+                              year: "numeric",
+                            })}
                           </span>
                         ) : (
                           <span className="text-gray-500 text-xs">—</span>

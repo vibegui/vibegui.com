@@ -651,7 +651,7 @@ export function Bookmarks() {
                 <th className="p-3 w-12">Icon</th>
                 <th className="p-3">Title</th>
                 <th className="p-3 w-24">Rating</th>
-                <th className="p-3 w-32">Track</th>
+                <th className="p-3 w-40">Insights</th>
                 <th className="p-3 w-28">Published</th>
                 <th className="p-3 w-28">Analyzed</th>
               </tr>
@@ -697,41 +697,87 @@ export function Bookmarks() {
                       <StarRating stars={bookmark.stars} />
                     </td>
                     <td className="p-3">
-                      <div className="flex gap-1">
-                        {hasTag(bookmark.tags, "persona:mcp_developer") && (
-                          <span
-                            className="px-1.5 py-0.5 rounded text-xs"
+                      {bookmark.classified_at ? (
+                        <div className="flex gap-1">
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal(bookmark.url, "dev");
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: `${TRACK_CONFIG.mcp.color}20`,
                               color: TRACK_CONFIG.mcp.color,
                             }}
+                            title="Dev Insight"
                           >
                             {TRACK_CONFIG.mcp.icon}
-                          </span>
-                        )}
-                        {hasTag(bookmark.tags, "persona:startup_founder") && (
-                          <span
-                            className="px-1.5 py-0.5 rounded text-xs"
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal(bookmark.url, "founder");
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: `${TRACK_CONFIG.founder.color}20`,
                               color: TRACK_CONFIG.founder.color,
                             }}
+                            title="Founder Insight"
                           >
                             {TRACK_CONFIG.founder.icon}
-                          </span>
-                        )}
-                        {hasTag(bookmark.tags, "persona:vc_investor") && (
-                          <span
-                            className="px-1.5 py-0.5 rounded text-xs"
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal(bookmark.url, "investor");
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
                             style={{
                               backgroundColor: `${TRACK_CONFIG.investor.color}20`,
                               color: TRACK_CONFIG.investor.color,
                             }}
+                            title="Investor Insight"
                           >
                             {TRACK_CONFIG.investor.icon}
-                          </span>
-                        )}
-                      </div>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal(bookmark.url, "research");
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
+                            style={{
+                              backgroundColor: "#3b82f620",
+                              color: "#3b82f6",
+                            }}
+                            title="Research"
+                          >
+                            🔬
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openModal(bookmark.url, "exa");
+                            }}
+                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
+                            style={{
+                              backgroundColor: "#06b6d420",
+                              color: "#06b6d4",
+                            }}
+                            title="Page Content"
+                          >
+                            🌐
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-gray-500 text-xs">—</span>
+                      )}
                     </td>
                     <td
                       className="p-3 text-xs"
