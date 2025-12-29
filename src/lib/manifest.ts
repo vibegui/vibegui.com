@@ -14,6 +14,33 @@ export interface ArticleMeta {
   tags?: string[];
 }
 
+export interface ActionItem {
+  id?: number;
+  task: string;
+  owner: string;
+  dueDate?: string;
+  completed?: boolean;
+  sortOrder?: number;
+}
+
+export interface Project {
+  id: string;
+  title: string;
+  tagline: string;
+  description: string;
+  status: "completed" | "ongoing" | "future";
+  icon?: string;
+  coverImage?: string;
+  coverGradient?: string;
+  url?: string;
+  startDate?: string;
+  targetDate?: string;
+  completedDate?: string;
+  sortOrder?: number;
+  tags?: string[];
+  actionPlan?: ActionItem[];
+}
+
 export interface ContextFile {
   original: string;
   path: string;
@@ -23,6 +50,7 @@ export interface ContextFile {
 export interface ContentManifest {
   articles: ArticleMeta[];
   drafts: ArticleMeta[];
+  projects?: Project[];
   context?: ContextFile[];
 }
 
@@ -85,8 +113,8 @@ export async function loadManifest(): Promise<ContentManifest | null> {
 
     const data = await response.json();
 
-    // Handle legacy format (object with articles/drafts arrays)
-    if (data.articles || data.drafts) {
+    // Handle object format (with articles/drafts/projects arrays)
+    if (data.articles || data.drafts || data.projects) {
       const articles: ArticleMeta[] = (data.articles || []).map(
         (a: Record<string, unknown>) => ({
           slug: a.slug || a.id,
@@ -107,7 +135,13 @@ export async function loadManifest(): Promise<ContentManifest | null> {
           tags: a.tags,
         }),
       );
-      cachedContentManifest = { articles, drafts, context: data.context };
+      const projects: Project[] = data.projects || [];
+      cachedContentManifest = {
+        articles,
+        drafts,
+        projects,
+        context: data.context,
+      };
       return cachedContentManifest;
     }
 
@@ -165,6 +199,14 @@ export async function getContextPath(originalPath: string): Promise<string> {
 
   // Fallback to direct path (development)
   return `/context/${originalPath}.md`;
+}
+
+/**
+ * Load projects from the manifest
+ */
+export async function loadProjects(): Promise<Project[]> {
+  const manifest = await loadManifest();
+  return manifest?.projects || [];
 }
 
 /**

@@ -29,6 +29,8 @@ import {
   type RawBookmark,
 } from "./lib/bookmarks/index.ts";
 import * as contentDb from "./lib/db/content.ts";
+import * as learningsDb from "./lib/db/learnings.ts";
+import type { Project, ActionItem } from "./lib/db/content.ts";
 
 // ============================================================================
 // WhatsApp Bridge - WebSocket Server
@@ -1768,6 +1770,410 @@ const bookmarkTools = [
 console.log(`[MCP] Registered ${bookmarkTools.length} Bookmark tools`);
 
 // ============================================================================
+// Daily Learnings Tools - Local Memory System
+// ============================================================================
+
+const LearningSchema = z.object({
+  id: z.number(),
+  created_at: z.string(),
+  repo: z.string().nullable(),
+  project: z.string().nullable(),
+  session_id: z.string().nullable(),
+  category: z.string(),
+  importance: z.string(),
+  summary: z.string(),
+  content: z.string(),
+  tags: z.array(z.string()).nullable(),
+  related_files: z.array(z.string()).nullable(),
+  related_urls: z.array(z.string()).nullable(),
+  publishable: z.boolean(),
+  published_in: z.string().nullable(),
+});
+
+const learningsTools = [
+  createTool({
+    id: "LEARNINGS_RECORD",
+    description:
+      "Record a new learning, insight, or accomplishment. Use this whenever something important is learned during our work - debugging insights, architecture decisions, tool discoveries, etc.",
+    inputSchema: z.object({
+      summary: z.string().describe("One-line summary of the learning"),
+      content: z.string().describe("Full details of what was learned"),
+      category: z
+        .enum([
+          "bug_fix",
+          "architecture",
+          "tool",
+          "insight",
+          "accomplishment",
+          "debugging",
+          "optimization",
+          "feature",
+          "process",
+          "cost",
+        ])
+        .describe("Category of learning"),
+      project: z
+        .string()
+        .optional()
+        .describe(
+          "Project this relates to (e.g., vibegui-bookmarks, anjo.chat)",
+        ),
+      importance: z
+        .enum(["low", "normal", "high", "critical"])
+        .default("normal")
+        .describe("How important is this learning"),
+      tags: z.array(z.string()).optional().describe("Tags for filtering"),
+      related_files: z
+        .array(z.string())
+        .optional()
+        .describe("File paths involved"),
+      related_urls: z.array(z.string()).optional().describe("Related URLs"),
+      publishable: z
+        .boolean()
+        .default(false)
+        .describe("Could this be shared publicly in a blog post?"),
+    }),
+    outputSchema: z.object({
+      learning: LearningSchema,
+      message: z.string(),
+    }),
+    execute: async ({ context }) => {
+      const learning = learningsDb.createLearning({
+        summary: context.summary,
+        content: context.content,
+        category: context.category,
+        project: context.project,
+        importance: context.importance,
+        tags: context.tags,
+        related_files: context.related_files,
+        related_urls: context.related_urls,
+        publishable: context.publishable,
+        repo: "vibegui.com", // Default to current repo
+      });
+
+      return {
+        learning,
+        message: `✓ Recorded learning #${learning.id}: ${learning.summary}`,
+      };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_TODAY",
+    description:
+      "Get all learnings from today. Use this to review what we've learned in the current session or to prepare a daily summary.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      learnings: z.array(LearningSchema),
+      count: z.number(),
+      summary: z.string(),
+    }),
+    execute: async () => {
+      const learnings = learningsDb.getLearningsToday();
+
+      // Group by category for summary
+      const byCategory: Record<string, number> = {};
+      for (const l of learnings) {
+        byCategory[l.category] = (byCategory[l.category] || 0) + 1;
+      }
+
+      const summary =
+        learnings.length === 0
+          ? "No learnings recorded today yet."
+          : `Today: ${learnings.length} learnings (${Object.entries(byCategory)
+              .map(([cat, count]) => `${count} ${cat}`)
+              .join(", ")})`;
+
+      return { learnings, count: learnings.length, summary };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_BY_PROJECT",
+    description: "Get all learnings for a specific project.",
+    inputSchema: z.object({
+      project: z.string().describe("Project name to filter by"),
+    }),
+    outputSchema: z.object({
+      learnings: z.array(LearningSchema),
+      count: z.number(),
+    }),
+    execute: async ({ context }) => {
+      const learnings = learningsDb.getLearningsByProject(context.project);
+      return { learnings, count: learnings.length };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_SEARCH",
+    description: "Search learnings by keyword in summary or content.",
+    inputSchema: z.object({
+      query: z.string().describe("Search query"),
+      limit: z.number().default(20),
+    }),
+    outputSchema: z.object({
+      learnings: z.array(LearningSchema),
+      count: z.number(),
+    }),
+    execute: async ({ context }) => {
+      const learnings = learningsDb.searchLearnings(
+        context.query,
+        context.limit,
+      );
+      return { learnings, count: learnings.length };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_PUBLISHABLE",
+    description:
+      "Get learnings marked as publishable that haven't been published yet. Use this when preparing blog posts.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      learnings: z.array(LearningSchema),
+      count: z.number(),
+    }),
+    execute: async () => {
+      const learnings = learningsDb.getPublishableLearnings();
+      return { learnings, count: learnings.length };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_STATS",
+    description: "Get statistics about recorded learnings.",
+    inputSchema: z.object({}),
+    outputSchema: z.object({
+      total: z.number(),
+      today: z.number(),
+      thisWeek: z.number(),
+      byCategory: z.record(z.number()),
+      byProject: z.record(z.number()),
+    }),
+    execute: async () => {
+      return learningsDb.getStats();
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_MARK_PUBLISHED",
+    description: "Mark a learning as published in a specific article.",
+    inputSchema: z.object({
+      id: z.number().describe("Learning ID"),
+      articleSlug: z
+        .string()
+        .describe("Slug of the article it was published in"),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+    }),
+    execute: async ({ context }) => {
+      const success = learningsDb.markAsPublished(
+        context.id,
+        context.articleSlug,
+      );
+      return { success };
+    },
+  }),
+
+  createTool({
+    id: "LEARNINGS_BY_DATE_RANGE",
+    description: "Get learnings within a date range.",
+    inputSchema: z.object({
+      startDate: z.string().describe("Start date (YYYY-MM-DD)"),
+      endDate: z.string().describe("End date (YYYY-MM-DD)"),
+    }),
+    outputSchema: z.object({
+      learnings: z.array(LearningSchema),
+      count: z.number(),
+    }),
+    execute: async ({ context }) => {
+      const learnings = learningsDb.getLearningsByDateRange(
+        context.startDate,
+        context.endDate,
+      );
+      return { learnings, count: learnings.length };
+    },
+  }),
+];
+
+console.log(`[MCP] Registered ${learningsTools.length} Learnings tools`);
+
+// ============================================================================
+// Project Tools - Roadmap Management
+// ============================================================================
+
+const ActionItemSchema = z.object({
+  id: z.number().optional(),
+  task: z.string(),
+  owner: z.string().default("me"),
+  dueDate: z.string().optional(),
+  completed: z.boolean().optional(),
+  sortOrder: z.number().optional(),
+});
+
+const ProjectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  tagline: z.string(),
+  description: z.string(),
+  status: z.enum(["completed", "ongoing", "future"]),
+  icon: z.string().optional(),
+  coverImage: z.string().optional(),
+  coverGradient: z.string().optional(),
+  url: z.string().optional(),
+  startDate: z.string().optional(),
+  targetDate: z.string().optional(),
+  completedDate: z.string().optional(),
+  sortOrder: z.number().optional(),
+  notes: z.string().optional(),
+  tags: z.array(z.string()).optional(),
+  actionPlan: z.array(ActionItemSchema).optional(),
+});
+
+const projectTools = [
+  createTool({
+    id: "PROJECTS_LIST",
+    description:
+      "List all projects in the roadmap, optionally filtered by status.",
+    inputSchema: z.object({
+      status: z.enum(["completed", "ongoing", "future"]).optional(),
+    }),
+    outputSchema: z.object({
+      projects: z.array(ProjectSchema),
+      count: z.number(),
+    }),
+    execute: async ({ context }) => {
+      const projects = context.status
+        ? contentDb.getProjectsByStatus(context.status)
+        : contentDb.getAllProjects();
+      return { projects, count: projects.length };
+    },
+  }),
+
+  createTool({
+    id: "PROJECTS_GET",
+    description: "Get a single project by ID.",
+    inputSchema: z.object({
+      id: z.string().describe("Project ID (slug)"),
+    }),
+    outputSchema: z.object({
+      project: ProjectSchema.nullable(),
+    }),
+    execute: async ({ context }) => {
+      const project = contentDb.getProjectById(context.id);
+      return { project };
+    },
+  }),
+
+  createTool({
+    id: "PROJECTS_CREATE",
+    description: "Create a new project in the roadmap.",
+    inputSchema: z.object({
+      id: z.string().describe("Unique project ID (slug)"),
+      title: z.string(),
+      tagline: z.string(),
+      description: z.string(),
+      status: z.enum(["completed", "ongoing", "future"]),
+      icon: z.string().optional(),
+      coverGradient: z.string().optional(),
+      url: z.string().optional(),
+      startDate: z.string().optional(),
+      targetDate: z.string().optional(),
+      completedDate: z.string().optional(),
+      sortOrder: z.number().optional(),
+      notes: z
+        .string()
+        .optional()
+        .describe("Rich notes/context for the project (internal use)"),
+      tags: z.array(z.string()).optional(),
+      actionPlan: z.array(ActionItemSchema).optional(),
+    }),
+    outputSchema: z.object({
+      project: ProjectSchema,
+    }),
+    execute: async ({ context }) => {
+      const project = contentDb.createProject(context as Project);
+      triggerExport();
+      return { project };
+    },
+  }),
+
+  createTool({
+    id: "PROJECTS_UPDATE",
+    description: "Update an existing project.",
+    inputSchema: z.object({
+      id: z.string().describe("Project ID to update"),
+      title: z.string().optional(),
+      tagline: z.string().optional(),
+      description: z.string().optional(),
+      status: z.enum(["completed", "ongoing", "future"]).optional(),
+      icon: z.string().optional(),
+      coverGradient: z.string().optional(),
+      url: z.string().optional(),
+      startDate: z.string().optional(),
+      targetDate: z.string().optional(),
+      completedDate: z.string().optional(),
+      sortOrder: z.number().optional(),
+      notes: z
+        .string()
+        .optional()
+        .describe("Rich notes/context for the project (internal use)"),
+      tags: z.array(z.string()).optional(),
+      actionPlan: z.array(ActionItemSchema).optional(),
+    }),
+    outputSchema: z.object({
+      project: ProjectSchema.nullable(),
+    }),
+    execute: async ({ context }) => {
+      const project = contentDb.updateProject(
+        context.id,
+        context as Partial<Project>,
+      );
+      if (project) triggerExport();
+      return { project };
+    },
+  }),
+
+  createTool({
+    id: "PROJECTS_DELETE",
+    description: "Delete a project from the roadmap.",
+    inputSchema: z.object({
+      id: z.string().describe("Project ID to delete"),
+    }),
+    outputSchema: z.object({
+      success: z.boolean(),
+    }),
+    execute: async ({ context }) => {
+      const success = contentDb.deleteProject(context.id);
+      if (success) triggerExport();
+      return { success };
+    },
+  }),
+
+  createTool({
+    id: "PROJECTS_MARK_COMPLETE",
+    description: "Mark a project as completed with today's date.",
+    inputSchema: z.object({
+      id: z.string().describe("Project ID to mark complete"),
+    }),
+    outputSchema: z.object({
+      project: ProjectSchema.nullable(),
+    }),
+    execute: async ({ context }) => {
+      const project = contentDb.updateProject(context.id, {
+        status: "completed",
+        completedDate: todayISO(),
+      });
+      if (project) triggerExport();
+      return { project };
+    },
+  }),
+];
+
+console.log(`[MCP] Registered ${projectTools.length} Project tools`);
+
+// ============================================================================
 // MCP Server Export
 // ============================================================================
 
@@ -1793,6 +2199,12 @@ const allTools = [
 
   // Bookmark tools (read from local browsers)
   ...wrapTools(bookmarkTools),
+
+  // Daily Learnings tools (local memory system)
+  ...wrapTools(learningsTools),
+
+  // Project tools (roadmap management)
+  ...wrapTools(projectTools),
 ];
 
 console.log(`[MCP] Registering ${allTools.length} total tools`);

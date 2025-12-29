@@ -54,4 +54,7 @@ data/*.db-wal
 # Bookmarks DB (now in Supabase, keep locally as backup)
 data/bookmarks.db
 
+# Local-only learnings database (not versioned - personal memory)
+data/learnings.db
+
 supabase/

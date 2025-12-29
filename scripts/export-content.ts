@@ -9,7 +9,7 @@
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getArticles, getDrafts } from "../lib/db/content.ts";
+import { getArticles, getDrafts, getAllProjects } from "../lib/db/content.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, "..", "public", "content");
@@ -24,17 +24,29 @@ if (!existsSync(OUTPUT_DIR)) {
 
 const articles = getArticles();
 const drafts = isProduction ? [] : getDrafts();
+const projects = getAllProjects();
 const allContent = [...articles, ...drafts];
 
-// Manifest with metadata only
-const manifest = allContent.map((c) => ({
-  slug: c.slug,
-  title: c.title,
-  description: c.description,
-  date: c.date,
-  status: c.status,
-  tags: c.tags,
-}));
+// Manifest with metadata only (for articles)
+const manifest = {
+  articles: articles.map((c) => ({
+    slug: c.slug,
+    title: c.title,
+    description: c.description,
+    date: c.date,
+    status: c.status,
+    tags: c.tags,
+  })),
+  drafts: drafts.map((c) => ({
+    slug: c.slug,
+    title: c.title,
+    description: c.description,
+    date: c.date,
+    status: c.status,
+    tags: c.tags,
+  })),
+  projects: projects,
+};
 
 writeFileSync(join(OUTPUT_DIR, "manifest.json"), JSON.stringify(manifest));
 
@@ -52,4 +64,6 @@ for (const item of allContent) {
 const draftInfo = isProduction
   ? "(production - no drafts)"
   : `${drafts.length} drafts`;
-console.log(`📚 ${articles.length} articles, ${draftInfo}`);
+console.log(
+  `📚 ${articles.length} articles, ${draftInfo}, ${projects.length} projects`,
+);

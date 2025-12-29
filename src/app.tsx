@@ -13,15 +13,19 @@ import { Content } from "./pages/content";
 import { Context, ContextDoc } from "./pages/context";
 import { updateCanonical } from "./hooks/use-canonical";
 
-// Lazy load Bookmarks page (includes Supabase client ~50KB)
+// Lazy load heavy pages
 const Bookmarks = React.lazy(() =>
   import("./pages/bookmarks").then((m) => ({ default: m.Bookmarks })),
+);
+const Roadmap = React.lazy(() =>
+  import("./pages/roadmap").then((m) => ({ default: m.Roadmap })),
 );
 
 type Route =
   | { type: "content" }
   | { type: "article"; slug: string }
   | { type: "bookmarks" }
+  | { type: "roadmap" }
   | { type: "commitment" }
   | { type: "context" }
   | { type: "context-doc"; path: string }
@@ -33,6 +37,9 @@ function parseRoute(pathname: string): Route {
   }
   if (pathname === "/bookmarks" || pathname === "/bookmarks/") {
     return { type: "bookmarks" };
+  }
+  if (pathname === "/roadmap" || pathname === "/roadmap/") {
+    return { type: "roadmap" };
   }
   if (pathname === "/commitment") {
     return { type: "commitment" };
@@ -138,6 +145,16 @@ function RouteContent({ route }: { route: Route }) {
           }
         >
           <Bookmarks />
+        </Suspense>
+      );
+    case "roadmap":
+      return (
+        <Suspense
+          fallback={
+            <div className="container py-16 text-center">Loading...</div>
+          }
+        >
+          <Roadmap />
         </Suspense>
       );
     case "commitment":
