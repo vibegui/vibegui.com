@@ -408,12 +408,12 @@ OUTPUT JSON SCHEMA
   "stars": <integer 1-5>,
   "language": "<ISO 639-1 code>",
   "icon": "<single emoji>",
-  "title": "<catchy, ≤60 chars>",
+  "title": "<original page title, or improved if original is missing/poor>",
   "description": "<1-2 sentences, ≤240 chars>",
   "tags": ["tech:...", "persona:...", "type:..."],
-  "insight_dev": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>"],
-  "insight_founder": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>"],
-  "insight_investor": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>"],
+  "insight_dev": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>", "<paragraph 4>", "<paragraph 5>"],
+  "insight_founder": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>", "<paragraph 4>", "<paragraph 5>"],
+  "insight_investor": ["<paragraph 1>", "<paragraph 2>", "<paragraph 3>", "<paragraph 4>", "<paragraph 5>"],
   "published_at": "<ISO 8601 or null>"
 }
 
@@ -421,7 +421,7 @@ OUTPUT JSON SCHEMA
 JSON RULES (CRITICAL)
 ──────────────────────────────────────────────
 1. Output exactly one JSON object, no markdown fences.
-2. Each insight is an ARRAY of 3-5 strings (one paragraph each).
+2. Each insight is an ARRAY of 4-5 strings (one paragraph each). ALWAYS include at least 4.
 3. Each paragraph is 2-4 sentences, plain text, no bullet markers.
 4. Use straight quotes only. Avoid special characters.
 5. Do not use pipe | separators.
@@ -436,6 +436,17 @@ STAR RATING — BE RUTHLESS
 5 ⭐ exceptional or category-defining  
 
 (Most links should be 2-3 ⭐.)
+
+──────────────────────────────────────────────
+TITLE GUIDELINES
+──────────────────────────────────────────────
+PREFER THE ORIGINAL PAGE TITLE. Only modify if:
+- Original is missing or generic ("Untitled", "Home")
+- Original is clickbait/misleading
+- Original is extremely long (>80 chars) — shorten while preserving meaning
+
+DO NOT rewrite good titles just to be "catchy". The author's title is usually best.
+If shortening, never truncate with "..." — rephrase to be complete but concise.
 
 ──────────────────────────────────────────────
 ICON GUIDELINES
@@ -457,7 +468,7 @@ Use 3-8 concise tags:
 Prefer precision over quantity.
 
 ──────────────────────────────────────────────
-INSIGHT ARRAYS (3-5 paragraphs each, 2-4 sentences per paragraph)
+INSIGHT ARRAYS (4-5 paragraphs each, 2-4 sentences per paragraph)
 ──────────────────────────────────────────────
 **insight_dev** (MCP / AI Developer) — technical only  
 Integration, API design, DX, limitations, LLM/Agent interop, gotchas. Agentic workflows, MCP servers.
@@ -488,7 +499,7 @@ If none found → null.
 ──────────────────────────────────────────────
 SELF-CHECK
 ──────────────────────────────────────────────
-✔ Each insight field is an array of 3-5 strings
+✔ Each insight field is an array of 4-5 strings (minimum 4!)
 ✔ No pipe separators, no bullet markers
 ✔ JSON is syntactically valid
 ✔ No markdown fences
