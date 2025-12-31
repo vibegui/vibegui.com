@@ -50,12 +50,18 @@ bun run precommit
 ### MCP Server (for AI-assisted content management)
 
 ```bash
-# Development mode with hot reload
-bun run mcp:dev
+# HTTP transport (for MCP Mesh web connections)
+bun run mcp:dev          # Development with hot reload
+bun run mcp:serve        # Production mode
 
-# Production mode (for MCP clients)
-bun run mcp:serve
+# STDIO transport (for MCP Mesh command connections)
+bun run mcp:stdio        # Production mode
+bun run mcp:stdio:dev    # Development with hot reload
 ```
+
+**For Mesh integration** (add as custom STDIO command):
+- Command: `bun`
+- Args: `--watch /path/to/vibegui.com/server/stdio.ts`
 
 ---
 
@@ -261,21 +267,28 @@ bun run test:constraints
 
 ```
 vibegui.com/
-├── mcp-server.ts              # MCP server entry point
-├── main.ts                    # MCP server with tool definitions
+├── server/                    # MCP Server (STDIO transport)
+│   ├── cli.ts                 # CLI entry point (--http flag support)
+│   ├── stdio.ts               # STDIO transport entry point
+│   └── tools.ts               # Shared tool definitions (McpServer)
+│
+├── mcp-server.ts              # MCP server (HTTP transport, @decocms/runtime)
+├── main.ts                    # HTTP server entry point (with WhatsApp bridge)
 ├── CONSTRAINTS.md             # Project axioms (read this first!)
 │
 ├── data/                      # SQLite databases (version-controlled)
 │   ├── content.db             # Articles and drafts
+│   ├── learnings.db           # Daily learnings (local only, gitignored)
 │   └── bookmarks.db           # Curated links with AI enrichment
 │
-├── lib/db/                    # Database modules (Node 22 native sqlite)
-│   ├── index.ts               # Bookmarks database
-│   └── content.ts             # Content database
+├── lib/
+│   ├── db/                    # Database modules (Node 22 native sqlite)
+│   │   ├── content.ts         # Content database
+│   │   └── learnings.ts       # Learnings database
+│   └── bookmarks/             # Browser bookmark readers
 │
 ├── scripts/
 │   ├── export-content.ts      # SQLite → public/content/*.json
-│   ├── export-bookmarks.ts    # SQLite → public/bookmarks/data.json
 │   ├── hash-content.ts        # Post-build content hashing
 │   └── optimize-images.ts     # Image optimization
 │
@@ -316,49 +329,81 @@ vibegui.com/
 | `bun run precommit` | Run all checks (format, lint, type, build, test) |
 | `bun run test:e2e` | Run Playwright E2E tests |
 | `bun run test:constraints` | Verify build constraints |
-| `bun run mcp:dev` | Start MCP server (dev mode) |
-| `bun run mcp:serve` | Start MCP server (production) |
+| **MCP Server (HTTP)** | |
+| `bun run mcp:dev` | HTTP server with hot reload (includes WhatsApp bridge) |
+| `bun run mcp:serve` | HTTP server production mode |
+| **MCP Server (STDIO)** | |
+| `bun run mcp:stdio` | STDIO server for Mesh command connections |
+| `bun run mcp:stdio:dev` | STDIO server with hot reload (for development) |
 
 ---
 
 ## MCP Tools
 
-The MCP server exposes tools for AI-assisted content management:
+The MCP server exposes 50+ tools for AI-assisted content management. Both HTTP and STDIO transports share the same tools (except WhatsApp which requires HTTP).
 
-### Content Collections
+### Content Management
 
-Each collection has: `LIST`, `GET`, `CREATE`, `UPDATE`, `DELETE`
+| Tool | Description |
+|------|-------------|
+| `COLLECTION_ARTICLES_*` | CRUD for articles (LIST, GET, CREATE, UPDATE, DELETE) |
+| `CONTENT_SEARCH_REPLACE` | Precise text replacement in content |
+| `CONTENT_APPEND/PREPEND` | Add text to start/end of content |
+| `CONTENT_INSERT_AFTER/BEFORE` | Insert text relative to a marker |
 
-| Collection | Purpose |
-|------------|---------|
-| **Drafts** | Work in progress articles |
-| **Articles** | Published content |
+### Search
 
-### Development Tools
+| Tool | Description |
+|------|-------------|
+| `SEARCH_CONTEXT` | Search reference materials (uses ripgrep) |
+| `SEARCH_CONTENT` | Search articles and drafts |
+
+### Development
 
 | Tool | Description |
 |------|-------------|
 | `DEV_SERVER_START/STOP` | Control Vite dev server |
-| `SCRIPT_BUILD` | Run production build |
 | `GIT_STATUS` | Show changed files |
 | `COMMIT` | Stage and commit changes |
 | `PUSH` | Push to remote |
+| `SCRIPT_*` | Auto-generated from package.json (11 scripts) |
 
-### Search Tools
-
-| Tool | Description |
-|------|-------------|
-| `SEARCH_CONTEXT` | Search reference materials |
-| `SEARCH_CONTENT` | Search content collections |
-| `SEARCH_ALL` | Search everything |
-
-### AI Integration (via MCP Mesh gateway)
+### Bookmarks
 
 | Tool | Description |
 |------|-------------|
-| `ASK_PERPLEXITY` | Research queries |
-| `web_search_exa` | Content scraping |
-| `LLM_DO_GENERATE` | Claude classification |
+| `BOOKMARKS_DISCOVER_BROWSERS` | Find browser profiles on system |
+| `BOOKMARKS_READ` | Read bookmarks from a browser |
+| `BOOKMARKS_SEARCH` | Search across all browsers |
+| `BOOKMARKS_EXPORT_CSV` | Export to CSV format |
+
+### Learnings (Local Memory)
+
+| Tool | Description |
+|------|-------------|
+| `LEARNINGS_RECORD` | Record insights, bug fixes, accomplishments |
+| `LEARNINGS_TODAY` | Get today's learnings |
+| `LEARNINGS_BY_PROJECT` | Filter by project |
+| `LEARNINGS_SEARCH` | Search learnings |
+| `LEARNINGS_PUBLISHABLE` | Find content for blog posts |
+| `LEARNINGS_STATS` | Get statistics |
+
+### Projects (Roadmap)
+
+| Tool | Description |
+|------|-------------|
+| `COLLECTION_PROJECTS_*` | CRUD for roadmap projects (LIST, GET, CREATE, UPDATE, DELETE) |
+| `PROJECT_MARK_COMPLETE` | Mark project as completed |
+
+### WhatsApp Bridge (HTTP only)
+
+| Tool | Description |
+|------|-------------|
+| `WHATSAPP_STATUS` | Check extension connection |
+| `WHATSAPP_LIST_CHATS` | List visible chats |
+| `WHATSAPP_OPEN_CHAT` | Open a specific chat |
+| `WHATSAPP_READ_MESSAGES` | Read visible messages |
+| `WHATSAPP_SCRAPE` | Full chat history scrape |
 
 ---
 

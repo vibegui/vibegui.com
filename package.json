@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "bin": {
-    "vibegui-mcp": "./mcp-stdio.ts"
+    "vibegui-mcp": "./server/cli.ts"
   },
   "scripts": {
     "dev": "bun run export && vite",
@@ -14,7 +14,8 @@
     "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/export-content.ts && node --experimental-strip-types scripts/hash-content.ts",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
-    "mcp:stdio": "bun mcp-stdio.ts",
+    "mcp:stdio": "bun server/stdio.ts",
+    "mcp:stdio:dev": "bun --watch server/stdio.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",
     "lint": "oxlint --ignore-pattern dist/",
     "fmt": "biome format --write .",

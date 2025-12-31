@@ -74,11 +74,11 @@ Current projects in the vibegui ecosystem (see `/roadmap` for full details):
 
 Projects are stored in the content database. Use these tools:
 
-- `PROJECTS_LIST` — List all projects (filter by status)
-- `PROJECTS_GET` — Get a single project (includes `notes` field with rich context)
-- `PROJECTS_CREATE` — Create a new project
-- `PROJECTS_UPDATE` — Update a project (use `notes` field to store original prompts, vision docs, technical specs)
-- `PROJECTS_MARK_COMPLETE` — Mark a project as completed
+- `COLLECTION_PROJECTS_LIST` — List all projects (filter by status)
+- `COLLECTION_PROJECTS_GET` — Get a single project (includes `notes` field with rich context)
+- `COLLECTION_PROJECTS_CREATE` — Create a new project
+- `COLLECTION_PROJECTS_UPDATE` — Update a project (use `notes` field to store original prompts, vision docs, technical specs)
+- `PROJECT_MARK_COMPLETE` — Mark a project as completed
 
 ### Project Notes
 
@@ -89,7 +89,7 @@ Each project has a `notes` field for storing rich context that doesn't belong in
 - Architecture decisions
 - Links to related resources
 
-When starting work on a project, call `PROJECTS_GET` to read its notes for full context.
+When starting work on a project, call `COLLECTION_PROJECTS_GET` to read its notes for full context.
 
 When recording learnings, always specify the `project` field so learnings can be grouped.
 
@@ -113,18 +113,46 @@ This repo uses an MCP server for content management. Key tools:
 
 ```
 vibegui.com/
+├── server/                 # MCP Server (STDIO transport)
+│   ├── cli.ts              # CLI entry point (--http flag support)
+│   ├── stdio.ts            # STDIO transport entry point
+│   └── tools.ts            # Shared tool definitions (McpServer)
 ├── src/                    # React frontend (Vite)
 │   └── pages/              # Page components
 ├── lib/                    # Shared libraries
-│   └── db/                 # Database modules
-│       ├── content.ts      # Blog content (versioned)
-│       └── learnings.ts    # Daily learnings (local only)
+│   ├── db/                 # Database modules
+│   │   ├── content.ts      # Blog content (versioned)
+│   │   └── learnings.ts    # Daily learnings (local only)
+│   └── bookmarks/          # Browser bookmark readers
 ├── data/                   # Local databases
 │   ├── content.db          # Versioned content
 │   └── learnings.db        # NOT versioned - local memory
 ├── context/                # Reference materials
 ├── content/                # Exported markdown (for static site)
-├── mcp-server.ts           # MCP tools server
+├── mcp-server.ts           # MCP tools server (HTTP, @decocms/runtime)
+├── main.ts                 # HTTP server entry (with WhatsApp bridge)
 └── vite.config.ts          # Vite + custom dev server
+```
+
+## MCP Server
+
+The MCP server supports two transports:
+
+### STDIO Transport (for Mesh command connections)
+
+```bash
+bun run mcp:stdio           # Production
+bun run mcp:stdio:dev       # Development with hot reload
+```
+
+For Mesh, add as custom command:
+- Command: `bun`
+- Args: `--watch /path/to/vibegui.com/server/stdio.ts`
+
+### HTTP Transport (for Mesh web connections)
+
+```bash
+bun run mcp:dev             # Development (with WhatsApp bridge)
+bun run mcp:serve           # Production
 ```
 
