@@ -14,7 +14,6 @@ import {
   readFileSync,
   mkdirSync,
   existsSync,
-  rmSync,
   readdirSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
@@ -41,13 +40,8 @@ const CONTEXT_DIR = join(BUILD_DIR, "context");
 const isProduction =
   process.env.CI === "true" || process.env.NODE_ENV === "production";
 
-// Ensure directories exist
+// Ensure directories exist (don't wipe - update in place for dev server compatibility)
 mkdirSync(CONTENT_DIR, { recursive: true });
-
-// Clean and recreate build directory
-if (existsSync(BUILD_DIR)) {
-  rmSync(BUILD_DIR, { recursive: true });
-}
 mkdirSync(ARTICLE_DIR, { recursive: true });
 mkdirSync(CONTEXT_DIR, { recursive: true });
 
