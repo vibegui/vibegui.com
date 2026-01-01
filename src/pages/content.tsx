@@ -31,7 +31,7 @@ export function Content() {
   const hasDrafts = drafts.length > 0;
 
   return (
-    <div className="container py-6">
+    <div className="container py-6" style={{ maxWidth: "var(--prose-width)" }}>
       <PageHeader />
 
       {loading ? (
