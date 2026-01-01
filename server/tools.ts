@@ -303,6 +303,7 @@ export function registerTools(server: McpServer): void {
         date: z.string().optional(),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).optional(),
+        coverImage: z.string().optional(),
       },
       annotations: { readOnlyHint: false },
     },
@@ -314,6 +315,7 @@ export function registerTools(server: McpServer): void {
         date: args.date,
         status: args.status,
         tags: args.tags,
+        coverImage: args.coverImage,
       });
 
       if (!updated) {

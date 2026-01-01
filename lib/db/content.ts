@@ -161,6 +161,7 @@ export interface ContentRow {
   date: string;
   status: string;
   from_social_post_id: number | null;
+  cover_image: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -175,6 +176,7 @@ export interface Content {
   status: "draft" | "published";
   tags?: string[];
   fromSocialPostId?: number;
+  coverImage?: string;
 }
 
 // Convert database row to Content object
@@ -189,6 +191,7 @@ function rowToContent(row: ContentRow, tags: string[]): Content {
     status: row.status as "draft" | "published",
     tags: tags.length > 0 ? tags : undefined,
     fromSocialPostId: row.from_social_post_id || undefined,
+    coverImage: row.cover_image || undefined,
   };
 }
 
@@ -270,8 +273,8 @@ export function getContentById(id: number): Content | null {
 // Create new content
 export function createContent(content: Content): Content {
   const stmt = db.prepare(`
-    INSERT INTO content (slug, title, description, content, date, status, from_social_post_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO content (slug, title, description, content, date, status, from_social_post_id, cover_image)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const result = stmt.run(
@@ -282,6 +285,7 @@ export function createContent(content: Content): Content {
     content.date,
     content.status,
     content.fromSocialPostId || null,
+    content.coverImage || null,
   );
 
   const contentId = Number(result.lastInsertRowid);
@@ -314,6 +318,7 @@ export function updateContent(
     content: updates.content,
     date: updates.date,
     status: updates.status,
+    cover_image: updates.coverImage,
   };
 
   for (const [field, value] of Object.entries(fieldMap)) {

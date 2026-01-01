@@ -11,6 +11,8 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getAllContent, getAllProjects } from "../lib/db/content.ts";
 
+const startTime = performance.now();
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_DIR = join(__dirname, "..", "public", "content");
 
@@ -63,4 +65,8 @@ const publishedCount = allArticles.filter(
 const exportInfo = isProduction
   ? `${publishedCount} published (${draftCount} drafts hidden)`
   : `${publishedCount} published + ${draftCount} drafts`;
-console.log(`📚 ${exportInfo}, ${projects.length} projects`);
+
+const elapsed = (performance.now() - startTime).toFixed(0);
+console.log(
+  `📚 Export: ${exportInfo}, ${projects.length} projects (${elapsed}ms)`,
+);

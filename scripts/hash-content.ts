@@ -94,6 +94,7 @@ function processContextDirectory(
 }
 
 async function main() {
+  const startTime = performance.now();
   console.log("\n🔐 Hashing content files...\n");
 
   // Copy content from public/ to dist/ (Vite already does this, but ensure it's there)
@@ -152,7 +153,8 @@ async function main() {
   writeFileSync(indexPath, indexHtml);
   console.log(`  ✅ Injected manifest path`);
 
-  console.log("\n✨ Done!");
+  const elapsed = (performance.now() - startTime).toFixed(0);
+  console.log(`\n✨ Hash complete (${elapsed}ms)`);
   console.log(`   Articles: ${finalManifest.articles.length}`);
   console.log(`   Projects: ${finalManifest.projects.length}`);
   console.log(`   Context: ${contextFiles.length}\n`);

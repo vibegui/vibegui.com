@@ -2,7 +2,7 @@ import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
-import { watch } from "node:fs";
+import { watch, statSync } from "node:fs";
 import { exec } from "node:child_process";
 
 // Load .env file for server-side use
@@ -746,16 +746,13 @@ function databaseWatcherPlugin() {
   let watcher: ReturnType<typeof watch> | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let isExporting = false;
-  let pendingExport = false; // Track if another export is needed after current one
+  let lastMtime = 0; // Track last modification time to avoid false triggers
 
   const runExport = () => {
     if (isExporting) {
-      // Mark that we need another export after the current one finishes
-      pendingExport = true;
-      return;
+      return; // Skip if already exporting
     }
     isExporting = true;
-    pendingExport = false;
 
     console.log("\n🔄 Database changed, exporting content...");
     exec(
@@ -768,11 +765,6 @@ function databaseWatcherPlugin() {
         } else {
           console.log(stdout.trim() || "✅ Content exported");
         }
-        // If changes happened during export, run again
-        if (pendingExport) {
-          console.log("🔄 Re-exporting (changes detected during export)...");
-          setTimeout(runExport, 100);
-        }
       },
     );
   };
@@ -782,10 +774,28 @@ function databaseWatcherPlugin() {
     configureServer() {
       const dbPath = resolve(__dirname, "data", "content.db");
 
+      // Get initial mtime
+      try {
+        lastMtime = statSync(dbPath).mtimeMs;
+      } catch {
+        // File doesn't exist yet
+      }
+
       // Watch the database file for changes
       watcher = watch(dbPath, { persistent: false }, (eventType) => {
         if (eventType === "change") {
-          // Debounce rapid changes (e.g., multiple writes in quick succession)
+          // Check if mtime actually changed (filters out read-only access)
+          try {
+            const currentMtime = statSync(dbPath).mtimeMs;
+            if (currentMtime === lastMtime) {
+              return; // No actual modification, skip
+            }
+            lastMtime = currentMtime;
+          } catch {
+            return; // File doesn't exist or can't stat
+          }
+
+          // Debounce rapid changes
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(runExport, 300);
         }
