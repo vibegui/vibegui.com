@@ -55,7 +55,8 @@ function parseRoute(pathname: string): Route {
     return { type: "context" };
   }
   if (pathname.startsWith("/context/")) {
-    const path = pathname.slice("/context/".length);
+    // Strip trailing slash for consistent comparison with embedded data
+    const path = pathname.slice("/context/".length).replace(/\/$/, "");
     if (path) {
       return { type: "context-doc", path };
     }
