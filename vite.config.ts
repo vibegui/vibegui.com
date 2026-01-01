@@ -1008,9 +1008,9 @@ export default defineConfig({
     fs: {
       allow: [".", "content"],
     },
-    // Don't trigger HMR for CSV files (we update them programmatically)
+    // Ignore .build/ and bookmarks - we handle these ourselves
     watch: {
-      ignored: ["**/public/bookmarks/**"],
+      ignored: ["**/.build/**", "**/public/bookmarks/**"],
     },
   },
 
