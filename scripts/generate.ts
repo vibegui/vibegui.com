@@ -1,13 +1,11 @@
 /**
- * Build Content: Generate manifest and article HTML files
+ * Generate Content (Step 1 of build)
  *
- * Single pipeline for dev and prod:
- * 1. Read articles from SQLite
- * 2. Write manifest.json to public/content/ (for index page)
- * 3. Write article HTML files to public/article/{slug}/index.html
+ * Reads SQLite database and generates:
+ * - public/content/manifest.json (article list for homepage)
+ * - .build/article/{slug}/index.html (SSG article pages with embedded data)
  *
- * In dev, Vite serves public/ directly.
- * In prod, Vite copies public/ to dist/, then we hash the manifest.
+ * Runs BEFORE Vite build. Requires SQLite access.
  */
 
 import {

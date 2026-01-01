@@ -80,35 +80,48 @@ bun run mcp:stdio:dev    # Development with hot reload
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     EXPORT PIPELINE                             │
+│               STEP 1: scripts/generate.ts                       │
+│                    (requires SQLite)                            │
 │                                                                 │
-│   bun run export                                                │
-│   ├── export-content.ts  → public/content/*.json               │
-│   └── export-bookmarks.ts → public/bookmarks/data.json         │
+│   Reads SQLite → writes:                                        │
+│   • public/content/manifest.json   (article list)               │
+│   • .build/article/{slug}/index.html (SSG pages)                │
 │                                                                 │
-│   Uses Node 22 native sqlite (--experimental-sqlite)           │
-│   Zero npm dependencies for build!                             │
+│   Each article HTML has content embedded as JSON.               │
+│   Uses Node 22 native sqlite (--experimental-sqlite)            │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    BUILD PIPELINE                               │
+│                      vite build                                 │
 │                                                                 │
-│   vite build → hash-content.ts → dist/                          │
+│   Bundles React app → dist/                                     │
+│   (Only runs locally, assets committed to git)                  │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│               STEP 2: scripts/finalize.ts                       │
+│                  (does NOT require SQLite)                      │
 │                                                                 │
-│   • Content/context files renamed with content-hash             │
-│   • Manifest generated with hashed paths                        │
-│   • Manifest hash injected into index.html                      │
+│   Post-processing:                                              │
+│   • Copy manifest, bookmarks to dist/                           │
+│   • Process article HTML (inject prod assets)                   │
+│   • Hash context files for immutable caching                    │
+│   • Embed manifest directly into index.html                     │
+│                                                                 │
+│   Result: Zero fetches needed for article list!                 │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   CLOUDFLARE PAGES                              │
 │                                                                 │
-│   • pages:build runs export + vite build + hash                 │
-│   • No npm install needed (SKIP_DEPENDENCY_INSTALL=true)        │
-│   • index.html: 30s cache, 1h stale-while-revalidate            │
-│   • Assets/content: 1 year immutable cache                      │
+│   pages:build = generate.ts + finalize.ts (no vite build!)     │
+│   • No npm install (SKIP_DEPENDENCY_INSTALL=true)               │
+│   • dist/assets/* committed to git                              │
+│   • index.html: 30s cache + stale-while-revalidate              │
+│   • Assets: 1 year immutable cache                              │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -131,18 +144,18 @@ Instead of managing markdown files in folders, all content lives in SQLite datab
 - **Structured data** — Tags, ratings, timestamps in proper columns
 - **Fast builds** — Cloudflare build completes in seconds
 
-### Export Scripts
+### Generate Script
 
-At dev/build time, export scripts extract data to JSON:
+At dev/build time, the generate script reads SQLite and creates static files:
 
 ```bash
-# Export all content to public/
-bun run export
-
-# Individual exports
-node --experimental-strip-types --experimental-sqlite scripts/export-content.ts
-node --experimental-strip-types --experimental-sqlite scripts/export-bookmarks.ts
+# Runs automatically with dev/build, but can run manually:
+bun scripts/generate.ts
 ```
+
+This creates:
+- `public/content/manifest.json` — Article metadata for the homepage
+- `.build/article/{slug}/index.html` — SSG pages with embedded article content
 
 ### WAL Checkpoint on Commit
 
@@ -199,35 +212,44 @@ The `/bookmarks` page supports:
 
 ---
 
-## Content Hashing System
+## Static Site Generation (SSG)
 
-All content is served with immutable, content-based URLs for optimal caching:
+Every article page is pre-rendered with content embedded directly in the HTML:
 
+```html
+<!-- dist/article/my-article/index.html -->
+<div id="root"></div>
+<script id="article-data" type="application/json">
+  {"slug":"my-article","title":"My Article","content":"# Full markdown..."}
+</script>
 ```
-# Source files (from export)
-public/content/hello-world.json
-public/bookmarks/data.json
 
-# After build (dist/)
-content/hello-world.json (copied as-is, manifest tracks it)
-context/leadership/05_future_as_context.85ee9229.md (hashed)
-content/manifest.fb504092.json (hashed)
+The homepage (`index.html`) also has the manifest embedded — **zero fetches needed**:
+
+```html
+<!-- dist/index.html -->
+<div id="root"></div>
+<script id="manifest-data" type="application/json">
+  {"articles":[...],"projects":[...]}
+</script>
 ```
 
 ### Cache Headers (`_headers`)
 
 ```
-/index.html
+/index.html, /*.html
   Cache-Control: public, max-age=30, stale-while-revalidate=3600
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-/content/*
-  Cache-Control: public, max-age=31536000, immutable
-
 /context/*
   Cache-Control: public, max-age=31536000, immutable
+```
+
+Context files (leadership docs) are hashed for immutable caching:
+```
+context/05_future_as_context.md → context/05_future_as_context.85ee9229.md
 ```
 
 ---
@@ -288,8 +310,9 @@ vibegui.com/
 │   └── bookmarks/             # Browser bookmark readers
 │
 ├── scripts/
-│   ├── export-content.ts      # SQLite → public/content/*.json
-│   ├── hash-content.ts        # Post-build content hashing
+│   ├── generate.ts            # SQLite → manifest.json + article HTML (Step 1)
+│   ├── finalize.ts            # Post-build: embed manifest, hash context (Step 2)
+│   ├── preview-server.ts      # Static server for production preview
 │   └── optimize-images.ts     # Image optimization
 │
 ├── context/                   # Reference material for AI writing
@@ -320,21 +343,34 @@ vibegui.com/
 
 ## Commands Reference
 
+### Core Commands
+
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Export + start Vite dev server |
-| `bun run build` | Export + Vite build + content hashing |
-| `bun run export` | Export SQLite databases to JSON |
-| `bun run preview` | Preview production build |
-| `bun run precommit` | Run all checks (format, lint, type, build, test) |
-| `bun run test:e2e` | Run Playwright E2E tests |
+| `bun run dev` | Generate content + start Vite dev server |
+| `bun run build` | Generate + Vite build + finalize (full production build) |
+| `bun run preview` | Build + serve locally (test production) |
+| `bun run pages:build` | Cloudflare Pages build (no Vite, no npm deps) |
+
+### Quality & Testing
+
+| Command | Description |
+|---------|-------------|
+| `bun run precommit` | All checks (format, lint, type, build, test) |
+| `bun run test:e2e` | Playwright E2E tests |
 | `bun run test:constraints` | Verify build constraints |
-| **MCP Server (HTTP)** | |
+| `bun run check` | TypeScript type checking |
+| `bun run lint` | oxlint linting |
+| `bun run fmt` | Biome formatting |
+
+### MCP Server
+
+| Command | Description |
+|---------|-------------|
 | `bun run mcp:dev` | HTTP server with hot reload (includes WhatsApp bridge) |
 | `bun run mcp:serve` | HTTP server production mode |
-| **MCP Server (STDIO)** | |
 | `bun run mcp:stdio` | STDIO server for Mesh command connections |
-| `bun run mcp:stdio:dev` | STDIO server with hot reload (for development) |
+| `bun run mcp:stdio:dev` | STDIO server with hot reload |
 
 ---
 
@@ -420,19 +456,24 @@ SKIP_DEPENDENCY_INSTALL=true   # Skip npm install
 CI=true                        # Skip drafts in production
 ```
 
-The `pages:build` script uses Node 22's native SQLite:
+The `pages:build` script runs:
 
 ```bash
-node --experimental-strip-types --experimental-sqlite scripts/export-content.ts && \
-node --experimental-strip-types --experimental-sqlite scripts/export-bookmarks.ts && \
-node --experimental-strip-types scripts/hash-content.ts
+# Step 1: Generate content from SQLite (requires node:sqlite)
+node --experimental-strip-types --experimental-sqlite scripts/generate.ts
+
+# Step 2: Finalize build (copy assets, embed manifest, hash context)
+node --experimental-strip-types scripts/finalize.ts
 ```
+
+**Note:** Vite build does NOT run on Cloudflare. The `dist/assets/*` are committed to git, so only content generation and post-processing is needed.
 
 ### Why Zero Dependencies?
 
 - **Faster builds** — No npm install (saves 30+ seconds)
 - **Simpler deploys** — Just Node 22 built-ins
 - **No native modules** — No `better-sqlite3` compilation issues
+- **No Vite on CI** — Assets committed, only content changes trigger rebuild
 
 ---
 

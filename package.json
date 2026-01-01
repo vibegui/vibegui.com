@@ -7,12 +7,10 @@
     "vibegui-mcp": "./server/cli.ts"
   },
   "scripts": {
-    "dev": "bun run content && vite",
-    "build": "bun run content && vite build && bun scripts/hash-content.ts",
-    "content": "node --experimental-strip-types --experimental-sqlite scripts/build-content.ts",
-    "preview": "bun scripts/preview-server.ts",
-    "preview:build": "bun run build && bun run preview",
-    "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/build-content.ts && node --experimental-strip-types scripts/hash-content.ts",
+    "dev": "bun scripts/generate.ts && vite",
+    "build": "bun scripts/generate.ts && vite build && bun scripts/finalize.ts",
+    "preview": "bun run build && bun scripts/preview-server.ts",
+    "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/generate.ts && node --experimental-strip-types scripts/finalize.ts",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
     "mcp:stdio": "bun server/stdio.ts",
@@ -41,7 +39,7 @@
         "expose": true
       },
       "preview": {
-        "description": "Preview the production build locally",
+        "description": "Build and preview the production site locally",
         "expose": true
       },
       "check": {

@@ -837,9 +837,9 @@ function databaseWatcherPlugin() {
     }
     isExporting = true;
 
-    console.log("\n🔄 Database changed, rebuilding content...");
+    console.log("\n🔄 Database changed, regenerating content...");
     exec(
-      "node --experimental-strip-types --experimental-sqlite scripts/build-content.ts",
+      "node --experimental-strip-types --experimental-sqlite scripts/generate.ts",
       { cwd: resolve(__dirname) },
       (error, stdout, stderr) => {
         isExporting = false;
