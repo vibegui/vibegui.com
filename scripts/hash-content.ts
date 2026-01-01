@@ -199,36 +199,35 @@ async function main() {
     context: contextFiles,
   };
 
-  const manifestJson = JSON.stringify(finalManifest, null, 2);
-  const manifestHash = hashContent(manifestJson);
-  const manifestFileName = `manifest.${manifestHash}.json`;
+  // Escape </script> in manifest to prevent HTML injection issues
+  const manifestJson = JSON.stringify(finalManifest).replace(
+    /<\/script>/g,
+    "<\\/script>",
+  );
 
-  writeFileSync(resolve(DIST, "content", manifestFileName), manifestJson);
-  console.log(`\n📋 Manifest: ${manifestFileName}`);
+  console.log(
+    `\n📋 Manifest ready (${finalManifest.articles.length} articles, ${finalManifest.projects.length} projects)`,
+  );
 
-  // Inject manifest path into index.html
+  // Embed manifest directly into index.html (no fetch needed)
   console.log("\n📝 Updating index.html...");
   let updatedIndexHtml = indexHtml;
-  const manifestScript = `<script>window.__MANIFEST_PATH__="/content/${manifestFileName}";</script>`;
+
+  // Remove any old manifest path injection
   updatedIndexHtml = updatedIndexHtml.replace(
     /<script>window\.__MANIFEST_PATH__="[^"]*";<\/script>\n?/g,
     "",
   );
 
-  if (updatedIndexHtml.includes("</head>")) {
-    updatedIndexHtml = updatedIndexHtml.replace(
-      "</head>",
-      `${manifestScript}\n</head>`,
-    );
-  } else {
-    updatedIndexHtml = updatedIndexHtml.replace(
-      "<body>",
-      `<body>\n${manifestScript}`,
-    );
-  }
+  // Embed manifest data after <div id="root">
+  const manifestTag = `<script id="manifest-data" type="application/json">${manifestJson}</script>`;
+  updatedIndexHtml = updatedIndexHtml.replace(
+    '<div id="root"></div>',
+    `<div id="root"></div>\n    ${manifestTag}`,
+  );
 
   writeFileSync(indexPath, updatedIndexHtml);
-  console.log(`  ✅ Injected manifest path`);
+  console.log(`  ✅ Embedded manifest data (no fetch needed)`);
 
   const elapsed = (performance.now() - startTime).toFixed(0);
   console.log(`\n✨ Hash complete (${elapsed}ms)`);

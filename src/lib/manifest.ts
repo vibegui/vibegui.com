@@ -54,58 +54,42 @@ export interface ContentManifest {
 }
 
 let cachedContentManifest: ContentManifest | null = null;
-let cachedHashedManifest: ContentManifest | null = null;
 
 /**
- * Get the manifest path - uses hashed manifest in production
+ * Read embedded manifest data from HTML (SSG)
+ * Falls back to fetch for dev mode without embedded data
  */
-function getManifestPath(): string {
-  // In production, index.html has window.__MANIFEST_PATH__ injected
-  if (
-    typeof window !== "undefined" &&
-    (window as unknown as { __MANIFEST_PATH__?: string }).__MANIFEST_PATH__
-  ) {
-    return (window as unknown as { __MANIFEST_PATH__: string })
-      .__MANIFEST_PATH__;
-  }
-  return "/content/manifest.json";
-}
-
-/**
- * Load the hashed manifest (includes context files in production)
- */
-async function loadHashedManifest(): Promise<ContentManifest | null> {
-  if (cachedHashedManifest) {
-    return cachedHashedManifest;
-  }
-
+function getEmbeddedManifest(): ContentManifest | null {
+  if (typeof document === "undefined") return null;
+  const script = document.getElementById("manifest-data");
+  if (!script) return null;
   try {
-    const manifestPath = getManifestPath();
-    const response = await fetch(manifestPath);
-    if (!response.ok) {
-      return null;
-    }
-
-    const data = await response.json();
-    cachedHashedManifest = data;
-    return cachedHashedManifest;
+    return JSON.parse(script.textContent || "");
   } catch {
     return null;
   }
 }
 
 /**
- * Load the content manifest (articles with status field)
- * Uses hashed manifest path in production for proper cache busting
+ * Load the content manifest
+ * Reads from embedded data in HTML (no fetch needed)
+ * Falls back to fetch for dev mode
  */
 export async function loadManifest(): Promise<ContentManifest | null> {
   if (cachedContentManifest) {
     return cachedContentManifest;
   }
 
+  // Try embedded data first (SSG - no fetch needed)
+  const embedded = getEmbeddedManifest();
+  if (embedded) {
+    cachedContentManifest = embedded;
+    return cachedContentManifest;
+  }
+
+  // Fallback to fetch (dev mode)
   try {
-    const manifestPath = getManifestPath();
-    const response = await fetch(manifestPath);
+    const response = await fetch("/content/manifest.json");
     if (!response.ok) {
       console.error("Failed to load content manifest:", response.status);
       return null;
@@ -155,11 +139,10 @@ export async function getArticlePath(slug: string): Promise<string | null> {
 
 /**
  * Get a context file's content path
- * Uses hashed paths in production, direct paths in development
+ * Uses hashed paths from manifest, falls back to direct path
  */
 export async function getContextPath(originalPath: string): Promise<string> {
-  // Try to get hashed path from manifest (production)
-  const manifest = await loadHashedManifest();
+  const manifest = await loadManifest();
   if (manifest?.context) {
     const contextFile = manifest.context.find(
       (c) => c.original === originalPath,
