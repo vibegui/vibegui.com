@@ -34,14 +34,14 @@
 }
 
 [data-theme="dark"] {
-  /* Dark mode - proper contrast */
-  --color-bg: #0d1117;
-  --color-bg-secondary: #161b22;
+  /* Dark mode - deep forest green theme */
+  --color-bg: #0a1510;
+  --color-bg-secondary: #0f1f18;
   --color-fg: #f0f6fc;
   --color-fg-muted: #9ca3af;
-  --color-accent: #00ff41;
-  --color-accent-hover: #33ff66;
-  --color-border: #30363d;
+  --color-accent: #b8e035;
+  --color-accent-hover: #c9eb52;
+  --color-border: #1a3328;
 }
 
 /* ============================================================================
@@ -65,6 +65,22 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle grid pattern for dark mode body background */
+[data-theme="dark"] body {
+  background-image: linear-gradient(
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px
+    ), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-position: -1px -1px;
+}
+
+/* Header gets solid background (no grid pattern) */
+[data-theme="dark"] header {
+  background-color: var(--color-bg);
+  background-image: none;
 }
 
 /* ============================================================================
