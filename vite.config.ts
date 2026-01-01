@@ -794,9 +794,9 @@ function ssgDevPlugin() {
           );
           if (!existsSync(ssgPath)) {
             // File doesn't exist - show a helpful message instead of breaking
-            // This can happen when prod build wipes .build/ while dev server is running
+            // This can happen during a build - files are being regenerated
             console.log(
-              `⚠️  SSG file not found: ${ssgPath}\n   Run 'bun scripts/generate.ts' to rebuild`,
+              `⚠️  SSG file not found: ${ssgPath}\n   Content is being regenerated...`,
             );
             res.setHeader("Content-Type", "text/html");
             res.end(`<!DOCTYPE html>
@@ -806,7 +806,7 @@ function ssgDevPlugin() {
   <h1>Content rebuilding...</h1>
   <p>The SSG file for <code>/${buildDir}/${path}</code> was not found.</p>
   <p>This usually happens when a build is in progress.</p>
-  <p>Run <code>bun scripts/generate.ts</code> in terminal, then refresh.</p>
+  <p>The page will auto-refresh when content is ready.</p>
 </body>
 </html>`);
             return;
@@ -868,7 +868,7 @@ function databaseWatcherPlugin() {
 
     console.log("\n🔄 Database changed, regenerating content...");
     exec(
-      "node --experimental-strip-types --experimental-sqlite scripts/generate.ts",
+      "bun scripts/generate.ts",
       { cwd: resolve(__dirname) },
       (error, stdout, stderr) => {
         isExporting = false;

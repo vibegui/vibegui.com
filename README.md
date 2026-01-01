@@ -14,10 +14,12 @@ A minimal, high-performance static site with SQLite-powered content and bookmark
 
 Complete architecture overhaul focused on zero-fetch page loads:
 
+- **Unified Build Script** — One entrypoint (`scripts/build.ts`) with three modes: `dev`, `prod`, `pages`
 - **Embedded Content** — All articles, context pages, and the homepage manifest are now embedded directly in static HTML. Zero runtime fetches.
-- **Simplified Build Pipeline** — Reduced from 4 scripts to 2: `generate.ts` (SQLite → HTML) and `finalize.ts` (post-processing)
 - **Context Page SEO** — Full meta tags (Open Graph, Twitter Cards) with auto-extracted descriptions from content
 - **~15 Second Deploys** — Cloudflare Pages builds with no npm install, just Node.js scripts
+
+See [DEPLOY.md](./DEPLOY.md) for deployment details.
 
 Read the full writeup: [SEO-First SSG: From Social Embeds to Zero-Fetch Pages](/article/the-great-ssg-simplification-killing-json-fetches-one-page-at-a-)
 
@@ -53,15 +55,28 @@ Read the full writeup: [SEO-First SSG: From Social Embeds to Zero-Fetch Pages](/
 # Install dependencies
 bun install
 
-# Start development server
+# Start development server (generate + vite dev)
 bun run dev
 
-# Build for production (includes content hashing)
+# Build for production (generate + vite build + finalize)
 bun run build
+
+# Preview production build locally
+bun run preview:build
 
 # Run all checks (pre-commit)
 bun run precommit
 ```
+
+### Build Modes
+
+The unified `scripts/build.ts` supports three modes:
+
+| Command | Mode | What It Does |
+|---------|------|--------------|
+| `bun run dev` | dev | Generate content + Vite dev server |
+| `bun run build` | prod | Generate + Vite build + Finalize |
+| `npm run pages:build` | pages | Generate + Finalize (for Cloudflare) |
 
 ### MCP Server (for AI-assisted content management)
 
@@ -96,46 +111,44 @@ bun run mcp:stdio:dev    # Development with hot reload
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│               STEP 1: scripts/generate.ts                       │
-│                    (requires SQLite)                            │
+│              scripts/build.ts --mode=X                          │
+│                                                                 │
+│   One unified entrypoint with three modes:                      │
+│                                                                 │
+│   --mode=dev   → generate + vite dev server                     │
+│   --mode=prod  → generate + vite build + finalize               │
+│   --mode=pages → generate + finalize (for Cloudflare)           │
+└───────────────────────────┬─────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────────┐
+│            GENERATE (scripts/generate.ts)                       │
 │                                                                 │
 │   Reads SQLite → writes:                                        │
 │   • public/content/manifest.json   (article list)               │
 │   • .build/article/{slug}/index.html (SSG pages)                │
+│   • .build/context/{path}/index.html (SSG context)              │
 │                                                                 │
-│   Each article HTML has content embedded as JSON.               │
-│   Uses Node 22 native sqlite (--experimental-sqlite)            │
+│   Content embedded as JSON. Zero runtime fetches!               │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                      vite build                                 │
+│            FINALIZE (scripts/finalize.ts)                       │
 │                                                                 │
-│   Bundles React app → dist/                                     │
-│   (Only runs locally, assets committed to git)                  │
-└───────────────────────────┬─────────────────────────────────────┘
-                            │
-                            ▼
-┌─────────────────────────────────────────────────────────────────┐
-│               STEP 2: scripts/finalize.ts                       │
-│                  (does NOT require SQLite)                      │
-│                                                                 │
-│   Post-processing:                                              │
+│   Post-processing (no SQLite needed):                           │
 │   • Copy manifest, bookmarks to dist/                           │
-│   • Process article HTML (inject prod assets)                   │
-│   • Hash context files for immutable caching                    │
+│   • Process SSG HTML (inject prod assets)                       │
 │   • Embed manifest directly into index.html                     │
-│                                                                 │
-│   Result: Zero fetches needed for article list!                 │
 └───────────────────────────┬─────────────────────────────────────┘
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                   CLOUDFLARE PAGES                              │
 │                                                                 │
-│   pages:build = generate.ts + finalize.ts (no vite build!)     │
-│   • No npm install (SKIP_DEPENDENCY_INSTALL=true)               │
-│   • dist/assets/* committed to git                              │
+│   pages:build runs --mode=pages (no Vite, no npm install!)      │
+│   • SKIP_DEPENDENCY_INSTALL=true in Cloudflare settings         │
+│   • dist/assets/* pre-built and committed to git                │
 │   • index.html: 30s cache + stale-while-revalidate              │
 │   • Assets: 1 year immutable cache                              │
 └─────────────────────────────────────────────────────────────────┘
