@@ -12,8 +12,6 @@
     "preview": "bun scripts/preview-server.ts",
     "preview:build": "bun run build && bun run preview",
     "pages:build": "node --no-warnings --experimental-strip-types scripts/build.ts --mode=pages",
-    "mcp:dev": "bun --watch main.ts",
-    "mcp:serve": "bun main.ts",
     "mcp:stdio": "bun server/stdio.ts",
     "mcp:stdio:dev": "bun --watch server/stdio.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",
@@ -28,58 +26,6 @@
     "optimize:images": "bun scripts/optimize-images.ts",
     "backup": "bun scripts/backup-supabase.ts",
     "restore": "bun scripts/restore-supabase.ts"
-  },
-  "mcp": {
-    "scripts": {
-      "dev": {
-        "description": "Start the Vite development server",
-        "expose": true
-      },
-      "build": {
-        "description": "Run production build",
-        "expose": true
-      },
-      "preview": {
-        "description": "Preview existing production build locally",
-        "expose": true
-      },
-      "preview:build": {
-        "description": "Build and preview the production site locally",
-        "expose": true
-      },
-      "check": {
-        "description": "Run TypeScript type checking",
-        "expose": true
-      },
-      "lint": {
-        "description": "Run linter (oxlint)",
-        "expose": true
-      },
-      "fmt": {
-        "description": "Format code with Biome",
-        "expose": true
-      },
-      "fmt:check": {
-        "description": "Check code formatting without fixing",
-        "expose": true
-      },
-      "test": {
-        "description": "Run all unit tests",
-        "expose": true
-      },
-      "test:e2e": {
-        "description": "Run E2E browser tests with Playwright",
-        "expose": true
-      },
-      "test:constraints": {
-        "description": "Run constraint verification tests (build size, images, cache)",
-        "expose": true
-      },
-      "precommit": {
-        "description": "Run all pre-commit checks (format, lint, typecheck, build, tests)",
-        "expose": true
-      }
-    }
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
