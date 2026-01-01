@@ -806,12 +806,7 @@ function ssgDevPlugin() {
   <h1>Content rebuilding...</h1>
   <p>The SSG file for <code>/${buildDir}/${path}</code> was not found.</p>
   <p>This usually happens when a build is in progress.</p>
-  <p>The page will reload automatically when ready, or you can:</p>
-  <ul>
-    <li>Wait a moment and refresh</li>
-    <li>Run <code>bun scripts/generate.ts</code> in terminal</li>
-  </ul>
-  <script>setTimeout(() => location.reload(), 2000);</script>
+  <p>Run <code>bun scripts/generate.ts</code> in terminal, then refresh.</p>
 </body>
 </html>`);
             return;
@@ -854,27 +849,16 @@ function ssgDevPlugin() {
 }
 
 /**
- * Plugin to watch the SQLite database and .build/ directory.
- * - Regenerates content when database changes
- * - Triggers full page reload when content is rebuilt
- * - Handles graceful recovery when prod build wipes .build/
+ * Plugin to watch the SQLite database for changes.
+ * Regenerates content and triggers a full page reload.
  */
 function databaseWatcherPlugin() {
   let dbWatcher: ReturnType<typeof watch> | null = null;
-  let buildWatcher: ReturnType<typeof watch> | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let buildDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let isExporting = false;
   let lastMtime = 0;
   let viteServer: { ws: { send: (msg: { type: string }) => void } } | null =
     null;
-
-  const triggerReload = () => {
-    if (viteServer?.ws) {
-      console.log("🔄 Triggering page reload...");
-      viteServer.ws.send({ type: "full-reload" });
-    }
-  };
 
   const runExport = () => {
     if (isExporting) {
@@ -892,7 +876,13 @@ function databaseWatcherPlugin() {
           console.error("❌ Build failed:", stderr);
         } else {
           console.log(stdout.trim() || "✅ Content rebuilt");
-          triggerReload();
+          // Trigger full page reload after a short delay to ensure files are written
+          setTimeout(() => {
+            if (viteServer?.ws) {
+              console.log("🔄 Reloading browser...");
+              viteServer.ws.send({ type: "full-reload" });
+            }
+          }, 100);
         }
       },
     );
@@ -905,7 +895,6 @@ function databaseWatcherPlugin() {
     }) {
       viteServer = server;
       const dbPath = resolve(__dirname, "data", "content.db");
-      const buildPath = resolve(__dirname, ".build");
 
       // Get initial mtime
       try {
@@ -932,32 +921,12 @@ function databaseWatcherPlugin() {
         }
       });
 
-      // Watch .build/ directory for changes (e.g., when prod build recreates it)
-      // This triggers a reload when files are regenerated externally
-      try {
-        buildWatcher = watch(
-          buildPath,
-          { persistent: false, recursive: true },
-          () => {
-            // Debounce to avoid multiple reloads during rebuild
-            if (buildDebounceTimer) clearTimeout(buildDebounceTimer);
-            buildDebounceTimer = setTimeout(triggerReload, 500);
-          },
-        );
-      } catch {
-        // .build/ might not exist yet, that's fine
-      }
-
-      console.log("👁️  Watching database and .build/ for changes...");
+      console.log("👁️  Watching database for changes...");
     },
     closeBundle() {
       if (dbWatcher) {
         dbWatcher.close();
         dbWatcher = null;
-      }
-      if (buildWatcher) {
-        buildWatcher.close();
-        buildWatcher = null;
       }
     },
   };
