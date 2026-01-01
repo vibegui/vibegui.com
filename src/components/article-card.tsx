@@ -2,9 +2,9 @@
  * Article Card Component
  *
  * Displays article preview with title, date, and excerpt.
+ * Uses regular <a> tags instead of Link to force full page load,
+ * ensuring the SSG HTML with embedded article data is served.
  */
-
-import { Link } from "../app";
 
 interface ArticleCardProps {
   slug: string;
@@ -35,7 +35,8 @@ export function ArticleCard({
     <article
       className={`group ${featured ? "pb-5 border-[var(--color-border)]" : "py-3"}`}
     >
-      <Link href={`/article/${slug}`} className="block hover:no-underline">
+      {/* Full page load ensures SSG HTML with embedded data */}
+      <a href={`/article/${slug}`} className="block hover:no-underline">
         <time
           dateTime={date}
           className="text-sm"
@@ -63,7 +64,7 @@ export function ArticleCard({
         >
           Read more →
         </span>
-      </Link>
+      </a>
     </article>
   );
 }
