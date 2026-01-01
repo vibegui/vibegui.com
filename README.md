@@ -8,13 +8,29 @@ A minimal, high-performance static site with SQLite-powered content and bookmark
 
 ---
 
+## Recent Updates 🚀
+
+**January 1, 2026 — The Great SSG Simplification**
+
+Complete architecture overhaul focused on zero-fetch page loads:
+
+- **Embedded Content** — All articles, context pages, and the homepage manifest are now embedded directly in static HTML. Zero runtime fetches.
+- **Simplified Build Pipeline** — Reduced from 4 scripts to 2: `generate.ts` (SQLite → HTML) and `finalize.ts` (post-processing)
+- **Context Page SEO** — Full meta tags (Open Graph, Twitter Cards) with auto-extracted descriptions from content
+- **~15 Second Deploys** — Cloudflare Pages builds with no npm install, just Node.js scripts
+
+Read the full writeup: [SEO-First SSG: From Social Embeds to Zero-Fetch Pages](/article/the-great-ssg-simplification-killing-json-fetches-one-page-at-a-)
+
+---
+
 ## What's Been Built ✅
 
-- **SQLite-First Architecture** — All content (articles, bookmarks) stored in SQLite databases, version-controlled in git
+- **Zero-Fetch SSG** — All pages (articles, context, homepage) have content embedded directly in HTML. No runtime fetches.
+- **SQLite-First Architecture** — All content stored in SQLite databases, version-controlled in git
 - **Zero-Dependency Build** — Uses Node 22's native `node:sqlite` for exports (no npm install needed on Cloudflare)
 - **AI-Powered Bookmark Enrichment** — Perplexity research + Exa content + Claude Sonnet classification
-- **Content Hashing System** — All content files get content-hash URLs for immutable caching (1-year TTL)
-- **Context Library** — LLM-generated summaries from leadership papers used as context for AI-assisted writing
+- **Full SEO** — Every page has title, description, Open Graph, Twitter Cards, and canonical URLs
+- **Context Library** — LLM-generated summaries from leadership papers with proper SEO and embedded content
 - **Comprehensive Testing** — E2E tests (Playwright), constraint tests, accessibility verification
 
 ### Tech Stack

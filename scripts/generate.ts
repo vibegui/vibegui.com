@@ -169,6 +169,48 @@ for (const article of articles) {
   writeFileSync(join(articleDir, "index.html"), generateArticleHtml(article));
 }
 
+// Extract first meaningful paragraph from markdown for SEO description
+function extractDescription(content: string, maxLength = 160): string {
+  // Remove the title (first H1)
+  const withoutTitle = content.replace(/^#\s+.+\n+/, "");
+
+  // Find first paragraph (non-heading, non-list, non-empty line)
+  const lines = withoutTitle.split("\n");
+  let paragraph = "";
+  for (const line of lines) {
+    const trimmed = line.trim();
+    // Skip headings, lists, blockquotes, empty lines
+    if (
+      !trimmed ||
+      trimmed.startsWith("#") ||
+      trimmed.startsWith("-") ||
+      trimmed.startsWith("*") ||
+      trimmed.startsWith(">") ||
+      trimmed.startsWith("|")
+    ) {
+      if (paragraph) break; // End of first paragraph
+      continue;
+    }
+    paragraph += (paragraph ? " " : "") + trimmed;
+    if (paragraph.length > maxLength) break;
+  }
+
+  // Clean markdown formatting
+  paragraph = paragraph
+    .replace(/\*\*([^*]+)\*\*/g, "$1") // bold
+    .replace(/\*([^*]+)\*/g, "$1") // italic
+    .replace(/`([^`]+)`/g, "$1") // code
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1"); // links
+
+  // Truncate at word boundary
+  if (paragraph.length > maxLength) {
+    paragraph =
+      paragraph.slice(0, maxLength - 3).replace(/\s+\S*$/, "") + "...";
+  }
+
+  return paragraph || `Notes on ${title}`;
+}
+
 // Generate context HTML files
 function generateContextHtml(
   path: string,
@@ -176,7 +218,7 @@ function generateContextHtml(
   title: string,
 ): string {
   const url = `${BASE_URL}/context/${path}`;
-  const description = `LLM-generated summary: ${title}`;
+  const description = extractDescription(content);
 
   // Embed content as JSON (same pattern as articles)
   const contextData = JSON.stringify({
@@ -203,6 +245,12 @@ function generateContextHtml(
     <meta property="og:url" content="${url}" />
     <meta property="og:image" content="${DEFAULT_OG_IMAGE}" />
     <meta property="og:site_name" content="vibegui.com" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@vibegui_" />
+    <meta name="twitter:title" content="${escapeHtml(title)}" />
+    <meta name="twitter:description" content="${escapeHtml(description)}" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
