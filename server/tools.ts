@@ -249,6 +249,8 @@ export function registerTools(server: McpServer): void {
         content: z.string().default(""),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).default("draft"),
+        date: z.string().optional(),
+        fromSocialPostId: z.number().optional(),
       },
       annotations: { readOnlyHint: false },
     },
@@ -259,9 +261,10 @@ export function registerTools(server: McpServer): void {
         title: args.title,
         description: args.description,
         content: args.content,
-        date: todayISO(),
+        date: args.date ?? todayISO(),
         status: args.status,
         tags: args.tags,
+        fromSocialPostId: args.fromSocialPostId,
       });
 
       triggerExport();

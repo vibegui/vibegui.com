@@ -402,6 +402,8 @@ function createSQLiteContentTools() {
         content: z.string().default(""),
         tags: z.array(z.string()).optional(),
         status: z.enum(["draft", "published"]).default("published"),
+        date: z.string().optional(),
+        fromSocialPostId: z.number().optional(),
       }),
       outputSchema: z.object({
         item: ContentEntitySchema,
@@ -413,9 +415,10 @@ function createSQLiteContentTools() {
           title: context.title,
           description: context.description,
           content: context.content,
-          date: todayISO(),
+          date: context.date ?? todayISO(),
           status: context.status,
           tags: context.tags,
+          fromSocialPostId: context.fromSocialPostId,
         });
 
         triggerExport(); // Auto-export for dev server
