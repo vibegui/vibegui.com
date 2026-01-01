@@ -214,42 +214,30 @@ The `/bookmarks` page supports:
 
 ## Static Site Generation (SSG)
 
-Every article page is pre-rendered with content embedded directly in the HTML:
+All content pages are pre-rendered with data embedded directly in the HTML — **zero fetches needed**:
+
+| Page | Embedded Data |
+|------|---------------|
+| Homepage | `manifest-data` (article list) |
+| Article pages | `article-data` (full markdown) |
+| Context pages | `context-data` (leadership summaries) |
 
 ```html
-<!-- dist/article/my-article/index.html -->
+<!-- Example: dist/article/my-article/index.html -->
 <div id="root"></div>
 <script id="article-data" type="application/json">
   {"slug":"my-article","title":"My Article","content":"# Full markdown..."}
 </script>
 ```
 
-The homepage (`index.html`) also has the manifest embedded — **zero fetches needed**:
-
-```html
-<!-- dist/index.html -->
-<div id="root"></div>
-<script id="manifest-data" type="application/json">
-  {"articles":[...],"projects":[...]}
-</script>
-```
-
 ### Cache Headers (`_headers`)
 
 ```
-/index.html, /*.html
+/*.html, /article/*, /context/*
   Cache-Control: public, max-age=30, stale-while-revalidate=3600
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
-
-/context/*
-  Cache-Control: public, max-age=31536000, immutable
-```
-
-Context files (leadership docs) are hashed for immutable caching:
-```
-context/05_future_as_context.md → context/05_future_as_context.85ee9229.md
 ```
 
 ---

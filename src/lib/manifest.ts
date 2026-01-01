@@ -41,16 +41,9 @@ export interface Project {
   actionPlan?: ActionItem[];
 }
 
-export interface ContextFile {
-  original: string;
-  path: string;
-  hash: string;
-}
-
 export interface ContentManifest {
   articles: ArticleMeta[];
   projects?: Project[];
-  context?: ContextFile[];
 }
 
 let cachedContentManifest: ContentManifest | null = null;
@@ -114,46 +107,12 @@ export async function loadManifest(): Promise<ContentManifest | null> {
     cachedContentManifest = {
       articles,
       projects,
-      context: data.context,
     };
     return cachedContentManifest;
   } catch (error) {
     console.error("Error loading content manifest:", error);
     return null;
   }
-}
-
-/**
- * Get an article's content path by slug
- * Searches all articles (both published and drafts)
- */
-export async function getArticlePath(slug: string): Promise<string | null> {
-  const manifest = await loadManifest();
-  if (!manifest) return null;
-
-  const article = manifest.articles.find((a) => a.slug === slug);
-  if (!article) return null;
-
-  return `/content/${article.slug}.json`;
-}
-
-/**
- * Get a context file's content path
- * Uses hashed paths from manifest, falls back to direct path
- */
-export async function getContextPath(originalPath: string): Promise<string> {
-  const manifest = await loadManifest();
-  if (manifest?.context) {
-    const contextFile = manifest.context.find(
-      (c) => c.original === originalPath,
-    );
-    if (contextFile) {
-      return `/context/${contextFile.path}`;
-    }
-  }
-
-  // Fallback to direct path (development)
-  return `/context/${originalPath}.md`;
 }
 
 /**

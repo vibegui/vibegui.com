@@ -3,14 +3,12 @@
  *
  * Runs AFTER Vite build to:
  * - Copy manifest and bookmarks to dist/
- * - Process article HTML (replace dev scripts with prod assets)
- * - Hash context files for immutable caching
+ * - Process SSG HTML files (replace dev scripts with prod assets)
  * - Embed manifest data directly into index.html
  *
- * Does NOT require SQLite - only reads from public/ and dist/.
+ * Does NOT require SQLite - only reads from .build/ and dist/.
  */
 
-import { createHash } from "node:crypto";
 import {
   readdirSync,
   readFileSync,
@@ -25,11 +23,7 @@ import { resolve, join } from "node:path";
 const ROOT = resolve(import.meta.dirname, "..");
 const DIST = resolve(ROOT, "dist");
 const PUBLIC = resolve(ROOT, "public");
-const CONTEXT_DIR = resolve(ROOT, "context");
-
-function hashContent(content: string): string {
-  return createHash("sha256").update(content).digest("hex").slice(0, 8);
-}
+const BUILD = resolve(ROOT, ".build");
 
 /**
  * Copy directory contents recursively
@@ -51,61 +45,13 @@ function copyDir(src: string, dest: string) {
 }
 
 /**
- * Process context files with hashed names
- */
-function processContextDirectory(
-  sourceDir: string,
-  destDir: string,
-  relativePath = "",
-): Array<{ original: string; path: string; hash: string }> {
-  const results: Array<{ original: string; path: string; hash: string }> = [];
-
-  if (!existsSync(sourceDir)) return results;
-
-  for (const entry of readdirSync(sourceDir, { withFileTypes: true })) {
-    const sourcePath = join(sourceDir, entry.name);
-    const relPath = relativePath ? `${relativePath}/${entry.name}` : entry.name;
-
-    if (entry.isDirectory()) {
-      const subDestDir = join(destDir, entry.name);
-      mkdirSync(subDestDir, { recursive: true });
-      results.push(...processContextDirectory(sourcePath, subDestDir, relPath));
-    } else if (entry.name.endsWith(".md")) {
-      const content = readFileSync(sourcePath, "utf-8");
-      const hash = hashContent(content);
-      const baseName = entry.name.replace(".md", "");
-      const hashedName = `${baseName}.${hash}.md`;
-
-      writeFileSync(join(destDir, hashedName), content);
-
-      const originalPath = relativePath
-        ? `${relativePath}/${baseName}`
-        : baseName;
-      const hashedPath = relativePath
-        ? `${relativePath}/${hashedName}`
-        : hashedName;
-
-      results.push({ original: originalPath, path: hashedPath, hash });
-      console.log(`  📄 ${originalPath}.md → ${hashedName}`);
-    } else {
-      copyFileSync(sourcePath, join(destDir, entry.name));
-    }
-  }
-
-  return results;
-}
-
-/**
- * Extract asset tags from built index.html to inject into article pages
+ * Extract asset tags from built index.html to inject into SSG pages
  */
 function extractAssets(html: string): { styles: string; scripts: string } {
-  // Get script tags with src
   const scriptTags =
     html.match(/<script[^>]*src="[^"]*"[^>]*><\/script>/g) || [];
-  // Get stylesheet links pointing to /assets/
   const styleTags =
     html.match(/<link[^>]*stylesheet[^>]*href="\/assets\/[^"]*"[^>]*>/g) || [];
-  // Get modulepreload links
   const preloadTags = html.match(/<link[^>]*modulepreload[^>]*>/g) || [];
 
   return {
@@ -115,52 +61,58 @@ function extractAssets(html: string): { styles: string; scripts: string } {
 }
 
 /**
- * Process article HTML files - replace dev scripts with prod assets
+ * Process SSG HTML files - replace dev scripts with prod assets
  */
-function processArticles(assets: { styles: string; scripts: string }) {
-  const buildArticles = resolve(ROOT, ".build", "article");
-  const distArticles = resolve(DIST, "article");
+function processSSGPages(
+  srcDir: string,
+  destDir: string,
+  assets: { styles: string; scripts: string },
+): number {
+  if (!existsSync(srcDir)) return 0;
 
-  if (!existsSync(buildArticles)) return 0;
-
-  // Clean dist/article/
-  if (existsSync(distArticles)) {
-    rmSync(distArticles, { recursive: true });
+  // Clean dest
+  if (existsSync(destDir)) {
+    rmSync(destDir, { recursive: true });
   }
-  mkdirSync(distArticles, { recursive: true });
+  mkdirSync(destDir, { recursive: true });
 
   let count = 0;
-  for (const slug of readdirSync(buildArticles)) {
-    const srcPath = join(buildArticles, slug, "index.html");
-    if (!existsSync(srcPath)) continue;
 
-    let html = readFileSync(srcPath, "utf-8");
+  function processDir(src: string, dest: string) {
+    for (const entry of readdirSync(src, { withFileTypes: true })) {
+      const srcPath = join(src, entry.name);
+      const destPath = join(dest, entry.name);
 
-    // Replace dev scripts with prod assets
-    html = html.replace(
-      /<script type="module" src="\/@vite\/client"><\/script>\s*<script type="module" src="\/src\/main\.tsx"><\/script>/,
-      `${assets.styles}\n    ${assets.scripts}`,
-    );
+      if (entry.isDirectory()) {
+        mkdirSync(destPath, { recursive: true });
+        processDir(srcPath, destPath);
+      } else if (entry.name === "index.html") {
+        let html = readFileSync(srcPath, "utf-8");
 
-    const destDir = join(distArticles, slug);
-    mkdirSync(destDir, { recursive: true });
-    writeFileSync(join(destDir, "index.html"), html);
-    count++;
+        // Replace dev scripts with prod assets
+        html = html.replace(
+          /<script type="module" src="\/@vite\/client"><\/script>\s*<script type="module" src="\/src\/main\.tsx"><\/script>/,
+          `${assets.styles}\n    ${assets.scripts}`,
+        );
+
+        writeFileSync(destPath, html);
+        count++;
+      }
+    }
   }
 
+  processDir(srcDir, destDir);
   return count;
 }
 
 async function main() {
   const startTime = performance.now();
-  console.log("\n🔐 Hashing content files...\n");
+  console.log("\n🔧 Finalizing build...\n");
 
-  // Copy manifest.json
-  console.log("📁 Copying content...");
+  // Copy manifest and bookmarks
+  console.log("📁 Copying assets...");
   const contentDir = resolve(DIST, "content");
-  if (!existsSync(contentDir)) {
-    mkdirSync(contentDir, { recursive: true });
-  }
+  mkdirSync(contentDir, { recursive: true });
   copyFileSync(
     resolve(PUBLIC, "content", "manifest.json"),
     resolve(contentDir, "manifest.json"),
@@ -173,45 +125,31 @@ async function main() {
   const indexHtml = readFileSync(indexPath, "utf-8");
   const assets = extractAssets(indexHtml);
 
-  // Process article HTML files
-  console.log("\n📁 Processing articles...");
-  const articleCount = processArticles(assets);
-  console.log(`  ✅ ${articleCount} article pages processed`);
+  // Process SSG HTML files (articles and context)
+  console.log("\n📁 Processing SSG pages...");
+  const articleCount = processSSGPages(
+    resolve(BUILD, "article"),
+    resolve(DIST, "article"),
+    assets,
+  );
+  const contextCount = processSSGPages(
+    resolve(BUILD, "context"),
+    resolve(DIST, "context"),
+    assets,
+  );
+  console.log(`  ✅ ${articleCount} articles, ${contextCount} context pages`);
 
-  // Process context files with hashing
-  console.log("\n📁 Processing context...");
-  const distContext = resolve(DIST, "context");
-  if (existsSync(distContext)) {
-    rmSync(distContext, { recursive: true });
-  }
-  mkdirSync(distContext, { recursive: true });
-  const contextFiles = processContextDirectory(CONTEXT_DIR, distContext);
+  // Read manifest for embedding
+  const manifestPath = resolve(DIST, "content", "manifest.json");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
 
-  // Read content manifest (articles, projects)
-  const contentManifestPath = resolve(DIST, "content", "manifest.json");
-  const contentManifest = existsSync(contentManifestPath)
-    ? JSON.parse(readFileSync(contentManifestPath, "utf-8"))
-    : { articles: [], projects: [] };
-
-  // Build final manifest
-  const finalManifest = {
-    version: 1,
-    articles: contentManifest.articles || [],
-    projects: contentManifest.projects || [],
-    context: contextFiles,
-  };
-
-  // Escape </script> in manifest to prevent HTML injection issues
-  const manifestJson = JSON.stringify(finalManifest).replace(
+  // Escape </script> to prevent HTML injection
+  const manifestJson = JSON.stringify(manifest).replace(
     /<\/script>/g,
     "<\\/script>",
   );
 
-  console.log(
-    `\n📋 Manifest ready (${finalManifest.articles.length} articles, ${finalManifest.projects.length} projects)`,
-  );
-
-  // Embed manifest directly into index.html (no fetch needed)
+  // Embed manifest into index.html
   console.log("\n📝 Updating index.html...");
   let updatedIndexHtml = indexHtml;
 
@@ -229,13 +167,16 @@ async function main() {
   );
 
   writeFileSync(indexPath, updatedIndexHtml);
-  console.log(`  ✅ Embedded manifest data (no fetch needed)`);
+  console.log("  ✅ Embedded manifest (no fetch needed)");
+
+  // Clean up .build/
+  rmSync(BUILD, { recursive: true });
 
   const elapsed = (performance.now() - startTime).toFixed(0);
-  console.log(`\n✨ Hash complete (${elapsed}ms)`);
+  console.log(`\n✨ Build finalized (${elapsed}ms)`);
   console.log(`   Articles: ${articleCount}`);
-  console.log(`   Projects: ${finalManifest.projects.length}`);
-  console.log(`   Context: ${contextFiles.length}\n`);
+  console.log(`   Context: ${contextCount}`);
+  console.log(`   Projects: ${manifest.projects?.length || 0}\n`);
 }
 
 main().catch((err) => {

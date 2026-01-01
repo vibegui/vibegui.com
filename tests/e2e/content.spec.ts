@@ -52,10 +52,11 @@ test.describe("Context Pages", () => {
       { path: "04_being_cause_in_matter", title: "Being Cause" },
       { path: "05_future_as_context", title: "Future as Context" },
       { path: "06_already_always_listening", title: "Already-Always" },
-      { path: "07_rackets", title: "Rackets" },
-      { path: "08_authentic_listening", title: "Authentic Listening" },
-      { path: "09_contextual_framework", title: "Contextual Framework" },
-      { path: "10_power", title: "Power" },
+      { path: "07_life_sentences", title: "Life Sentences" },
+      { path: "08_rackets", title: "Rackets" },
+      { path: "09_authentic_listening", title: "Authentic Listening" },
+      { path: "10_contextual_framework", title: "Contextual Framework" },
+      { path: "11_power", title: "Power" },
     ];
 
     for (const doc of documents) {

@@ -5,10 +5,8 @@
  * These are used as context for AI-assisted content creation.
  */
 
-import { useState, useEffect } from "react";
 import { Link } from "../app";
 import { marked } from "marked";
-import { getContextPath } from "../lib/manifest";
 
 interface ContextCollection {
   name: string;
@@ -131,12 +129,9 @@ export function Context() {
             <ul className="space-y-1 text-sm">
               {collection.documents.map((doc) => (
                 <li key={doc.path}>
-                  <Link
-                    href={`/context/${doc.path}`}
-                    className="hover:underline"
-                  >
+                  <a href={`/context/${doc.path}`} className="hover:underline">
                     {doc.title}
-                  </Link>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -147,86 +142,51 @@ export function Context() {
   );
 }
 
+interface ContextData {
+  path: string;
+  title: string;
+  content: string;
+}
+
+// Read embedded context data from SSG HTML
+function getEmbeddedContext(): ContextData | null {
+  if (typeof document === "undefined") return null;
+  const script = document.getElementById("context-data");
+  if (!script) return null;
+  try {
+    return JSON.parse(script.textContent || "");
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Context Document Page
  *
- * Renders a single context document from the context/ folder.
+ * Renders a single context document with content embedded in the HTML.
  */
 export function ContextDoc({ path }: { path: string }) {
-  const [content, setContent] = useState<string | null>(null);
-  const [title, setTitle] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const data = getEmbeddedContext();
 
-  useEffect(() => {
-    const loadDoc = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Get hashed path from manifest, fallback to direct path in dev
-        const contextPath = await getContextPath(path);
-        if (!contextPath) {
-          throw new Error("Document not found");
-        }
-
-        const response = await fetch(contextPath);
-        if (!response.ok) {
-          throw new Error("Document not found");
-        }
-
-        const raw = await response.text();
-
-        // Extract title from first H1
-        const titleMatch = raw.match(/^#\s+(.+)/m);
-        if (titleMatch?.[1]) {
-          setTitle(titleMatch[1]);
-        } else {
-          setTitle(path.split("/").pop() ?? path);
-        }
-
-        // Render markdown
-        const html = marked(raw, { async: false }) as string;
-        setContent(html);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load");
-      }
-
-      setLoading(false);
-    };
-
-    loadDoc();
-  }, [path]);
-
-  // Update document title
-  useEffect(() => {
-    if (title) {
-      document.title = `${title} | vibegui.com`;
-    }
-    return () => {
-      document.title = "vibegui.com";
-    };
-  }, [title]);
-
-  if (loading) {
-    return (
-      <div className="container py-12">
-        <p style={{ color: "var(--color-fg-muted)" }}>Loading...</p>
-      </div>
-    );
-  }
-
-  if (error || !content) {
+  // No embedded data or path mismatch
+  if (!data || data.path !== path) {
     return (
       <div className="container py-12">
         <h1 className="text-2xl font-bold mb-4">Document not found</h1>
         <p style={{ color: "var(--color-fg-muted)" }} className="mb-4">
-          {error}
+          Could not load context data. Try{" "}
+          <a href={`/context/${path}`} className="underline">
+            refreshing the page
+          </a>
+          .
         </p>
         <Link href="/context">← Back to context</Link>
       </div>
     );
   }
+
+  // Render markdown
+  const html = marked(data.content, { async: false }) as string;
 
   // Determine which collection this belongs to for source attribution
   const collection = COLLECTIONS.find((c) =>
@@ -268,7 +228,7 @@ export function ContextDoc({ path }: { path: string }) {
         )}
 
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
-        <div className="mt-4" dangerouslySetInnerHTML={{ __html: content }} />
+        <div className="mt-4" dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </article>
   );

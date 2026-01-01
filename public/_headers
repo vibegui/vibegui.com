@@ -1,27 +1,19 @@
 # Cloudflare Pages Headers
 # https://developers.cloudflare.com/pages/platform/headers/
 
-# HTML - short cache, stale-while-revalidate for instant loads
-/index.html
-  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
-
+# HTML pages - short cache with stale-while-revalidate
+# (covers index.html, /article/*/index.html, /context/*/index.html)
 /*.html
   Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
 
-# Static assets - immutable, long cache (content-hash in filename)
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+/article/*
+  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
 
-# Content files with hash in name - immutable, 1 year cache
-# Only the manifest path changes; individual files never change
-/content/articles/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/content/manifest.*.json
-  Cache-Control: public, max-age=31536000, immutable
-
-# Context files with hash in name - immutable
 /context/*
+  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
+
+# Static assets - immutable (content-hash in filename)
+/assets/*
   Cache-Control: public, max-age=31536000, immutable
 
 # Fonts - long cache

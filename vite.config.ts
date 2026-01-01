@@ -740,17 +740,16 @@ function bookmarksApiPlugin() {
 }
 
 /**
- * Plugin to inject article data into HTML in dev mode
- * Intercepts article requests and serves index.html with injected article data
+ * Plugin to serve SSG pages in dev mode (articles and context)
+ * Injects embedded data from .build/ into the SPA index.html
  */
-function articleSsgPlugin() {
+function ssgDevPlugin() {
   return {
-    name: "article-ssg",
+    name: "ssg-dev",
     configureServer(server: {
       middlewares: { use: (middleware: Connect.HandleFunction) => void };
       transformIndexHtml: (url: string, html: string) => Promise<string>;
     }) {
-      // Use early middleware (before Vite's static file serving)
       server.middlewares.use(
         (
           req: Connect.IncomingMessage,
@@ -759,53 +758,64 @@ function articleSsgPlugin() {
         ) => {
           const url = req.url || "";
 
-          // Only handle article routes
-          if (!url.startsWith("/article/")) {
+          // Determine route type
+          let buildDir: string;
+          let dataScriptId: string;
+          let pathPrefix: string;
+
+          if (url.startsWith("/article/")) {
+            buildDir = "article";
+            dataScriptId = "article-data";
+            pathPrefix = "/article/";
+          } else if (url.startsWith("/context/") && url !== "/context/") {
+            buildDir = "context";
+            dataScriptId = "context-data";
+            pathPrefix = "/context/";
+          } else {
             return next();
           }
 
-          // Extract slug from URL
-          const slug = url
-            .slice("/article/".length)
+          // Extract path from URL
+          const path = url
+            .slice(pathPrefix.length)
             .replace(/\/$/, "")
             .split("?")[0];
-          if (!slug) {
+          if (!path) {
             return next();
           }
 
-          // Read article data from SSG HTML in .build/article/
-          const articlePath = resolve(
+          // Read SSG HTML from .build/
+          const ssgPath = resolve(
             __dirname,
             ".build",
-            "article",
-            slug,
+            buildDir,
+            path,
             "index.html",
           );
-
-          if (!existsSync(articlePath)) {
+          if (!existsSync(ssgPath)) {
             return next();
           }
 
-          const ssgHtml = readFileSync(articlePath, "utf-8");
+          const ssgHtml = readFileSync(ssgPath, "utf-8");
 
-          // Extract the article-data script content
-          const match = ssgHtml.match(
-            /<script id="article-data" type="application\/json">([\s\S]*?)<\/script>/,
+          // Extract the embedded data script
+          const regex = new RegExp(
+            `<script id="${dataScriptId}" type="application/json">([\\s\\S]*?)</script>`,
           );
-
+          const match = ssgHtml.match(regex);
           if (!match) {
             return next();
           }
 
-          // Read the SPA index.html
+          // Read and modify the SPA index.html
           const indexPath = resolve(__dirname, "index.html");
           let indexHtml = readFileSync(indexPath, "utf-8");
 
-          // Inject the article data script (after root div so DOM is ready)
-          const articleScript = `<script id="article-data" type="application/json">${match[1]}</script>`;
-          indexHtml = indexHtml.replace("</body>", `${articleScript}\n</body>`);
+          // Inject the data script
+          const dataScript = `<script id="${dataScriptId}" type="application/json">${match[1]}</script>`;
+          indexHtml = indexHtml.replace("</body>", `${dataScript}\n</body>`);
 
-          // Transform the HTML through Vite (adds HMR client, etc.)
+          // Transform through Vite (adds HMR client)
           server
             .transformIndexHtml(url, indexHtml)
             .then((transformed) => {
@@ -910,7 +920,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
-    articleSsgPlugin(),
+    ssgDevPlugin(),
     bookmarksApiPlugin(),
     databaseWatcherPlugin(),
   ],

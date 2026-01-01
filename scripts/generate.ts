@@ -1,9 +1,10 @@
 /**
  * Generate Content (Step 1 of build)
  *
- * Reads SQLite database and generates:
+ * Generates all static content:
  * - public/content/manifest.json (article list for homepage)
- * - .build/article/{slug}/index.html (SSG article pages with embedded data)
+ * - .build/article/{slug}/index.html (SSG article pages)
+ * - .build/context/{path}/index.html (SSG context pages)
  *
  * Runs BEFORE Vite build. Requires SQLite access.
  */
@@ -14,6 +15,7 @@ import {
   mkdirSync,
   existsSync,
   rmSync,
+  readdirSync,
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,8 +31,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "..");
 const PUBLIC_DIR = join(PROJECT_ROOT, "public");
 const CONTENT_DIR = join(PUBLIC_DIR, "content");
-// Article HTML goes to .build/ (not public/) to avoid Vite static file conflicts
-const ARTICLE_DIR = join(PROJECT_ROOT, ".build", "article");
+const CONTEXT_SRC_DIR = join(PROJECT_ROOT, "context");
+// HTML goes to .build/ (not public/) to avoid Vite static file conflicts
+const BUILD_DIR = join(PROJECT_ROOT, ".build");
+const ARTICLE_DIR = join(BUILD_DIR, "article");
+const CONTEXT_DIR = join(BUILD_DIR, "context");
 
 // In CI or production build, don't include drafts
 const isProduction =
@@ -39,11 +44,12 @@ const isProduction =
 // Ensure directories exist
 mkdirSync(CONTENT_DIR, { recursive: true });
 
-// Clean and recreate article directory
-if (existsSync(ARTICLE_DIR)) {
-  rmSync(ARTICLE_DIR, { recursive: true });
+// Clean and recreate build directory
+if (existsSync(BUILD_DIR)) {
+  rmSync(BUILD_DIR, { recursive: true });
 }
 mkdirSync(ARTICLE_DIR, { recursive: true });
+mkdirSync(CONTEXT_DIR, { recursive: true });
 
 const allArticles = getAllContent();
 const projects = getAllProjects();
@@ -163,6 +169,101 @@ for (const article of articles) {
   writeFileSync(join(articleDir, "index.html"), generateArticleHtml(article));
 }
 
+// Generate context HTML files
+function generateContextHtml(
+  path: string,
+  content: string,
+  title: string,
+): string {
+  const url = `${BASE_URL}/context/${path}`;
+  const description = `LLM-generated summary: ${title}`;
+
+  // Embed content as JSON (same pattern as articles)
+  const contextData = JSON.stringify({
+    path,
+    title,
+    content,
+  }).replace(/<\/script>/gi, "<\\/script>");
+
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO -->
+    <title>${escapeHtml(title)} | vibegui</title>
+    <meta name="description" content="${escapeHtml(description)}" />
+    <link rel="canonical" href="${url}" />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="${escapeHtml(title)}" />
+    <meta property="og:description" content="${escapeHtml(description)}" />
+    <meta property="og:url" content="${url}" />
+    <meta property="og:image" content="${DEFAULT_OG_IMAGE}" />
+    <meta property="og:site_name" content="vibegui.com" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+    <!-- Theme initialization -->
+    <script>
+      (function () {
+        var stored = localStorage.getItem("theme");
+        var theme = stored === "dark" || stored === "light" ? stored : "dark";
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+
+    <!-- Dev: Vite injects scripts. Prod: replaced by finalize.ts -->
+    <script type="module" src="/@vite/client"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script id="context-data" type="application/json">${contextData}</script>
+  </body>
+</html>
+`;
+}
+
+// Process context files recursively
+function processContextDir(srcDir: string, basePath = ""): number {
+  let count = 0;
+  if (!existsSync(srcDir)) return count;
+
+  for (const entry of readdirSync(srcDir, { withFileTypes: true })) {
+    const srcPath = join(srcDir, entry.name);
+    const relativePath = basePath ? `${basePath}/${entry.name}` : entry.name;
+
+    if (entry.isDirectory()) {
+      count += processContextDir(srcPath, relativePath);
+    } else if (entry.name.endsWith(".md")) {
+      const content = readFileSync(srcPath, "utf-8");
+
+      // Extract title from first H1 or filename
+      const titleMatch = content.match(/^#\s+(.+)/m);
+      const title = titleMatch?.[1] || entry.name.replace(".md", "");
+
+      // Path without .md extension
+      const pathWithoutExt = relativePath.replace(/\.md$/, "");
+      const destDir = join(CONTEXT_DIR, pathWithoutExt);
+      mkdirSync(destDir, { recursive: true });
+      writeFileSync(
+        join(destDir, "index.html"),
+        generateContextHtml(pathWithoutExt, content, title),
+      );
+      count++;
+    }
+  }
+  return count;
+}
+
+const contextCount = processContextDir(CONTEXT_SRC_DIR);
+
 const draftCount = allArticles.filter((c) => c.status === "draft").length;
 const publishedCount = allArticles.filter(
   (c) => c.status === "published",
@@ -173,5 +274,5 @@ const exportInfo = isProduction
 
 const elapsed = (performance.now() - startTime).toFixed(0);
 console.log(
-  `📚 Built: ${exportInfo}, ${projects.length} projects (${elapsed}ms)`,
+  `📚 Built: ${exportInfo}, ${projects.length} projects, ${contextCount} context (${elapsed}ms)`,
 );
