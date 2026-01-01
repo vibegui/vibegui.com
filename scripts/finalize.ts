@@ -169,8 +169,7 @@ async function main() {
   writeFileSync(indexPath, updatedIndexHtml);
   console.log("  ✅ Embedded manifest (no fetch needed)");
 
-  // Clean up .build/
-  rmSync(BUILD, { recursive: true });
+  // Note: .build/ is kept around for dev server compatibility (it's in .gitignore)
 
   const elapsed = (performance.now() - startTime).toFixed(0);
   console.log(`\n✨ Build finalized (${elapsed}ms)`);
