@@ -793,7 +793,28 @@ function ssgDevPlugin() {
             "index.html",
           );
           if (!existsSync(ssgPath)) {
-            return next();
+            // File doesn't exist - show a helpful message instead of breaking
+            // This can happen when prod build wipes .build/ while dev server is running
+            console.log(
+              `⚠️  SSG file not found: ${ssgPath}\n   Run 'bun scripts/generate.ts' to rebuild`,
+            );
+            res.setHeader("Content-Type", "text/html");
+            res.end(`<!DOCTYPE html>
+<html>
+<head><title>Rebuilding...</title></head>
+<body style="background:#1a1a2e;color:#fff;font-family:system-ui;padding:2rem;">
+  <h1>Content rebuilding...</h1>
+  <p>The SSG file for <code>/${buildDir}/${path}</code> was not found.</p>
+  <p>This usually happens when a build is in progress.</p>
+  <p>The page will reload automatically when ready, or you can:</p>
+  <ul>
+    <li>Wait a moment and refresh</li>
+    <li>Run <code>bun scripts/generate.ts</code> in terminal</li>
+  </ul>
+  <script>setTimeout(() => location.reload(), 2000);</script>
+</body>
+</html>`);
+            return;
           }
 
           const ssgHtml = readFileSync(ssgPath, "utf-8");
@@ -833,17 +854,31 @@ function ssgDevPlugin() {
 }
 
 /**
- * Plugin to watch the SQLite database and auto-export content on changes
+ * Plugin to watch the SQLite database and .build/ directory.
+ * - Regenerates content when database changes
+ * - Triggers full page reload when content is rebuilt
+ * - Handles graceful recovery when prod build wipes .build/
  */
 function databaseWatcherPlugin() {
-  let watcher: ReturnType<typeof watch> | null = null;
+  let dbWatcher: ReturnType<typeof watch> | null = null;
+  let buildWatcher: ReturnType<typeof watch> | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let buildDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   let isExporting = false;
-  let lastMtime = 0; // Track last modification time to avoid false triggers
+  let lastMtime = 0;
+  let viteServer: { ws: { send: (msg: { type: string }) => void } } | null =
+    null;
+
+  const triggerReload = () => {
+    if (viteServer?.ws) {
+      console.log("🔄 Triggering page reload...");
+      viteServer.ws.send({ type: "full-reload" });
+    }
+  };
 
   const runExport = () => {
     if (isExporting) {
-      return; // Skip if already exporting
+      return;
     }
     isExporting = true;
 
@@ -857,6 +892,7 @@ function databaseWatcherPlugin() {
           console.error("❌ Build failed:", stderr);
         } else {
           console.log(stdout.trim() || "✅ Content rebuilt");
+          triggerReload();
         }
       },
     );
@@ -864,8 +900,12 @@ function databaseWatcherPlugin() {
 
   return {
     name: "database-watcher",
-    configureServer() {
+    configureServer(server: {
+      ws: { send: (msg: { type: string }) => void };
+    }) {
+      viteServer = server;
       const dbPath = resolve(__dirname, "data", "content.db");
+      const buildPath = resolve(__dirname, ".build");
 
       // Get initial mtime
       try {
@@ -875,31 +915,49 @@ function databaseWatcherPlugin() {
       }
 
       // Watch the database file for changes
-      watcher = watch(dbPath, { persistent: false }, (eventType) => {
+      dbWatcher = watch(dbPath, { persistent: false }, (eventType) => {
         if (eventType === "change") {
-          // Check if mtime actually changed (filters out read-only access)
           try {
             const currentMtime = statSync(dbPath).mtimeMs;
             if (currentMtime === lastMtime) {
-              return; // No actual modification, skip
+              return;
             }
             lastMtime = currentMtime;
           } catch {
-            return; // File doesn't exist or can't stat
+            return;
           }
 
-          // Debounce rapid changes
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(runExport, 300);
         }
       });
 
-      console.log("👁️  Watching database for changes...");
+      // Watch .build/ directory for changes (e.g., when prod build recreates it)
+      // This triggers a reload when files are regenerated externally
+      try {
+        buildWatcher = watch(
+          buildPath,
+          { persistent: false, recursive: true },
+          () => {
+            // Debounce to avoid multiple reloads during rebuild
+            if (buildDebounceTimer) clearTimeout(buildDebounceTimer);
+            buildDebounceTimer = setTimeout(triggerReload, 500);
+          },
+        );
+      } catch {
+        // .build/ might not exist yet, that's fine
+      }
+
+      console.log("👁️  Watching database and .build/ for changes...");
     },
     closeBundle() {
-      if (watcher) {
-        watcher.close();
-        watcher = null;
+      if (dbWatcher) {
+        dbWatcher.close();
+        dbWatcher = null;
+      }
+      if (buildWatcher) {
+        buildWatcher.close();
+        buildWatcher = null;
       }
     },
   };
