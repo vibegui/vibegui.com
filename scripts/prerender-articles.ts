@@ -6,18 +6,43 @@
  *
  * Each HTML file has the correct <title>, <meta og:*>, <meta twitter:*>
  * for social sharing, while still loading the same React SPA.
+ *
+ * Note: Reads from exported JSON files (dist/content/manifest.json) instead
+ * of SQLite, so it works in zero-deps environments like Cloudflare Pages.
  */
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAllContent } from "../lib/db/content.ts";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = join(__dirname, "..");
 const DIST_DIR = join(PROJECT_ROOT, "dist");
 const BASE_URL = "https://vibegui.com";
 const DEFAULT_OG_IMAGE = `${BASE_URL}/images/og-default.png`;
+
+interface ArticleMeta {
+  slug: string;
+  title: string;
+  description?: string;
+  date: string;
+  status: "draft" | "published";
+  coverImage?: string;
+}
+
+// Read articles from the exported manifest JSON (no SQLite dependency)
+function getPublishedArticles(): ArticleMeta[] {
+  const manifestPath = join(DIST_DIR, "content", "manifest.json");
+  if (!existsSync(manifestPath)) {
+    throw new Error(
+      "dist/content/manifest.json not found. Run export-content.ts first.",
+    );
+  }
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+  return (manifest.articles || []).filter(
+    (a: ArticleMeta) => a.status === "published",
+  );
+}
 
 // Read the built index.html to extract asset references
 function getBuiltIndexHtml(): string {
@@ -144,11 +169,8 @@ function main() {
   const startTime = performance.now();
   console.log("🖨️  Pre-rendering article HTML files for SEO...\n");
 
-  // Get all published articles
-  const allArticles = getAllContent();
-  const publishedArticles = allArticles.filter(
-    (article) => article.status === "published",
-  );
+  // Get all published articles from exported manifest
+  const publishedArticles = getPublishedArticles();
 
   // Read built index.html and extract assets
   const builtHtml = getBuiltIndexHtml();

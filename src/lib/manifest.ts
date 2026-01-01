@@ -96,6 +96,7 @@ async function loadHashedManifest(): Promise<ContentManifest | null> {
 
 /**
  * Load the content manifest (articles with status field)
+ * Uses hashed manifest path in production for proper cache busting
  */
 export async function loadManifest(): Promise<ContentManifest | null> {
   if (cachedContentManifest) {
@@ -103,7 +104,8 @@ export async function loadManifest(): Promise<ContentManifest | null> {
   }
 
   try {
-    const response = await fetch("/content/manifest.json");
+    const manifestPath = getManifestPath();
+    const response = await fetch(manifestPath);
     if (!response.ok) {
       console.error("Failed to load content manifest:", response.status);
       return null;
