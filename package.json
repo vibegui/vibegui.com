@@ -7,11 +7,11 @@
     "vibegui-mcp": "./server/cli.ts"
   },
   "scripts": {
-    "dev": "bun run export && vite",
-    "build": "bun run export && vite build && bun scripts/hash-content.ts && bun scripts/prerender-articles.ts",
-    "export": "node --experimental-strip-types --experimental-sqlite scripts/export-content.ts",
+    "dev": "bun run content && vite",
+    "build": "bun run content && vite build && bun scripts/hash-content.ts",
+    "content": "node --experimental-strip-types --experimental-sqlite scripts/build-content.ts",
     "preview": "vite preview",
-    "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/export-content.ts && node --experimental-strip-types scripts/hash-content.ts && node --experimental-strip-types --experimental-sqlite scripts/prerender-articles.ts",
+    "pages:build": "node --no-warnings --experimental-strip-types --experimental-sqlite scripts/build-content.ts && node --experimental-strip-types scripts/hash-content.ts",
     "mcp:dev": "bun --watch main.ts",
     "mcp:serve": "bun main.ts",
     "mcp:stdio": "bun server/stdio.ts",

@@ -93,15 +93,88 @@ function processContextDirectory(
   return results;
 }
 
+/**
+ * Extract asset tags from built index.html to inject into article pages
+ */
+function extractAssets(html: string): { styles: string; scripts: string } {
+  // Get script tags with src
+  const scriptTags =
+    html.match(/<script[^>]*src="[^"]*"[^>]*><\/script>/g) || [];
+  // Get stylesheet links pointing to /assets/
+  const styleTags =
+    html.match(/<link[^>]*stylesheet[^>]*href="\/assets\/[^"]*"[^>]*>/g) || [];
+  // Get modulepreload links
+  const preloadTags = html.match(/<link[^>]*modulepreload[^>]*>/g) || [];
+
+  return {
+    styles: [...preloadTags, ...styleTags].join("\n    "),
+    scripts: scriptTags.join("\n    "),
+  };
+}
+
+/**
+ * Process article HTML files - replace dev scripts with prod assets
+ */
+function processArticles(assets: { styles: string; scripts: string }) {
+  const buildArticles = resolve(ROOT, ".build", "article");
+  const distArticles = resolve(DIST, "article");
+
+  if (!existsSync(buildArticles)) return 0;
+
+  // Clean dist/article/
+  if (existsSync(distArticles)) {
+    rmSync(distArticles, { recursive: true });
+  }
+  mkdirSync(distArticles, { recursive: true });
+
+  let count = 0;
+  for (const slug of readdirSync(buildArticles)) {
+    const srcPath = join(buildArticles, slug, "index.html");
+    if (!existsSync(srcPath)) continue;
+
+    let html = readFileSync(srcPath, "utf-8");
+
+    // Replace dev scripts with prod assets
+    html = html.replace(
+      /<script type="module" src="\/@vite\/client"><\/script>\s*<script type="module" src="\/src\/main\.tsx"><\/script>/,
+      `${assets.styles}\n    ${assets.scripts}`,
+    );
+
+    const destDir = join(distArticles, slug);
+    mkdirSync(destDir, { recursive: true });
+    writeFileSync(join(destDir, "index.html"), html);
+    count++;
+  }
+
+  return count;
+}
+
 async function main() {
   const startTime = performance.now();
   console.log("\n🔐 Hashing content files...\n");
 
-  // Copy content from public/ to dist/ (Vite already does this, but ensure it's there)
+  // Copy manifest.json
   console.log("📁 Copying content...");
-  copyDir(resolve(PUBLIC, "content"), resolve(DIST, "content"));
+  const contentDir = resolve(DIST, "content");
+  if (!existsSync(contentDir)) {
+    mkdirSync(contentDir, { recursive: true });
+  }
+  copyFileSync(
+    resolve(PUBLIC, "content", "manifest.json"),
+    resolve(contentDir, "manifest.json"),
+  );
   copyDir(resolve(PUBLIC, "bookmarks"), resolve(DIST, "bookmarks"));
-  console.log("  ✅ Content, bookmarks copied");
+  console.log("  ✅ Manifest, bookmarks copied");
+
+  // Extract assets from built index.html
+  const indexPath = resolve(DIST, "index.html");
+  const indexHtml = readFileSync(indexPath, "utf-8");
+  const assets = extractAssets(indexHtml);
+
+  // Process article HTML files
+  console.log("\n📁 Processing articles...");
+  const articleCount = processArticles(assets);
+  console.log(`  ✅ ${articleCount} article pages processed`);
 
   // Process context files with hashing
   console.log("\n📁 Processing context...");
@@ -135,27 +208,31 @@ async function main() {
 
   // Inject manifest path into index.html
   console.log("\n📝 Updating index.html...");
-  const indexPath = resolve(DIST, "index.html");
-  let indexHtml = readFileSync(indexPath, "utf-8");
-
+  let updatedIndexHtml = indexHtml;
   const manifestScript = `<script>window.__MANIFEST_PATH__="/content/${manifestFileName}";</script>`;
-  indexHtml = indexHtml.replace(
+  updatedIndexHtml = updatedIndexHtml.replace(
     /<script>window\.__MANIFEST_PATH__="[^"]*";<\/script>\n?/g,
     "",
   );
 
-  if (indexHtml.includes("</head>")) {
-    indexHtml = indexHtml.replace("</head>", `${manifestScript}\n</head>`);
+  if (updatedIndexHtml.includes("</head>")) {
+    updatedIndexHtml = updatedIndexHtml.replace(
+      "</head>",
+      `${manifestScript}\n</head>`,
+    );
   } else {
-    indexHtml = indexHtml.replace("<body>", `<body>\n${manifestScript}`);
+    updatedIndexHtml = updatedIndexHtml.replace(
+      "<body>",
+      `<body>\n${manifestScript}`,
+    );
   }
 
-  writeFileSync(indexPath, indexHtml);
+  writeFileSync(indexPath, updatedIndexHtml);
   console.log(`  ✅ Injected manifest path`);
 
   const elapsed = (performance.now() - startTime).toFixed(0);
   console.log(`\n✨ Hash complete (${elapsed}ms)`);
-  console.log(`   Articles: ${finalManifest.articles.length}`);
+  console.log(`   Articles: ${articleCount}`);
   console.log(`   Projects: ${finalManifest.projects.length}`);
   console.log(`   Context: ${contextFiles.length}\n`);
 }

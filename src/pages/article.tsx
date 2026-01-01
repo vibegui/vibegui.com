@@ -1,14 +1,13 @@
 /**
  * Article Page
  *
- * Loads and renders a single article by slug.
- * Fetches JSON content from the exported content files.
+ * SSG: Article data is embedded in the HTML at build time.
+ * Reads from <script id="article-data"> - no fetch needed on initial load.
+ * Falls back to page redirect for SPA navigation (forces SSG page load).
  */
 
-import { useState, useEffect } from "react";
 import { Link } from "../app";
 import { marked } from "marked";
-import { getArticlePath } from "../lib/manifest";
 
 interface ArticleData {
   slug: string;
@@ -18,6 +17,18 @@ interface ArticleData {
   content: string;
   tags?: string[];
   status: "draft" | "published";
+}
+
+// Read embedded article data from SSG HTML
+function getEmbeddedArticle(): ArticleData | null {
+  if (typeof document === "undefined") return null;
+  const script = document.getElementById("article-data");
+  if (!script) return null;
+  try {
+    return JSON.parse(script.textContent || "");
+  } catch {
+    return null;
+  }
 }
 
 function formatDate(dateStr: string): string {
@@ -31,55 +42,20 @@ function formatDate(dateStr: string): string {
 }
 
 export function Article({ slug }: { slug: string }) {
-  const [article, setArticle] = useState<ArticleData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Read embedded data from SSG HTML
+  const article = getEmbeddedArticle();
 
-  useEffect(() => {
-    const loadArticle = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        // Get the path from manifest
-        const articlePath = await getArticlePath(slug);
-        if (!articlePath) {
-          throw new Error("Article not found");
-        }
-
-        const response = await fetch(articlePath);
-        if (!response.ok) {
-          throw new Error("Article not found");
-        }
-
-        const data = await response.json();
-        setArticle(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load article");
-      }
-
-      setLoading(false);
-    };
-
-    loadArticle();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="container py-12">
-        <p className="text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)]">
-          Loading...
-        </p>
-      </div>
-    );
-  }
-
-  if (error || !article) {
+  // No embedded data - article not found or wrong slug
+  if (!article || article.slug !== slug) {
     return (
       <div className="container py-12">
         <h1 className="text-2xl font-bold mb-4">Article not found</h1>
-        <p className="text-[var(--color-fg-muted)] dark:text-[var(--color-dark-fg-muted)] mb-4">
-          {error}
+        <p className="text-[var(--color-fg-muted)] mb-4">
+          Could not load article data. Try{" "}
+          <a href={`/article/${slug}`} className="underline">
+            refreshing the page
+          </a>
+          .
         </p>
         <Link href="/">← Back to home</Link>
       </div>

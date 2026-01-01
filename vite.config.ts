@@ -2,7 +2,7 @@ import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
-import { watch, statSync } from "node:fs";
+import { watch, statSync, existsSync, readFileSync } from "node:fs";
 import { exec } from "node:child_process";
 
 // Load .env file for server-side use
@@ -740,6 +740,89 @@ function bookmarksApiPlugin() {
 }
 
 /**
+ * Plugin to inject article data into HTML in dev mode
+ * Intercepts article requests and serves index.html with injected article data
+ */
+function articleSsgPlugin() {
+  return {
+    name: "article-ssg",
+    configureServer(server: {
+      middlewares: { use: (middleware: Connect.HandleFunction) => void };
+      transformIndexHtml: (url: string, html: string) => Promise<string>;
+    }) {
+      // Use early middleware (before Vite's static file serving)
+      server.middlewares.use(
+        (
+          req: Connect.IncomingMessage,
+          res: import("http").ServerResponse,
+          next: Connect.NextFunction,
+        ) => {
+          const url = req.url || "";
+
+          // Only handle article routes
+          if (!url.startsWith("/article/")) {
+            return next();
+          }
+
+          // Extract slug from URL
+          const slug = url
+            .slice("/article/".length)
+            .replace(/\/$/, "")
+            .split("?")[0];
+          if (!slug) {
+            return next();
+          }
+
+          // Read article data from SSG HTML in .build/article/
+          const articlePath = resolve(
+            __dirname,
+            ".build",
+            "article",
+            slug,
+            "index.html",
+          );
+
+          if (!existsSync(articlePath)) {
+            return next();
+          }
+
+          const ssgHtml = readFileSync(articlePath, "utf-8");
+
+          // Extract the article-data script content
+          const match = ssgHtml.match(
+            /<script id="article-data" type="application\/json">([\s\S]*?)<\/script>/,
+          );
+
+          if (!match) {
+            return next();
+          }
+
+          // Read the SPA index.html
+          const indexPath = resolve(__dirname, "index.html");
+          let indexHtml = readFileSync(indexPath, "utf-8");
+
+          // Inject the article data script (after root div so DOM is ready)
+          const articleScript = `<script id="article-data" type="application/json">${match[1]}</script>`;
+          indexHtml = indexHtml.replace("</body>", `${articleScript}\n</body>`);
+
+          // Transform the HTML through Vite (adds HMR client, etc.)
+          server
+            .transformIndexHtml(url, indexHtml)
+            .then((transformed) => {
+              res.setHeader("Content-Type", "text/html");
+              res.end(transformed);
+            })
+            .catch((err) => {
+              console.error("Transform error:", err);
+              next(err);
+            });
+        },
+      );
+    },
+  };
+}
+
+/**
  * Plugin to watch the SQLite database and auto-export content on changes
  */
 function databaseWatcherPlugin() {
@@ -754,16 +837,16 @@ function databaseWatcherPlugin() {
     }
     isExporting = true;
 
-    console.log("\n🔄 Database changed, exporting content...");
+    console.log("\n🔄 Database changed, rebuilding content...");
     exec(
-      "node --experimental-strip-types --experimental-sqlite scripts/export-content.ts",
+      "node --experimental-strip-types --experimental-sqlite scripts/build-content.ts",
       { cwd: resolve(__dirname) },
       (error, stdout, stderr) => {
         isExporting = false;
         if (error) {
-          console.error("❌ Export failed:", stderr);
+          console.error("❌ Build failed:", stderr);
         } else {
-          console.log(stdout.trim() || "✅ Content exported");
+          console.log(stdout.trim() || "✅ Content rebuilt");
         }
       },
     );
@@ -827,6 +910,7 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    articleSsgPlugin(),
     bookmarksApiPlugin(),
     databaseWatcherPlugin(),
   ],

@@ -38,9 +38,10 @@ dist/bookmarks/
 dist/article/
 dist/.vite/
 
-# Generated JSON from SQLite (regenerated at dev/build time)
+# Generated from SQLite (regenerated at dev/build time)
 public/bookmarks/data.json
 public/content/
+.build/
 
 # Test results
 test-results/
@@ -58,4 +59,5 @@ data/bookmarks.db
 # Local-only learnings database (not versioned - personal memory)
 data/learnings.db
 
-supabase/
+supabase/.build/
+supabase/.temp/

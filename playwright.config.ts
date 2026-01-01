@@ -47,9 +47,10 @@ export default defineConfig({
   ],
 
   // Serve production build for testing
+  // Uses custom preview server that respects SSG article HTML files
   // Assumes `bun run build` already ran (e.g., in pre-commit)
   webServer: {
-    command: `bun run vite preview --port ${E2E_PORT}`,
+    command: `bun scripts/preview-server.ts ${E2E_PORT}`,
     url: `http://localhost:${E2E_PORT}`,
     reuseExistingServer: false,
     timeout: 30 * 1000,
