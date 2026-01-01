@@ -61,7 +61,8 @@ function parseRoute(pathname: string): Route {
     }
   }
   if (pathname.startsWith("/article/")) {
-    const slug = pathname.slice("/article/".length);
+    // Strip trailing slash for consistent comparison with embedded data
+    const slug = pathname.slice("/article/".length).replace(/\/$/, "");
     if (slug) {
       return { type: "article", slug };
     }
