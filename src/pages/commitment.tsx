@@ -22,7 +22,7 @@ export function Commitment() {
               className="w-64 h-64 rounded-md object-cover shrink-0"
               style={{ border: "1px solid var(--color-border)" }}
             />
-            <p
+            <div
               className="prose pl-2"
               style={{ color: "var(--color-fg-muted)" }}
             >
@@ -105,7 +105,7 @@ export function Commitment() {
                   </svg>
                 </a>
               </div>
-            </p>
+            </div>
           </div>
         </section>
 
