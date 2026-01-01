@@ -16,7 +16,7 @@
 
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { join, basename } from "node:path";
+import { join } from "node:path";
 
 // ============================================================
 // Types
@@ -253,7 +253,7 @@ async function callOpenRouter(
   let data: any;
   try {
     data = JSON.parse(responseText);
-  } catch (e) {
+  } catch {
     log("debug", `Raw response: ${responseText.slice(0, 500)}`);
     throw new Error(
       `Failed to parse response as JSON: ${responseText.slice(0, 200)}`,

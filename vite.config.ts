@@ -2,6 +2,8 @@ import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
+import { watch } from "node:fs";
+import { exec } from "node:child_process";
 
 // Load .env file for server-side use
 const env = loadEnv("development", process.cwd(), "");
@@ -738,6 +740,69 @@ function bookmarksApiPlugin() {
 }
 
 /**
+ * Plugin to watch the SQLite database and auto-export content on changes
+ */
+function databaseWatcherPlugin() {
+  let watcher: ReturnType<typeof watch> | null = null;
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+  let isExporting = false;
+  let pendingExport = false; // Track if another export is needed after current one
+
+  const runExport = () => {
+    if (isExporting) {
+      // Mark that we need another export after the current one finishes
+      pendingExport = true;
+      return;
+    }
+    isExporting = true;
+    pendingExport = false;
+
+    console.log("\n🔄 Database changed, exporting content...");
+    exec(
+      "node --experimental-strip-types --experimental-sqlite scripts/export-content.ts",
+      { cwd: resolve(__dirname) },
+      (error, stdout, stderr) => {
+        isExporting = false;
+        if (error) {
+          console.error("❌ Export failed:", stderr);
+        } else {
+          console.log(stdout.trim() || "✅ Content exported");
+        }
+        // If changes happened during export, run again
+        if (pendingExport) {
+          console.log("🔄 Re-exporting (changes detected during export)...");
+          setTimeout(runExport, 100);
+        }
+      },
+    );
+  };
+
+  return {
+    name: "database-watcher",
+    configureServer() {
+      const dbPath = resolve(__dirname, "data", "content.db");
+
+      // Watch the database file for changes
+      watcher = watch(dbPath, { persistent: false }, (eventType) => {
+        if (eventType === "change") {
+          // Debounce rapid changes (e.g., multiple writes in quick succession)
+          if (debounceTimer) clearTimeout(debounceTimer);
+          debounceTimer = setTimeout(runExport, 300);
+        }
+      });
+
+      console.log("👁️  Watching database for changes...");
+    },
+    closeBundle() {
+      if (watcher) {
+        watcher.close();
+        watcher = null;
+      }
+    },
+  };
+}
+
+/**
  * Vite Configuration for vibegui.com
  *
  * Key features:
@@ -746,9 +811,15 @@ function bookmarksApiPlugin() {
  * - Image optimization (configured separately)
  * - Path aliases for clean imports
  * - Auto-generated content manifest
+ * - Auto-export on database changes
  */
 export default defineConfig({
-  plugins: [react(), tailwindcss(), bookmarksApiPlugin()],
+  plugins: [
+    react(),
+    tailwindcss(),
+    bookmarksApiPlugin(),
+    databaseWatcherPlugin(),
+  ],
 
   resolve: {
     alias: {
