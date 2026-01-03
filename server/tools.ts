@@ -8,7 +8,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import { execSync, spawn, type ChildProcess } from "node:child_process";
+import { spawn } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import * as contentDb from "../lib/db/content.ts";
 import * as learningsDb from "../lib/db/learnings.ts";
 import type { Project } from "../lib/db/content.ts";
@@ -16,6 +18,9 @@ import type { Project } from "../lib/db/content.ts";
 // ============================================================================
 // Helper Functions
 // ============================================================================
+
+// Get project root from script location (works when run via stdio from mesh)
+const PROJECT_ROOT = join(import.meta.dir, "..");
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
@@ -27,55 +32,13 @@ function slugify(title: string): string {
     .slice(0, 64);
 }
 
-function getSearchCommand(): "rg" | "grep" {
-  try {
-    execSync("which rg", { encoding: "utf-8", stdio: "pipe" });
-    return "rg";
-  } catch {
-    return "grep";
-  }
-}
-
-function executeSearch(
-  pattern: string,
-  directory: string,
-  contextLines: number,
-  caseSensitive: boolean,
-): string {
-  const caseFlag = caseSensitive ? "" : "-i";
-
-  try {
-    if (getSearchCommand() === "rg") {
-      const cmd = `rg ${caseFlag} -n --context ${contextLines} --color never "${pattern}" "${directory}"`;
-      return execSync(cmd, {
-        cwd: process.cwd(),
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      });
-    } else {
-      const cmd = `grep ${caseFlag} -rn -C ${contextLines} "${pattern}" "${directory}"`;
-      return execSync(cmd, {
-        cwd: process.cwd(),
-        encoding: "utf-8",
-        stdio: ["pipe", "pipe", "pipe"],
-      });
-    }
-  } catch (error) {
-    const execError = error as { stdout?: string; status?: number };
-    if (execError.status === 1) {
-      return "";
-    }
-    throw error;
-  }
-}
-
 /**
  * Trigger content export after changes so dev server picks them up.
  */
 function triggerExport() {
   try {
     spawn("bun", ["run", "export"], {
-      cwd: process.cwd(),
+      cwd: PROJECT_ROOT,
       stdio: "ignore",
       detached: true,
     }).unref();
@@ -111,11 +74,52 @@ function withLogging<T extends Record<string, unknown>>(
 // Register All Tools
 // ============================================================================
 
-let devServerProcess: ChildProcess | null = null;
-
 export function registerTools(server: McpServer): void {
-  const searchCmd = getSearchCommand();
-  console.error(`[MCP] Using search command: ${searchCmd}`);
+  console.error(`[MCP] All tools registered`);
+
+  // =========================================================================
+  // Context Tools
+  // =========================================================================
+
+  server.registerTool(
+    "TONE_OF_VOICE",
+    {
+      title: "Get Tone of Voice",
+      description:
+        "Returns Guilherme's comprehensive tone of voice guide. This forensic analysis contains writing patterns, hook structures, vocabulary, philosophical frameworks, and templates for authentic content creation. Call this BEFORE writing any articles or content.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    withLogging("TONE_OF_VOICE", async () => {
+      const toneOfVoicePath = join(
+        PROJECT_ROOT,
+        "context",
+        "GUILHERME_TONE_OF_VOICE.md",
+      );
+      const content = readFileSync(toneOfVoicePath, "utf-8");
+      return {
+        content: [{ type: "text", text: content }],
+      };
+    }),
+  );
+
+  server.registerTool(
+    "VISUAL_STYLE",
+    {
+      title: "Get Visual Style Guide",
+      description:
+        "Returns vibegui.com's visual style guide for image generation. Retro 1950s comic book / Marvel-DC hero aesthetic with heavy dithering, pixelation, and monochromatic green tones (#1a4d3e background, #c4e538 accent). Call this BEFORE generating any images.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    withLogging("VISUAL_STYLE", async () => {
+      const visualStylePath = join(PROJECT_ROOT, "context", "VISUAL_STYLE.md");
+      const content = readFileSync(visualStylePath, "utf-8");
+      return {
+        content: [{ type: "text", text: content }],
+      };
+    }),
+  );
 
   // =========================================================================
   // Content Tools (Articles)
@@ -209,7 +213,8 @@ export function registerTools(server: McpServer): void {
     "COLLECTION_ARTICLES_CREATE",
     {
       title: "Create Article",
-      description: "Create a new article",
+      description:
+        "Create a new article. IMPORTANT: Call TONE_OF_VOICE first to get Guilherme's writing style guide before creating content.",
       inputSchema: {
         title: z.string(),
         description: z.string().optional(),
@@ -261,7 +266,8 @@ export function registerTools(server: McpServer): void {
     "COLLECTION_ARTICLES_UPDATE",
     {
       title: "Update Article",
-      description: "Update an existing article",
+      description:
+        "Update an existing article. IMPORTANT: Call TONE_OF_VOICE first to get Guilherme's writing style guide before modifying content.",
       inputSchema: {
         id: z.string(),
         title: z.string().optional(),
@@ -631,320 +637,6 @@ export function registerTools(server: McpServer): void {
   );
 
   // =========================================================================
-  // Search Tools
-  // =========================================================================
-
-  server.registerTool(
-    "SEARCH_CONTEXT",
-    {
-      title: "Search Context Files",
-      description:
-        "Search through context/ files for references, concepts, and quotes. Uses ripgrep if available, otherwise grep.",
-      inputSchema: {
-        pattern: z.string().describe("Search pattern (regex supported)"),
-        contextLines: z
-          .number()
-          .default(5)
-          .describe("Lines of context before and after each match"),
-        caseSensitive: z
-          .boolean()
-          .default(false)
-          .describe("Case-sensitive search"),
-      },
-      annotations: { readOnlyHint: true },
-    },
-    withLogging("SEARCH_CONTEXT", async (args) => {
-      const results = executeSearch(
-        args.pattern,
-        "./context",
-        args.contextLines,
-        args.caseSensitive,
-      );
-      const matchCount = results
-        .split("\n")
-        .filter((line) => line.includes(":") && !line.startsWith("--")).length;
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                matches: results || "No matches found",
-                matchCount,
-                searchEngine: getSearchCommand(),
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
-    }),
-  );
-
-  server.registerTool(
-    "SEARCH_CONTENT",
-    {
-      title: "Search Content Files",
-      description:
-        "Search through content/ files (drafts, articles) for references and concepts. Uses ripgrep if available.",
-      inputSchema: {
-        pattern: z.string().describe("Search pattern (regex supported)"),
-        contextLines: z
-          .number()
-          .default(5)
-          .describe("Lines of context before and after each match"),
-        caseSensitive: z
-          .boolean()
-          .default(false)
-          .describe("Case-sensitive search"),
-        collection: z
-          .enum(["all", "drafts", "articles"])
-          .default("all")
-          .describe("Which collection to search"),
-      },
-      annotations: { readOnlyHint: true },
-    },
-    withLogging("SEARCH_CONTENT", async (args) => {
-      const dir =
-        args.collection === "all"
-          ? "./content"
-          : `./content/${args.collection}`;
-      const results = executeSearch(
-        args.pattern,
-        dir,
-        args.contextLines,
-        args.caseSensitive,
-      );
-      const matchCount = results
-        .split("\n")
-        .filter((line) => line.includes(":") && !line.startsWith("--")).length;
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              {
-                matches: results || "No matches found",
-                matchCount,
-                searchEngine: getSearchCommand(),
-              },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
-    }),
-  );
-
-  // =========================================================================
-  // Interactive Development Tools
-  // =========================================================================
-
-  server.registerTool(
-    "DEV_SERVER_START",
-    {
-      title: "Start Dev Server",
-      description: "Start the Vite development server",
-      inputSchema: {},
-      annotations: { readOnlyHint: false },
-    },
-    withLogging("DEV_SERVER_START", async () => {
-      if (devServerProcess) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                url: "http://localhost:4001",
-                message: "Dev server already running",
-              }),
-            },
-          ],
-        };
-      }
-
-      devServerProcess = spawn("bun", ["run", "dev"], {
-        cwd: process.cwd(),
-        stdio: "inherit",
-        detached: false,
-      });
-
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              success: true,
-              url: "http://localhost:4001",
-              message: "Dev server started",
-            }),
-          },
-        ],
-      };
-    }),
-  );
-
-  server.registerTool(
-    "DEV_SERVER_STOP",
-    {
-      title: "Stop Dev Server",
-      description: "Stop the Vite development server",
-      inputSchema: {},
-      annotations: { readOnlyHint: false },
-    },
-    withLogging("DEV_SERVER_STOP", async () => {
-      if (!devServerProcess) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                message: "Dev server not running",
-              }),
-            },
-          ],
-        };
-      }
-
-      devServerProcess.kill();
-      devServerProcess = null;
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({
-              success: true,
-              message: "Dev server stopped",
-            }),
-          },
-        ],
-      };
-    }),
-  );
-
-  server.registerTool(
-    "GIT_STATUS",
-    {
-      title: "Git Status",
-      description: "Get git status - list of changed files",
-      inputSchema: {},
-      annotations: { readOnlyHint: true },
-    },
-    withLogging("GIT_STATUS", async () => {
-      const status = execSync("git status --porcelain", {
-        cwd: process.cwd(),
-        encoding: "utf-8",
-      });
-      const lines = status.split("\n").filter(Boolean);
-      const files = lines.map((line) => line.slice(3));
-      const staged = lines
-        .filter((line) => line[0] !== " " && line[0] !== "?")
-        .map((line) => line.slice(3));
-      const unstaged = lines
-        .filter((line) => line[0] === " " || line[0] === "?" || line[1] !== " ")
-        .map((line) => line.slice(3));
-
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify({ files, staged, unstaged }, null, 2),
-          },
-        ],
-      };
-    }),
-  );
-
-  server.registerTool(
-    "COMMIT",
-    {
-      title: "Git Commit",
-      description: "Stage all changes and commit with a message",
-      inputSchema: {
-        message: z.string().describe("Commit message"),
-      },
-      annotations: { readOnlyHint: false },
-    },
-    withLogging("COMMIT", async (args) => {
-      try {
-        execSync("git add .", { cwd: process.cwd() });
-        execSync(`git commit -m "${args.message}"`, { cwd: process.cwd() });
-        const hash = execSync("git rev-parse --short HEAD", {
-          cwd: process.cwd(),
-          encoding: "utf-8",
-        }).trim();
-        return {
-          content: [
-            { type: "text", text: JSON.stringify({ success: true, hash }) },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: false,
-                error: error instanceof Error ? error.message : String(error),
-              }),
-            },
-          ],
-        };
-      }
-    }),
-  );
-
-  server.registerTool(
-    "PUSH",
-    {
-      title: "Git Push",
-      description: "Push commits to remote",
-      inputSchema: {
-        force: z.boolean().default(false),
-      },
-      annotations: { readOnlyHint: false },
-    },
-    withLogging("PUSH", async (args) => {
-      try {
-        const cmd = args.force ? "git push --force" : "git push";
-        const output = execSync(cmd, { cwd: process.cwd(), encoding: "utf-8" });
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: true,
-                output: output || "Pushed successfully",
-              }),
-            },
-          ],
-        };
-      } catch (error) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({
-                success: false,
-                output: error instanceof Error ? error.message : String(error),
-              }),
-            },
-          ],
-        };
-      }
-    }),
-  );
-
-  // =========================================================================
   // Learnings Tools
   // =========================================================================
 
@@ -1114,32 +806,6 @@ export function registerTools(server: McpServer): void {
   );
 
   server.registerTool(
-    "LEARNINGS_PUBLISHABLE",
-    {
-      title: "Publishable Learnings",
-      description:
-        "Get learnings marked as publishable that haven't been published yet.",
-      inputSchema: {},
-      annotations: { readOnlyHint: true },
-    },
-    withLogging("LEARNINGS_PUBLISHABLE", async () => {
-      const learnings = learningsDb.getPublishableLearnings();
-      return {
-        content: [
-          {
-            type: "text",
-            text: JSON.stringify(
-              { learnings, count: learnings.length },
-              null,
-              2,
-            ),
-          },
-        ],
-      };
-    }),
-  );
-
-  server.registerTool(
     "LEARNINGS_STATS",
     {
       title: "Learnings Stats",
@@ -1152,25 +818,6 @@ export function registerTools(server: McpServer): void {
       return {
         content: [{ type: "text", text: JSON.stringify(stats, null, 2) }],
       };
-    }),
-  );
-
-  server.registerTool(
-    "LEARNINGS_MARK_PUBLISHED",
-    {
-      title: "Mark Learning Published",
-      description: "Mark a learning as published in a specific article.",
-      inputSchema: {
-        id: z.number().describe("Learning ID"),
-        articleSlug: z
-          .string()
-          .describe("Slug of the article it was published in"),
-      },
-      annotations: { readOnlyHint: false },
-    },
-    withLogging("LEARNINGS_MARK_PUBLISHED", async (args) => {
-      const success = learningsDb.markAsPublished(args.id, args.articleSlug);
-      return { content: [{ type: "text", text: JSON.stringify({ success }) }] };
     }),
   );
 
@@ -1385,6 +1032,241 @@ export function registerTools(server: McpServer): void {
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         structuredContent: result,
+      };
+    }),
+  );
+
+  // =========================================================================
+  // Preview & Tunnel Tools
+  // =========================================================================
+
+  // Track running processes
+  let previewProcess: ReturnType<typeof spawn> | null = null;
+  let tunnelProcess: ReturnType<typeof spawn> | null = null;
+  let currentTunnelUrl: string | null = null;
+
+  server.registerTool(
+    "START_PREVIEW_TUNNEL",
+    {
+      title: "Start Preview with Tunnel",
+      description:
+        "Builds the site, starts a preview server, and creates a public tunnel. Returns the public URL for previewing drafts.",
+      inputSchema: {},
+      annotations: { readOnlyHint: false },
+    },
+    withLogging("START_PREVIEW_TUNNEL", async () => {
+      // If already running, just return the URL
+      if (currentTunnelUrl && previewProcess && tunnelProcess) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Preview already running at: ${currentTunnelUrl}`,
+            },
+          ],
+          structuredContent: {
+            url: currentTunnelUrl,
+            status: "already_running",
+          },
+        };
+      }
+
+      // Build first
+      console.error("[MCP] Building site...");
+      const buildResult = await new Promise<{
+        success: boolean;
+        error?: string;
+      }>((resolve) => {
+        const build = spawn("bun", ["run", "build"], {
+          cwd: PROJECT_ROOT,
+          stdio: ["ignore", "pipe", "pipe"],
+        });
+
+        let stderr = "";
+        build.stderr?.on("data", (d) => (stderr += d.toString()));
+
+        build.on("close", (code) => {
+          resolve(
+            code === 0 ? { success: true } : { success: false, error: stderr },
+          );
+        });
+
+        build.on("error", (err) =>
+          resolve({ success: false, error: err.message }),
+        );
+      });
+
+      if (!buildResult.success) {
+        return {
+          content: [
+            { type: "text", text: `Build failed: ${buildResult.error}` },
+          ],
+          structuredContent: {
+            error: buildResult.error,
+            status: "build_failed",
+          },
+        };
+      }
+
+      // Start preview server on port 4002
+      console.error("[MCP] Starting preview server on port 4002...");
+      previewProcess = spawn("bun", ["run", "preview"], {
+        cwd: PROJECT_ROOT,
+        stdio: ["ignore", "pipe", "pipe"],
+        detached: true,
+      });
+
+      // Wait for server to start
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Start tunnel
+      console.error("[MCP] Starting tunnel with deco link...");
+      tunnelProcess = spawn("deco", ["link", "-p", "4002"], {
+        cwd: PROJECT_ROOT,
+        stdio: ["ignore", "pipe", "pipe"],
+        detached: true,
+      });
+
+      // Capture tunnel URL from output
+      currentTunnelUrl = null;
+      const urlPromise = new Promise<string | null>((resolve) => {
+        const timeout = setTimeout(() => resolve(null), 15000);
+
+        const onData = (data: Buffer) => {
+          const text = data.toString();
+          // Look for the deco.host URL
+          const match = text.match(/https:\/\/[^\s]+\.deco\.host/);
+          if (match) {
+            clearTimeout(timeout);
+            currentTunnelUrl = match[0];
+            resolve(match[0]);
+          }
+        };
+
+        tunnelProcess?.stdout?.on("data", onData);
+        tunnelProcess?.stderr?.on("data", onData);
+      });
+
+      const tunnelUrl = await urlPromise;
+
+      if (!tunnelUrl) {
+        // Cleanup on failure
+        previewProcess?.kill();
+        tunnelProcess?.kill();
+        previewProcess = null;
+        tunnelProcess = null;
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Failed to get tunnel URL. Is deco CLI installed?",
+            },
+          ],
+          structuredContent: {
+            error: "Tunnel timeout",
+            status: "tunnel_failed",
+          },
+        };
+      }
+
+      const result = {
+        url: tunnelUrl,
+        previewUrl: `${tunnelUrl}/articles`,
+        status: "running",
+      };
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: `✅ Preview running!\n\n🌐 Public URL: ${tunnelUrl}\n📝 Articles: ${tunnelUrl}/articles\n\nDraft articles are visible at /articles/[slug]`,
+          },
+        ],
+        structuredContent: result,
+      };
+    }),
+  );
+
+  server.registerTool(
+    "GET_PREVIEW_URL",
+    {
+      title: "Get Preview URL",
+      description:
+        "Get the current public preview URL if the tunnel is running.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    withLogging("GET_PREVIEW_URL", async () => {
+      if (currentTunnelUrl && previewProcess && tunnelProcess) {
+        const result = {
+          url: currentTunnelUrl,
+          previewUrl: `${currentTunnelUrl}/articles`,
+          status: "running",
+        };
+        return {
+          content: [
+            { type: "text", text: `Preview running at: ${currentTunnelUrl}` },
+          ],
+          structuredContent: result,
+        };
+      }
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: "No preview tunnel running. Call START_PREVIEW_TUNNEL to start one.",
+          },
+        ],
+        structuredContent: { status: "not_running" },
+      };
+    }),
+  );
+
+  server.registerTool(
+    "STOP_PREVIEW",
+    {
+      title: "Stop Preview Tunnel",
+      description: "Stop the preview server and tunnel.",
+      inputSchema: {},
+      annotations: { readOnlyHint: false },
+    },
+    withLogging("STOP_PREVIEW", async () => {
+      let stopped = false;
+
+      if (previewProcess) {
+        try {
+          process.kill(-previewProcess.pid!);
+        } catch {
+          previewProcess.kill();
+        }
+        previewProcess = null;
+        stopped = true;
+      }
+
+      if (tunnelProcess) {
+        try {
+          process.kill(-tunnelProcess.pid!);
+        } catch {
+          tunnelProcess.kill();
+        }
+        tunnelProcess = null;
+        stopped = true;
+      }
+
+      currentTunnelUrl = null;
+
+      return {
+        content: [
+          {
+            type: "text",
+            text: stopped
+              ? "Preview and tunnel stopped."
+              : "No preview was running.",
+          },
+        ],
+        structuredContent: { stopped, status: "stopped" },
       };
     }),
   );

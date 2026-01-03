@@ -38,7 +38,7 @@ async function main() {
   // Log startup (goes to stderr so it doesn't interfere with stdio protocol)
   console.error("[vibegui] MCP server running via stdio");
   console.error(
-    "[vibegui] Available tool categories: Articles, Content Editing, Search, Scripts, Git, Bookmarks, Learnings, Projects",
+    "[vibegui] Available tool categories: Articles, Content Editing, Scripts, Git, Bookmarks, Learnings, Projects, Preview",
   );
 }
 
