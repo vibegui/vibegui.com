@@ -62,6 +62,7 @@ const manifest = {
     date: c.date,
     status: c.status,
     tags: c.tags,
+    coverImage: c.coverImage,
   })),
   projects: projects,
 };
@@ -98,6 +99,7 @@ function generateArticleHtml(article: Content): string {
     date: article.date,
     status: article.status,
     tags: article.tags,
+    coverImage: article.coverImage,
   }).replace(/<\/script>/gi, "<\\/script>");
 
   return `<!doctype html>

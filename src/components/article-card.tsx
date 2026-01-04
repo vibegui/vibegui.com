@@ -11,6 +11,7 @@ interface ArticleCardProps {
   title: string;
   date: string;
   description?: string | null;
+  coverImage?: string | null;
   featured?: boolean;
 }
 
@@ -29,6 +30,7 @@ export function ArticleCard({
   title,
   date,
   description,
+  coverImage,
   featured = false,
 }: ArticleCardProps) {
   return (
@@ -37,6 +39,16 @@ export function ArticleCard({
     >
       {/* Full page load ensures SSG HTML with embedded data */}
       <a href={`/article/${slug}`} className="block hover:no-underline">
+        {coverImage && (
+          <div className="mb-3 overflow-hidden rounded-lg">
+            <img
+              src={coverImage}
+              alt=""
+              className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              style={{ aspectRatio: "1200 / 630" }}
+            />
+          </div>
+        )}
         <time
           dateTime={date}
           className="text-sm"

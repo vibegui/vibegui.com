@@ -47,12 +47,13 @@
     "typescript": "^5.7.2",
     "vite": "^6.0.6",
     "vite-plugin-imagemin": "^0.6.1",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "zod-to-json-schema": "^3.25.1"
   },
   "optionalDependencies": {
     "@decocms/bindings": "1.0.1-alpha.23",
     "@decocms/runtime": "1.0.0-alpha.39",
-    "@modelcontextprotocol/sdk": "1.20.2",
+    "@modelcontextprotocol/sdk": "1.25.1",
     "@types/plist": "^3.0.5",
     "plist": "^3.1.0"
   },

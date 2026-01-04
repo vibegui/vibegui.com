@@ -12,6 +12,7 @@ export interface ArticleMeta {
   date: string;
   status: "draft" | "published";
   tags?: string[];
+  coverImage?: string;
 }
 
 export interface ActionItem {
@@ -99,6 +100,7 @@ export async function loadManifest(): Promise<ContentManifest | null> {
         date: a.date,
         status: a.status || "published",
         tags: a.tags,
+        coverImage: a.coverImage,
       }),
     );
 

@@ -17,6 +17,7 @@ interface ArticleData {
   content: string;
   tags?: string[];
   status: "draft" | "published";
+  coverImage?: string;
 }
 
 // Read embedded article data from SSG HTML
@@ -80,6 +81,18 @@ export function Article({ slug }: { slug: string }) {
           }}
         >
           📝 Draft - Local Preview Only
+        </div>
+      )}
+
+      {/* Cover image */}
+      {article.coverImage && (
+        <div className="mb-6 -mx-4 md:mx-0 overflow-hidden md:rounded-lg">
+          <img
+            src={article.coverImage}
+            alt=""
+            className="w-full h-auto object-cover"
+            style={{ aspectRatio: "1200 / 630" }}
+          />
         </div>
       )}
 

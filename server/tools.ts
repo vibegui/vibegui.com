@@ -8,12 +8,210 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
+import zodToJsonSchema from "zod-to-json-schema";
 import { spawn } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import * as contentDb from "../lib/db/content.ts";
 import * as learningsDb from "../lib/db/learnings.ts";
 import type { Project } from "../lib/db/content.ts";
+
+// ============================================================================
+// Mesh Bindings Configuration
+// ============================================================================
+
+// Mesh configuration (from env vars set by Mesh when spawning STDIO)
+const meshConfig = {
+  meshUrl: process.env.MESH_URL || "http://localhost:3000",
+  meshToken: process.env.MESH_TOKEN as string | undefined,
+};
+
+// Binding schema for state configuration
+// Uses @deco/nanobanana - Mesh will resolve this from the registry to get the tool definitions
+const ImageGeneratorBinding = z.object({
+  __type: z.literal("@deco/nanobanana").default("@deco/nanobanana"),
+  value: z.string().describe("Connection ID"),
+});
+
+const StateSchema = z.object({
+  IMAGE_GENERATOR: ImageGeneratorBinding.optional().describe(
+    "Nano Banana image generator for cover image generation",
+  ),
+});
+
+// Parse MESH_STATE from env (passed by Mesh when spawning STDIO process)
+interface BindingValue {
+  __type: string;
+  value: string;
+}
+
+function parseBindingsFromEnv(): { imageGenerator?: string } {
+  const meshStateJson = process.env.MESH_STATE;
+  if (!meshStateJson) return {};
+
+  try {
+    const state = JSON.parse(meshStateJson) as Record<string, BindingValue>;
+    return {
+      imageGenerator: state.IMAGE_GENERATOR?.value,
+    };
+  } catch (e) {
+    console.error("[vibegui] Failed to parse MESH_STATE:", e);
+    return {};
+  }
+}
+
+// Initialize bindings from env vars
+const envBindings = parseBindingsFromEnv();
+let imageGeneratorConnectionId: string | undefined = envBindings.imageGenerator;
+
+// Log startup info
+function logStartupInfo() {
+  const hasMeshToken = !!meshConfig.meshToken;
+  const meshStateChars = process.env.MESH_STATE?.length || 0;
+
+  console.error("[vibegui] Mesh configuration:");
+  console.error(`[vibegui]   MESH_URL: ${meshConfig.meshUrl}`);
+  console.error(`[vibegui]   MESH_TOKEN: ${hasMeshToken ? "set" : "not set"}`);
+  console.error(`[vibegui]   MESH_STATE: ${meshStateChars} chars`);
+
+  if (imageGeneratorConnectionId) {
+    console.error("[vibegui] ✅ Bindings from MESH_STATE:");
+    console.error(`[vibegui]   IMAGE_GENERATOR: ${imageGeneratorConnectionId}`);
+  } else if (meshStateChars > 0) {
+    console.error(
+      "[vibegui] ⚠️  MESH_STATE present but IMAGE_GENERATOR not configured",
+    );
+  } else {
+    console.error(
+      "[vibegui] ℹ️  No MESH_STATE (standalone mode or bindings not configured)",
+    );
+  }
+}
+
+// Call this when tools are registered
+logStartupInfo();
+
+// Cover image aspect ratio (16:9 is closest to 1.91:1 OG image standard)
+const COVER_IMAGE_ASPECT_RATIO = "16:9";
+
+/**
+ * Call a tool on a Mesh connection via the proxy API.
+ */
+async function callMeshTool<T = unknown>(
+  connectionId: string,
+  toolName: string,
+  args: Record<string, unknown>,
+): Promise<T> {
+  if (!meshConfig.meshToken) {
+    throw new Error(
+      "Mesh not configured. Configure bindings in Mesh UI first.",
+    );
+  }
+
+  const endpoint = `${meshConfig.meshUrl}/mcp/${connectionId}`;
+
+  console.error(`[vibegui] → ${connectionId.slice(0, 12)}/${toolName}`);
+  const startTime = Date.now();
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+      Authorization: `Bearer ${meshConfig.meshToken}`,
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: Date.now(),
+      method: "tools/call",
+      params: {
+        name: toolName,
+        arguments: args,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(
+      `[vibegui] ✗ ${toolName}: ${response.status} - ${text.slice(0, 100)}`,
+    );
+    throw new Error(`Mesh API error (${response.status}): ${text}`);
+  }
+
+  // Handle both JSON and SSE responses
+  const contentType = response.headers.get("Content-Type") || "";
+
+  let json: {
+    result?: {
+      structuredContent?: T;
+      content?: Array<{
+        type?: string;
+        text?: string;
+        data?: string;
+        mimeType?: string;
+      }>;
+    };
+    error?: { message: string };
+  };
+
+  if (contentType.includes("text/event-stream")) {
+    const text = await response.text();
+    const lines = text.split("\n");
+    const dataLines = lines.filter((line) => line.startsWith("data: "));
+    const lastData = dataLines[dataLines.length - 1];
+    if (!lastData) {
+      throw new Error("Empty SSE response from Mesh API");
+    }
+    json = JSON.parse(lastData.slice(6));
+  } else {
+    json = await response.json();
+  }
+
+  if (json.error) {
+    throw new Error(`Mesh tool error: ${json.error.message}`);
+  }
+
+  const duration = Date.now() - startTime;
+  console.error(`[vibegui] ✓ ${toolName} (${duration}ms)`);
+
+  // Return structured content if available
+  if (json.result?.structuredContent) {
+    return json.result.structuredContent as T;
+  }
+
+  // Process content array
+  const content = json.result?.content;
+  if (content && content.length > 0) {
+    // Look for image content (base64 data) - MCP standard format
+    const imageItem = content.find((c) => c.type === "image" || c.data);
+    if (imageItem?.data && imageItem?.mimeType) {
+      const dataUrl = `data:${imageItem.mimeType};base64,${imageItem.data}`;
+      return { image: dataUrl, mimeType: imageItem.mimeType } as T;
+    }
+
+    // Look for text content
+    const textItem = content.find((c) => c.type === "text" || c.text);
+    if (textItem?.text) {
+      try {
+        const parsed = JSON.parse(textItem.text);
+        // Check if parsed result contains an image
+        if (
+          parsed.image &&
+          typeof parsed.image === "string" &&
+          parsed.image.startsWith("data:")
+        ) {
+          return parsed as T;
+        }
+        return parsed as T;
+      } catch {
+        return { text: textItem.text } as T;
+      }
+    }
+  }
+
+  return null as T;
+}
 
 // ============================================================================
 // Helper Functions
@@ -119,6 +317,79 @@ export function registerTools(server: McpServer): void {
         content: [{ type: "text", text: content }],
       };
     }),
+  );
+
+  // =========================================================================
+  // Mesh Configuration Tools
+  // =========================================================================
+
+  server.registerTool(
+    "MCP_CONFIGURATION",
+    {
+      title: "MCP Configuration",
+      description:
+        "Returns the configuration schema for this MCP server. Called by Mesh to discover available bindings.",
+      inputSchema: {},
+      annotations: { readOnlyHint: true },
+    },
+    async () => {
+      // Convert Zod schema to JSON Schema format for Mesh UI
+      const stateSchema = zodToJsonSchema(StateSchema, {
+        $refStrategy: "none",
+      });
+
+      const result = {
+        stateSchema,
+        // Scopes define which tools vibegui can call on bound connections
+        // Format: "BINDING_KEY::TOOL_NAME"
+        scopes: ["IMAGE_GENERATOR::GENERATE_IMAGE"],
+      };
+
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        structuredContent: result,
+      };
+    },
+  );
+
+  server.registerTool(
+    "ON_MCP_CONFIGURATION",
+    {
+      title: "Receive Configuration",
+      description:
+        "Receive configuration from Mesh. This is called automatically when the MCP is connected to a Mesh instance.",
+      inputSchema: {
+        state: z.record(z.string(), z.unknown()).optional(),
+        meshToken: z.string().optional(),
+        meshUrl: z.string().optional(),
+      },
+    },
+    async (args) => {
+      const { state, meshToken, meshUrl } = args;
+
+      if (meshToken) meshConfig.meshToken = meshToken;
+      if (meshUrl) meshConfig.meshUrl = meshUrl;
+
+      // Parse IMAGE_GENERATOR binding
+      const parsedState = StateSchema.safeParse(state);
+      if (parsedState.success && parsedState.data.IMAGE_GENERATOR?.value) {
+        imageGeneratorConnectionId = parsedState.data.IMAGE_GENERATOR.value;
+      }
+
+      console.error(`[vibegui] ON_MCP_CONFIGURATION received`);
+      console.error(
+        `[vibegui]   meshToken: ${meshToken ? "updated" : "not provided"}`,
+      );
+      console.error(`[vibegui]   meshUrl: ${meshUrl || "not provided"}`);
+      console.error(
+        `[vibegui]   IMAGE_GENERATOR: ${imageGeneratorConnectionId || "not set"}`,
+      );
+
+      return {
+        content: [{ type: "text", text: JSON.stringify({ success: true }) }],
+        structuredContent: { success: true },
+      };
+    },
   );
 
   // =========================================================================
@@ -1268,6 +1539,199 @@ export function registerTools(server: McpServer): void {
         ],
         structuredContent: { stopped, status: "stopped" },
       };
+    }),
+  );
+
+  // =========================================================================
+  // Cover Image Generation Tool
+  // =========================================================================
+
+  server.registerTool(
+    "COVER_IMAGE_GENERATE",
+    {
+      title: "Generate Cover Image",
+      description:
+        "Generate a cover image for an article using the IMAGE_GENERATOR binding (e.g., nanobanana). Automatically applies vibegui.com's visual style (retro comic book aesthetic with green monochrome palette). Saves the image to public/images and links it to the article. Requires IMAGE_GENERATOR binding to be configured in Mesh.",
+      inputSchema: {
+        articleSlug: z
+          .string()
+          .describe("The slug of the article to generate a cover for"),
+        concept: z
+          .string()
+          .describe(
+            "Brief description of the main concept/subject for the image (e.g., 'AI robot helper', 'developer coding', 'startup rocket launch')",
+          ),
+        model: z
+          .enum([
+            "gemini-2.5-flash-image-preview",
+            "gemini-3-pro-image-preview",
+          ])
+          .default("gemini-2.5-flash-image-preview")
+          .describe("AI model to use for generation"),
+      },
+      annotations: { readOnlyHint: false },
+    },
+    withLogging("COVER_IMAGE_GENERATE", async (args) => {
+      // Check if IMAGE_GENERATOR binding is configured
+      if (!imageGeneratorConnectionId) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: "Error: IMAGE_GENERATOR binding not configured. Configure the nanobanana connection in Mesh UI and set it as the IMAGE_GENERATOR binding.",
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Verify article exists
+      const article = contentDb.getContentBySlug(args.articleSlug);
+      if (!article) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: Article not found: ${args.articleSlug}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+
+      // Read the visual style guide
+      const visualStylePath = join(PROJECT_ROOT, "context", "VISUAL_STYLE.md");
+      const visualStyle = readFileSync(visualStylePath, "utf-8");
+
+      // Build the prompt with visual style baked in
+      const prompt = `Create a landscape digital artwork (1200x630) for a blog article cover image.
+
+SUBJECT: ${args.concept}
+
+VISUAL STYLE (MUST FOLLOW EXACTLY):
+${visualStyle}
+
+The image must:
+- Be in retro 1950s-60s comic book style with deep forest green background (hex #1a4d3e)
+- Have bright lime-green accents (hex #c4e538) for highlights and glowing elements
+- Use ONLY monochromatic green palette - no other colors
+- Include heavy dithering patterns, halftone dots, pixelation effects
+- Have CRT scanline effects and film grain texture
+- Use bold, dramatic composition with noir lighting
+- NO text or words in the image
+- Capture the essence of: ${article.title}`;
+
+      try {
+        // Call the IMAGE_GENERATOR binding's GENERATE_IMAGE tool via Mesh
+        const result = await callMeshTool<{
+          image?: string;
+          error?: boolean;
+          finishReason?: string;
+        }>(imageGeneratorConnectionId, "GENERATE_IMAGE", {
+          prompt,
+          aspectRatio: COVER_IMAGE_ASPECT_RATIO,
+          model: args.model,
+        });
+
+        if (result.error || !result.image) {
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Error: Image generation failed. Reason: ${result.finishReason || "unknown"}`,
+              },
+            ],
+            isError: true,
+          };
+        }
+
+        // The image comes as a URL (presigned or data URL) from nanobanana
+        const imageUrl = result.image;
+
+        // Download or decode the image
+        let imageBuffer: Buffer;
+
+        if (imageUrl.startsWith("data:")) {
+          // Base64 data URL
+          const base64Data = imageUrl.split(",")[1];
+          imageBuffer = Buffer.from(base64Data, "base64");
+        } else {
+          // HTTP URL - download using curl (more reliable for presigned URLs than Bun's fetch)
+          try {
+            const { execSync } = await import("node:child_process");
+            const result = execSync(`curl -sS -L -o - "${imageUrl}"`, {
+              maxBuffer: 50 * 1024 * 1024, // 50MB
+              encoding: "buffer",
+            });
+            imageBuffer = Buffer.from(result);
+          } catch {
+            // Fallback to fetch if curl fails
+            const imageResponse = await fetch(imageUrl, { method: "GET" });
+            if (!imageResponse.ok) {
+              const errorText = await imageResponse.text().catch(() => "");
+              return {
+                content: [
+                  {
+                    type: "text",
+                    text: `Error downloading image: ${imageResponse.status} - ${errorText.slice(0, 200)}`,
+                  },
+                ],
+                isError: true,
+              };
+            }
+            imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+          }
+        }
+
+        // Ensure images directory exists
+        const imagesDir = join(PROJECT_ROOT, "public", "images");
+        if (!existsSync(imagesDir)) {
+          mkdirSync(imagesDir, { recursive: true });
+        }
+
+        // Save the image
+        const filename = `cover-${args.articleSlug}.png`;
+        const imagePath = join(imagesDir, filename);
+        writeFileSync(imagePath, imageBuffer);
+
+        // Update the article with the cover image path
+        const coverImageUrl = `/images/${filename}`;
+        contentDb.updateContent(args.articleSlug, {
+          coverImage: coverImageUrl,
+        });
+
+        // Trigger export to update manifest
+        triggerExport();
+
+        const toolResult = {
+          success: true,
+          coverImage: coverImageUrl,
+          articleSlug: args.articleSlug,
+          articleTitle: article.title,
+          model: args.model,
+          finishReason: result.finishReason,
+        };
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: `✅ Cover image generated and saved!\n\n📷 Path: ${coverImageUrl}\n📝 Article: ${article.title}\n🎨 Model: ${args.model}`,
+            },
+          ],
+          structuredContent: toolResult,
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error generating image: ${error instanceof Error ? error.message : String(error)}`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }),
   );
 

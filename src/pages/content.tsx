@@ -139,6 +139,7 @@ export function Content() {
                       title={article.title}
                       date={article.date}
                       description={article.description}
+                      coverImage={article.coverImage}
                       featured={false}
                     />
                   </div>
@@ -173,6 +174,7 @@ export function Content() {
                     title={article.title}
                     date={article.date}
                     description={article.description}
+                    coverImage={article.coverImage}
                     featured={index === 0 && !hasDrafts}
                   />
                 ))}
