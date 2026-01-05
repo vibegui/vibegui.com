@@ -1,0 +1,75 @@
+{
+  "id": "create-article-research",
+  "title": "Article Research",
+  "description": "Research a topic objectively. Gathers facts from online sources and local project files. Research should be fair, balanced, and focus on accuracy rather than style.",
+  "steps": [
+    {
+      "name": "research_local",
+      "description": "Read relevant project documentation if the topic relates to a known project",
+      "action": {
+        "type": "llm",
+        "prompt": "The user wants to write about this topic:\n\n@input.topic\n@input.message\n\nCheck if this topic relates to any of these projects:\n\n**Key Projects (use FULL ABSOLUTE PATHS):**\n- /Users/guilherme/Projects/mesh - MCP Mesh platform\n- /Users/guilherme/Projects/mesh-bridge - WhatsApp integration bridge\n- /Users/guilherme/Projects/mcps/pilot - Pilot AI agent\n- /Users/guilherme/Projects/vibegui.com - Personal blog/website\n\nIf the topic relates to any project:\n1. Use LIST_FILES with the FULL ABSOLUTE PATH (e.g., `/Users/guilherme/Projects/mesh`)\n2. Use READ_FILE to read relevant files (README.md, docs/, etc.)\n3. Extract key technical details, features, and context\n\nIf the topic does NOT relate to any project, just respond: \"No local project context needed.\"\n\nReturn a summary of what you found.",
+        "model": "fast",
+        "tools": ["READ_FILE", "LIST_FILES"],
+        "maxIterations": 10
+      },
+      "input": {
+        "topic": "@input.topic",
+        "message": "@input.message"
+      },
+      "config": {
+        "continueOnError": true
+      }
+    },
+    {
+      "name": "research_online",
+      "description": "Research the topic objectively using Perplexity",
+      "action": {
+        "type": "llm",
+        "prompt": "Research the following topic for an article. Be objective, fair, and thorough.\n\n**Topic:**\n@input.topic\n@input.message\n\n**Local Project Context:**\n@research_local.response\n\nSearch for:\n- Key facts and statistics (with sources)\n- Recent developments and current state of the field\n- Multiple perspectives and viewpoints (including opposing ones)\n- Practical examples and real-world applications\n- Expert opinions from credible sources\n- Common misconceptions or nuances worth noting\n\nCall perplexity_search with a specific query string based on the topic. Focus on accuracy and completeness over any particular angle.",
+        "model": "fast",
+        "tools": ["perplexity_search"],
+        "maxIterations": 5
+      },
+      "input": {
+        "topic": "@input.topic",
+        "message": "@input.message",
+        "localContext": "@research_local.response"
+      }
+    },
+    {
+      "name": "format_summary",
+      "description": "Format a research summary for the user",
+      "action": {
+        "type": "template",
+        "template": "📚 **Research Complete: @input.topic**\n\n---\n\n## 📁 Local Project Context\n\n@research_local.response\n\n---\n\n## 🌐 Online Research\n\n@research_online.response\n\n---\n\n**Ready to draft?** Reply with:\n- `draft this` to create the article\n- Or provide additional guidance"
+      },
+      "input": {
+        "topic": "@input.topic",
+        "onlineResearch": "@research_online.response",
+        "localResearch": "@research_local.response"
+      }
+    }
+  ],
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "topic": {
+        "type": "string",
+        "description": "The topic or theme of the article to research. Can be the user's full message."
+      },
+      "message": {
+        "type": "string",
+        "description": "Alternative: the raw user message (used as topic if topic not provided)"
+      }
+    }
+  },
+  "nextWorkflows": [
+    {
+      "id": "create-article-draft",
+      "trigger": "draft this",
+      "description": "Create article drafts based on the research"
+    }
+  ],
+  "chainContext": "After this workflow completes, the user may say 'draft this' or 'continue' to proceed to 'create-article-draft' workflow, passing the research results."
+}
