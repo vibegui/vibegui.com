@@ -1,0 +1,74 @@
+{
+  "id": "quick-draft",
+  "title": "Quick Draft",
+  "description": "Quickly write and save an article draft without extensive research",
+  "steps": [
+    {
+      "name": "plan",
+      "description": "Plan the article structure",
+      "action": {
+        "type": "llm",
+        "prompt": "Plan a quick article about the following topic.\n\nTopic: @input.theme\nNotes: @input.notes\n\nYou MUST respond with ONLY a valid JSON object (no markdown, no explanation) like this:\n{\n  \"title\": \"A catchy, engaging title\",\n  \"description\": \"1-2 sentence summary for SEO\",\n  \"sections\": [\"Section 1\", \"Section 2\", \"Section 3\"],\n  \"hook\": \"The opening hook paragraph\",\n  \"conclusion\": \"The closing message\"\n}",
+        "model": "fast",
+        "maxIterations": 1
+      },
+      "input": {
+        "theme": "@input.theme",
+        "notes": "@input.notes"
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["title", "description", "sections"],
+        "properties": {
+          "title": { "type": "string" },
+          "description": { "type": "string" },
+          "sections": { "type": "array" },
+          "hook": { "type": "string" },
+          "conclusion": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "write_draft",
+      "description": "Write the article draft",
+      "action": {
+        "type": "llm",
+        "prompt": "Write a quick draft article based on this plan:\n\nTitle: @plan.title\nDescription: @plan.description\nSections: @plan.sections\nHook: @plan.hook\nConclusion: @plan.conclusion\n\nTopic: @input.theme\nNotes: @input.notes\n\nFollow the planned structure. Write in a conversational, engaging style. The draft should be:\n- 300-500 words\n- Use the planned title, sections, hook, and conclusion\n- Ready to be refined later\n\nOutput ONLY the article content in markdown format (starting with # Title).",
+        "model": "fast",
+        "maxIterations": 1
+      },
+      "input": {
+        "plan": "@plan",
+        "theme": "@input.theme",
+        "notes": "@input.notes"
+      }
+    },
+    {
+      "name": "create_article",
+      "description": "Save the draft to the CMS",
+      "action": {
+        "type": "tool",
+        "toolName": "COLLECTION_ARTICLES_CREATE"
+      },
+      "input": {
+        "title": "@plan.title",
+        "description": "@plan.description",
+        "content": "@write_draft.response",
+        "status": "draft"
+      }
+    },
+    {
+      "name": "format_response",
+      "description": "Format a nice response for the user",
+      "action": {
+        "type": "template",
+        "template": "✅ **Draft created!**\n\n📝 **@plan.title**\n\n> @plan.description\n\n---\n\n@write_draft.response\n\n---\n\n🔗 Slug: `@create_article.item.id`\n📊 Status: draft"
+      },
+      "input": {
+        "plan": "@plan",
+        "article": "@create_article",
+        "content": "@write_draft.response"
+      }
+    }
+  ]
+}

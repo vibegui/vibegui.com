@@ -1,0 +1,62 @@
+{
+  "id": "create-article-finalize",
+  "title": "Finalize Article",
+  "description": "Generate cover image and publish an existing draft article.",
+  "steps": [
+    {
+      "name": "get_article",
+      "description": "Load the article from the CMS",
+      "action": {
+        "type": "tool",
+        "toolName": "COLLECTION_ARTICLES_GET"
+      },
+      "input": {
+        "id": "@input.articleSlug"
+      }
+    },
+    {
+      "name": "generate_cover",
+      "description": "Generate a cover image for the article",
+      "action": {
+        "type": "llm",
+        "prompt": "Generate a cover image for the article.\n\nArticle Title: @get_article.title\nArticle Description: @get_article.description\nSlug: @input.articleSlug\n\nCreate a concept that visually captures the essence of the article. Use the COVER_IMAGE_GENERATE tool with the articleSlug and a brief concept description.",
+        "model": "fast",
+        "tools": ["COVER_IMAGE_GENERATE"],
+        "maxIterations": 3
+      },
+      "input": {
+        "slug": "@input.articleSlug",
+        "title": "@get_article.title",
+        "description": "@get_article.description"
+      },
+      "config": {
+        "continueOnError": true
+      }
+    },
+    {
+      "name": "publish_article",
+      "description": "Set the article status to published",
+      "action": {
+        "type": "tool",
+        "toolName": "COLLECTION_ARTICLES_UPDATE"
+      },
+      "input": {
+        "id": "@input.articleSlug",
+        "status": "published"
+      }
+    },
+    {
+      "name": "format_response",
+      "description": "Format the success response",
+      "action": {
+        "type": "template",
+        "template": "🎉 **Article Published!**\n\n📝 **@get_article.title**\n\n> @get_article.description\n\n---\n\n🔗 Slug: `@input.articleSlug`\n📊 Status: **published**\n🖼️ Cover: Generated\n\n✅ Your article is now live!"
+      },
+      "input": {
+        "slug": "@input.articleSlug",
+        "title": "@get_article.title",
+        "description": "@get_article.description"
+      }
+    }
+  ]
+}

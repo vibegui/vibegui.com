@@ -1,0 +1,141 @@
+{
+  "id": "create-article-draft",
+  "title": "Article Draft",
+  "description": "Create article drafts from research. Reads research from a previous task or accepts it as input.",
+  "steps": [
+    {
+      "name": "load_research",
+      "description": "Load research from previous task if taskId provided",
+      "action": {
+        "type": "llm",
+        "prompt": "Load the research data from a previous task.\n\nTask ID: @input.researchTaskId\n\nUse check_task to get the task details. Extract:\n- The online research (from research_online step)\n- The local project context (from research_local step)\n- The original theme and intention\n\nReturn a JSON object with: { theme, intention, onlineResearch, localResearch }",
+        "model": "fast",
+        "tools": ["check_task"],
+        "maxIterations": 2
+      },
+      "input": {
+        "researchTaskId": "@input.researchTaskId"
+      },
+      "config": {
+        "skipIf": "empty:@input.researchTaskId"
+      }
+    },
+    {
+      "name": "read_tone",
+      "description": "Read the author's tone of voice guide",
+      "action": {
+        "type": "tool",
+        "toolName": "TONE_OF_VOICE"
+      },
+      "input": {}
+    },
+    {
+      "name": "create_plan",
+      "description": "Create a detailed article plan",
+      "action": {
+        "type": "llm",
+        "prompt": "Create a detailed article plan based on the research.\n\nTheme: @input.theme\nIntention: @input.intention\n\nOnline Research:\n@input.onlineResearch\n\nLocal Project Context:\n@input.localResearch\n\nTone of Voice:\n@read_tone.content\n\nCreate a plan with:\n1. Target audience\n2. Article structure (sections)\n3. Key points to cover (from research AND project context)\n4. Hook ideas\n5. Unique angle\n6. Call to action\n\nOutput as JSON: { audience, structure, keyPoints, hookIdeas, uniqueAngle, callToAction }",
+        "model": "fast",
+        "maxIterations": 1
+      },
+      "input": {
+        "theme": "@input.theme",
+        "intention": "@input.intention",
+        "onlineResearch": "@input.onlineResearch",
+        "localResearch": "@input.localResearch",
+        "toneOfVoice": "@read_tone.content"
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": ["audience", "structure", "keyPoints"],
+        "properties": {
+          "audience": { "type": "string" },
+          "structure": { "type": "array" },
+          "keyPoints": { "type": "array" },
+          "hookIdeas": { "type": "array" },
+          "uniqueAngle": { "type": "string" },
+          "callToAction": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "draft_analytical",
+      "description": "Generate first draft (analytical style)",
+      "action": {
+        "type": "llm",
+        "prompt": "Write a complete first draft of the article. Focus on being ANALYTICAL and INFORMATIVE.\n\nTheme: @input.theme\nPlan: @create_plan.response\nResearch: @input.onlineResearch\nProject Context: @input.localResearch\nTone of Voice: @read_tone.content\n\nWrite the full article in markdown format. Be thorough, use examples, and follow the tone of voice guide closely. This draft should prioritize depth and clarity.",
+        "model": "smart",
+        "maxIterations": 1
+      },
+      "input": {
+        "theme": "@input.theme",
+        "plan": "@create_plan",
+        "research": "@input.onlineResearch",
+        "context": "@input.localResearch",
+        "toneOfVoice": "@read_tone.content"
+      }
+    },
+    {
+      "name": "draft_engaging",
+      "description": "Generate second draft (engaging style)",
+      "action": {
+        "type": "llm",
+        "prompt": "Write a complete second draft of the article. Focus on being ENGAGING and CONVERSATIONAL.\n\nTheme: @input.theme\nPlan: @create_plan.response\nResearch: @input.onlineResearch\nProject Context: @input.localResearch\nTone of Voice: @read_tone.content\n\nWrite the full article in markdown format. Be punchy, use hooks, tell stories, and make it feel like a conversation. This draft should prioritize engagement and readability.",
+        "model": "smart",
+        "maxIterations": 1
+      },
+      "input": {
+        "theme": "@input.theme",
+        "plan": "@create_plan",
+        "research": "@input.onlineResearch",
+        "context": "@input.localResearch",
+        "toneOfVoice": "@read_tone.content"
+      }
+    },
+    {
+      "name": "merge_drafts",
+      "description": "Merge the two drafts into the best version",
+      "action": {
+        "type": "llm",
+        "prompt": "You are an expert editor. Merge these two drafts into the BEST possible article.\n\nTheme: @input.theme - @input.intention\n\nDraft 1 (Analytical):\n@draft_analytical.response\n\nDraft 2 (Engaging):\n@draft_engaging.response\n\nTone of Voice Guide:\n@read_tone.content\n\nCreate a final article that:\n- Takes the best elements from both drafts\n- Maintains analytical depth\n- Incorporates engaging style\n- Follows the tone of voice guide precisely\n- Is polished, coherent, and publication-ready\n\nOutput ONLY the final article in markdown format.",
+        "model": "fast",
+        "maxIterations": 1
+      },
+      "input": {
+        "theme": "@input.theme",
+        "intention": "@input.intention",
+        "draft1": "@draft_analytical.response",
+        "draft2": "@draft_engaging.response",
+        "toneOfVoice": "@read_tone.content"
+      }
+    },
+    {
+      "name": "save_draft",
+      "description": "Save the draft to the CMS",
+      "action": {
+        "type": "llm",
+        "prompt": "Create the article using the COLLECTION_ARTICLES_CREATE tool.\n\nContent: @merge_drafts.response\nTheme: @input.theme\n\nGenerate a compelling title from the content.\nWrite a 1-2 sentence description for SEO.\nSuggest relevant tags.\n\nUse status 'draft'.",
+        "model": "fast",
+        "tools": ["COLLECTION_ARTICLES_CREATE"],
+        "maxIterations": 3
+      },
+      "input": {
+        "content": "@merge_drafts.response",
+        "theme": "@input.theme"
+      }
+    },
+    {
+      "name": "format_response",
+      "description": "Format the response for the user",
+      "action": {
+        "type": "template",
+        "template": "✅ **Draft Created!**\n\n📝 **@input.theme**\n\n---\n\n@merge_drafts.response\n\n---\n\n🔗 Slug: `@save_draft.item.id`\n📊 Status: draft\n\n**Ready to publish?** Reply with:\n- `finalize @save_draft.item.id` to generate cover image and publish"
+      },
+      "input": {
+        "theme": "@input.theme",
+        "content": "@merge_drafts.response",
+        "article": "@save_draft"
+      }
+    }
+  ]
+}

@@ -8,10 +8,10 @@
       "description": "Read relevant project documentation if the topic relates to a known project",
       "action": {
         "type": "llm",
-        "prompt": "The user wants to write about this topic:\n\n@input.topic\n@input.message\n\nCheck if this topic relates to any of these projects:\n\n**Key Projects (use FULL ABSOLUTE PATHS):**\n- /Users/guilherme/Projects/mesh - MCP Mesh platform\n- /Users/guilherme/Projects/mesh-bridge - WhatsApp integration bridge\n- /Users/guilherme/Projects/mcps/pilot - Pilot AI agent\n- /Users/guilherme/Projects/vibegui.com - Personal blog/website\n\nIf the topic relates to any project:\n1. Use LIST_FILES with the FULL ABSOLUTE PATH (e.g., `/Users/guilherme/Projects/mesh`)\n2. Use READ_FILE to read relevant files (README.md, docs/, etc.)\n3. Extract key technical details, features, and context\n\nIf the topic does NOT relate to any project, just respond: \"No local project context needed.\"\n\nReturn a summary of what you found.",
+        "prompt": "The user wants to write about this topic:\n\n@input.topic\n@input.message\n\nCheck if this topic relates to any of these projects:\n\n**Key Projects:**\n- `/Users/guilherme/Projects/mesh` - MCP Mesh platform\n- `/Users/guilherme/Projects/mesh-bridge` - WhatsApp integration bridge\n- `/Users/guilherme/Projects/mcps/pilot` - Pilot AI agent\n- `/Users/guilherme/Projects/vibegui.com` - Personal blog/website\n\n**TOOL USAGE (use exact argument format):**\n\n1. LIST_FILES - List directory contents\n   Call: `LIST_FILES({ \"path\": \"/Users/guilherme/Projects/mesh\" })`\n   \n2. READ_FILE - Read file contents\n   Call: `READ_FILE({ \"path\": \"/Users/guilherme/Projects/mesh/README.md\" })`\n\n**Instructions:**\n1. Identify which project(s) relate to the topic\n2. Call LIST_FILES with `{ \"path\": \"<project-path>\" }` to see structure\n3. Call READ_FILE with `{ \"path\": \"<file-path>\" }` to read README.md, docs/, architecture files\n4. Extract key technical details, features, and context\n\nIf the topic does NOT relate to any project, just respond: \"No local project context needed.\"\n\nReturn a summary of what you found.",
         "model": "fast",
         "tools": ["READ_FILE", "LIST_FILES"],
-        "maxIterations": 10
+        "maxIterations": 20
       },
       "input": {
         "topic": "@input.topic",
@@ -26,10 +26,10 @@
       "description": "Research the topic objectively using Perplexity",
       "action": {
         "type": "llm",
-        "prompt": "Research the following topic for an article. Be objective, fair, and thorough.\n\n**Topic:**\n@input.topic\n@input.message\n\n**Local Project Context:**\n@research_local.response\n\nSearch for:\n- Key facts and statistics (with sources)\n- Recent developments and current state of the field\n- Multiple perspectives and viewpoints (including opposing ones)\n- Practical examples and real-world applications\n- Expert opinions from credible sources\n- Common misconceptions or nuances worth noting\n\nCall perplexity_search with a specific query string based on the topic. Focus on accuracy and completeness over any particular angle.",
+        "prompt": "Research the following topic for an article. Be objective, fair, and thorough.\n\n**Topic:**\n@input.topic\n@input.message\n\n**Local Project Context:**\n@research_local.response\n\n**TOOL USAGE:**\nCall: `perplexity_search({ \"query\": \"your search query here\" })`\n\n**Search for:**\n- Key facts and statistics (with sources)\n- Recent developments and current state of the field\n- Multiple perspectives and viewpoints (including opposing ones)\n- Practical examples and real-world applications\n- Expert opinions from credible sources\n- Common misconceptions or nuances worth noting\n\nFocus on accuracy and completeness over any particular angle.",
         "model": "fast",
         "tools": ["perplexity_search"],
-        "maxIterations": 5
+        "maxIterations": 20
       },
       "input": {
         "topic": "@input.topic",
