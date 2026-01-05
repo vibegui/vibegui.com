@@ -1,23 +1,23 @@
 {
   "id": "create-article-draft",
   "title": "Article Draft",
-  "description": "Create article drafts from research. Reads research from a previous task or accepts it as input.",
+  "description": "Create article drafts from research. Can load research from a previous task or accept it as input.",
   "steps": [
     {
       "name": "load_research",
       "description": "Load research from previous task if taskId provided",
       "action": {
         "type": "llm",
-        "prompt": "Load the research data from a previous task.\n\nTask ID: @input.researchTaskId\n\nUse check_task to get the task details. Extract:\n- The online research (from research_online step)\n- The local project context (from research_local step)\n- The original theme and intention\n\nReturn a JSON object with: { theme, intention, onlineResearch, localResearch }",
+        "prompt": "Load the research data from a previous task.\n\n**TOOL USAGE:**\nCall: `check_task({ \"taskId\": \"@input.researchTaskId\" })`\n\nExtract from the task result:\n- The online research (from research_online step)\n- The local project context (from research_local step)\n- The original theme/topic\n\nReturn a summary combining all the research.",
         "model": "fast",
         "tools": ["check_task"],
-        "maxIterations": 2
+        "maxIterations": 3
       },
       "input": {
         "researchTaskId": "@input.researchTaskId"
       },
       "config": {
-        "skipIf": "empty:@input.researchTaskId"
+        "continueOnError": true
       }
     },
     {
@@ -137,5 +137,31 @@
         "article": "@save_draft"
       }
     }
-  ]
+  ],
+  "inputSchema": {
+    "type": "object",
+    "required": ["theme"],
+    "properties": {
+      "theme": {
+        "type": "string",
+        "description": "The main theme/topic of the article"
+      },
+      "intention": {
+        "type": "string",
+        "description": "The author's intention or angle for the article"
+      },
+      "onlineResearch": {
+        "type": "string",
+        "description": "Research from online sources (Perplexity, etc.)"
+      },
+      "localResearch": {
+        "type": "string",
+        "description": "Research from local project files"
+      },
+      "message": {
+        "type": "string",
+        "description": "The user's original message (used as theme if theme not provided)"
+      }
+    }
+  }
 }
