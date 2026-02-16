@@ -1,12 +1,12 @@
-# vibegui.com — Migration Completion
+# vibegui.com — Migration Completion & Supabase-First Articles
 
 ## What This Is
 
-A personal website and blog (vibegui.com) that was migrated from SQLite-backed content to markdown files. The migration was started weeks ago but left half-done with broken references, deleted files still referenced in configs, and unstaged changes. This project finishes the job: verify everything works, clean up dead artifacts, update docs, set up Supabase MCP, and commit.
+A personal website and blog (vibegui.com) completing its migration from SQLite to a Supabase-first architecture. Articles live in Supabase as the source of truth (agents read/write there), with a sync script exporting to markdown files for the static build and deploy pipeline. This project finishes the half-done migration cleanup, sets up Supabase MCP access, establishes the DB→file sync pipeline, and verifies everything works end-to-end.
 
 ## Core Value
 
-The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies — articles from markdown, bookmarks from Supabase.
+The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies. Supabase is the single source of truth for both articles and bookmarks. Markdown files are a build artifact synced from the database.
 
 ## Requirements
 
@@ -31,10 +31,14 @@ The site builds and deploys cleanly on Cloudflare Pages with zero SQLite depende
 - [ ] Pre-commit hook (`lefthook.yml`) stages correct files
 - [ ] Supabase MCP configured with vibegui database credentials
 - [ ] Supabase database explored — confirm what tables exist and their current state
+- [ ] Articles table in Supabase verified/created as source of truth
+- [ ] Sync script: Supabase articles → `blog/articles/*.md` for build pipeline
+- [ ] Existing markdown articles imported to Supabase (if not already there)
+- [ ] Build pipeline works end-to-end: Supabase → sync → generate → build → dist
 
 ### Out of Scope
 
-- New features or functionality — this is purely migration completion
+- New features beyond what's needed for the Supabase-first pipeline
 - Deploying to Cloudflare Pages — just verify the build works locally
 - Migrating bookmarks away from Supabase — they stay in Supabase
 
@@ -57,7 +61,8 @@ The site builds and deploys cleanly on Cloudflare Pages with zero SQLite depende
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Markdown files over SQLite for articles | Simpler deploys (no binary DB), git-trackable content, CF Pages compatible | — Pending (verifying) |
+| Supabase as article source of truth | Agents interact with DB directly; sync script exports to markdown for builds | — Pending |
+| Markdown files as build artifact (not source) | Generated from Supabase, committed for deploy. Git tracks output, not input. | — Pending |
 | Supabase for bookmarks | Already migrated, works well for dynamic data with client-side queries | ✓ Good |
 | Keep backup/restore scripts | `scripts/backup-supabase.ts` and `scripts/restore-supabase.ts` still useful | ✓ Good |
 
