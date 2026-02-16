@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies. Supabase is the single source of truth for both articles and bookmarks.
-**Current focus:** Phase 3 complete, ready for Phase 4
+**Current focus:** Phase 4 complete, ready for Phase 5
 
 ## Current Position
 
-Phase: 3 of 5 (Supabase Schema & Import) COMPLETE
-Plan: 2 of 2 in current phase (COMPLETE)
-Status: Phase 3 Complete
-Last activity: 2026-02-16 — Executed 03-02-PLAN.md (Article import: 52 articles with tags into Supabase)
+Phase: 4 of 5 (Sync Pipeline) COMPLETE
+Plan: 1 of 1 in current phase (COMPLETE)
+Status: Phase 4 Complete
+Last activity: 2026-02-16 — Executed 04-01-PLAN.md (DB-to-markdown sync with hash diffing)
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
+- Total plans completed: 5
 - Average duration: 5 min
-- Total execution time: 0.35 hours
+- Total execution time: 0.38 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [████████░░] 80%
 | 01-migration-cleanup | 1 | 3 min | 3 min |
 | 02-parser-foundation | 1 | 8 min | 8 min |
 | 03-supabase-schema-import | 2 | 10 min | 5 min |
+| 04-sync-pipeline | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 02-01 (8 min), 03-01 (7 min), 03-02 (3 min)
-- Trend: Consistent 3-8 min per plan
+- Last 5 plans: 01-01 (3 min), 02-01 (8 min), 03-01 (7 min), 03-02 (3 min), 04-01 (2 min)
+- Trend: Consistent 2-8 min per plan
 
 *Updated after each plan completion*
 
@@ -54,6 +55,9 @@ Recent decisions affecting current work:
 - Repaired remote migration history — Pre-existing migrations marked as reverted to align local/remote state (03-01)
 - Service role client for scripts uses SUPABASE_URL + SUPABASE_SERVICE_KEY with manual .env loading (03-02)
 - Tag management via delete + re-insert pattern on article_tags junction table (03-02)
+- SHA-256 hash comparison for write gating in sync — only writes when content actually changed (04-01)
+- Orphan files warned but never auto-deleted — safe by default (04-01)
+- Tags sorted alphabetically for deterministic frontmatter output (04-01)
 
 ### Pending Todos
 
@@ -66,5 +70,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 03-02-PLAN.md — Phase 3 complete, all 52 articles imported into Supabase
+Stopped at: Completed 04-01-PLAN.md — Phase 4 complete, sync pipeline operational
 Resume file: None
