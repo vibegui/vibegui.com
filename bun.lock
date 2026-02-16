@@ -11,6 +11,7 @@
         "@biomejs/biome": "^1.9.4",
         "@playwright/test": "^1.49.1",
         "@tailwindcss/vite": "^4.1.3",
+        "@types/js-yaml": "^4.0.9",
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.0",
         "@vitejs/plugin-react": "^4.4.1",
@@ -520,6 +521,8 @@
     "@types/imagemin-svgo": ["@types/imagemin-svgo@10.0.5", "", { "dependencies": { "@types/imagemin": "*", "@types/svgo": "2" } }, "sha512-9U2Rf7vWBHeqJvzmWNP3vYAKqR0208QqQ9Mkrq9OLIL5AeoF/dRVRou6iUYCufBSim57BpBpCJhZLrTgfS3k1g=="],
 
     "@types/imagemin-webp": ["@types/imagemin-webp@7.0.3", "", { "dependencies": { "@types/imagemin": "*" } }, "sha512-C2/EMohS4bzsvY5VJvdzHFdcfmnZoui54DmM/9bFtK57/CgGmKkc+p6n49euPGmMFDDvwm4yVl60nwxcZOmH5A=="],
+
+    "@types/js-yaml": ["@types/js-yaml@4.0.9", "", {}, "sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg=="],
 
     "@types/json-schema": ["@types/json-schema@7.0.15", "", {}, "sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA=="],
 

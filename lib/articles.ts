@@ -47,8 +47,8 @@ export type ArticleFrontmatter = z.infer<typeof ArticleFrontmatterSchema>;
 
 const YAML_ENGINE = {
   parse: (str: string) =>
-    yaml.load(str, { schema: yaml.JSON_SCHEMA }) as Record<string, unknown>,
-  stringify: (data: Record<string, unknown>) =>
+    yaml.load(str, { schema: yaml.JSON_SCHEMA }) as object,
+  stringify: (data: object) =>
     yaml.dump(data, {
       schema: yaml.JSON_SCHEMA,
       lineWidth: -1,
