@@ -30,10 +30,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Build command `bun run pages:build` succeeds without `--experimental-sqlite` flag
   4. All existing tests pass (E2E and constraint tests)
   5. Pre-commit hook stages the correct files (blog/articles/ included)
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- TBD
+- [ ] 01-01-PLAN.md -- Delete SQLite artifacts, fix stale references, verify build/tests, commit cleanup
 
 ### Phase 2: Parser Foundation
 **Goal**: Frontmatter parsing is reliable and bidirectional using gray-matter, validated against all existing articles
@@ -103,7 +103,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Migration Cleanup | 0/TBD | Not started | - |
+| 1. Migration Cleanup | 0/1 | Planned | - |
 | 2. Parser Foundation | 0/TBD | Not started | - |
 | 3. Supabase Schema & Import | 0/TBD | Not started | - |
 | 4. Sync Pipeline | 0/TBD | Not started | - |
