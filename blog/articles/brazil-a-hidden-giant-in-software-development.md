@@ -1,7 +1,7 @@
 ---
 slug: brazil-a-hidden-giant-in-software-development
-title: "Brazil: A Hidden Giant in Software Development"
-description: Why Brazil has more developers per GDP than the US, Germany, or France—and what that means for the future.
+title: 'Brazil: A Hidden Giant in Software Development'
+description: 'Why Brazil has more developers per GDP than the US, Germany, or France—and what that means for the future.'
 date: 2024-11-10
 status: published
 coverImage: null

@@ -1,7 +1,7 @@
 ---
 slug: leadership-and-respecting-human-limitations
 title: Leadership and Respecting Human Limitations
-description: "Why learning to work with—not against—people's limitations makes you a better leader."
+description: Why learning to work with—not against—people's limitations makes you a better leader.
 date: 2024-11-18
 status: published
 coverImage: null

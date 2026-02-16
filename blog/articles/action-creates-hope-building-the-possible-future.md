@@ -1,7 +1,7 @@
 ---
 slug: action-creates-hope-building-the-possible-future
-title: "Action Creates Hope: Building the Possible Future"
-description: Why pessimism is a self-fulfilling prison, and how taking action—regardless of motivation—generates the hope we need.
+title: 'Action Creates Hope: Building the Possible Future'
+description: 'Why pessimism is a self-fulfilling prison, and how taking action—regardless of motivation—generates the hope we need.'
 date: 2025-11-06
 status: published
 coverImage: null

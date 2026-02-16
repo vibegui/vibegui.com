@@ -1,11 +1,11 @@
 ---
 slug: writing-this-article-while-writing-about-writing-this-article
 title: Writing This Article While Writing About Writing This Article
-description: ""
+description: ''
 date: 2026-01-03
 status: draft
 coverImage: /images/cover-writing-this-article-while-writing-about-writing-this-article.png
-tags:
+tags: null
 ---
 # Writing This Article While Writing About Writing This Article
 

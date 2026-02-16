@@ -1,7 +1,7 @@
 ---
 slug: pessimism-vs-leadership-the-choice-to-make-the-unpredictable-hap
-title: "Pessimism vs. Leadership: The Choice to Make the Unpredictable Happen"
-description: "Why the opposite of pessimist isn't optimist—it's leader. And why that distinction matters."
+title: 'Pessimism vs. Leadership: The Choice to Make the Unpredictable Happen'
+description: Why the opposite of pessimist isn't optimist—it's leader. And why that distinction matters.
 date: 2025-03-27
 status: published
 coverImage: null

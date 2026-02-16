@@ -1,7 +1,7 @@
 ---
 slug: 2025-a-year-worth-surviving
 title: 2025 - A year worth surviving
-description: Reflections on a year that nearly broke us — and what we learned about focus, leadership, and building something meant to last.
+description: 'Reflections on a year that nearly broke us — and what we learned about focus, leadership, and building something meant to last.'
 date: 2025-12-31
 status: published
 coverImage: null
@@ -10,7 +10,7 @@ tags:
   - startup
   - leadership
   - year-in-review
-  - 2025
+  - '2025'
 ---
 We started the year with over 50 people, a burn rate that only makes sense when everything goes right, and a lot of confidence that we were early enough to figure things out as we went. By March, it was already clear that this wouldn't be that kind of year.
 

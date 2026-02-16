@@ -1,7 +1,7 @@
 ---
 slug: the-parable-of-the-house-why-we-must-build-our-own-future
-title: "The Parable of the House: Why We Must Build Our Own Future"
-description: "An allegory about brain drain, serving others' empires, and the cost of not building your own home."
+title: 'The Parable of the House: Why We Must Build Our Own Future'
+description: 'An allegory about brain drain, serving others'' empires, and the cost of not building your own home.'
 date: 2024-11-01
 status: published
 coverImage: null

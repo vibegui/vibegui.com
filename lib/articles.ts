@@ -2,6 +2,8 @@
  * Article Management
  *
  * Reads articles from markdown files with YAML frontmatter.
+ * Uses gray-matter for parsing with yaml.JSON_SCHEMA to prevent date coercion.
+ * Validates frontmatter against a Zod schema at parse time.
  *
  * Article format:
  * ---
@@ -21,6 +23,80 @@
 
 import { readdirSync, readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import matter from "gray-matter";
+import yaml from "js-yaml";
+import { z } from "zod";
+
+// -- Schema Definition --
+
+export const ArticleFrontmatterSchema = z.object({
+  slug: z.string(),
+  title: z.string(),
+  description: z.string(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  status: z.enum(["published", "draft"]),
+  coverImage: z.string().nullable(),
+  tags: z
+    .array(z.union([z.string(), z.number()]).transform((v) => String(v)))
+    .nullable(),
+});
+
+export type ArticleFrontmatter = z.infer<typeof ArticleFrontmatterSchema>;
+
+// -- gray-matter Configuration --
+
+const YAML_ENGINE = {
+  parse: (str: string) =>
+    yaml.load(str, { schema: yaml.JSON_SCHEMA }) as Record<string, unknown>,
+  stringify: (data: Record<string, unknown>) =>
+    yaml.dump(data, {
+      schema: yaml.JSON_SCHEMA,
+      lineWidth: -1,
+    }),
+};
+
+export const GRAY_MATTER_OPTIONS = {
+  engines: { yaml: YAML_ENGINE },
+};
+
+// -- Canonical Key Ordering --
+
+const CANONICAL_KEY_ORDER = [
+  "slug",
+  "title",
+  "description",
+  "date",
+  "status",
+  "coverImage",
+  "tags",
+] as const;
+
+export function toCanonicalOrder(
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  const ordered: Record<string, unknown> = {};
+  for (const key of CANONICAL_KEY_ORDER) {
+    if (key in data) ordered[key] = data[key];
+  }
+  for (const key of Object.keys(data)) {
+    if (!(key in ordered)) ordered[key] = data[key];
+  }
+  return ordered;
+}
+
+// -- Stringify --
+
+export function stringifyArticle(
+  frontmatter: ArticleFrontmatter,
+  content: string,
+): string {
+  const ordered = toCanonicalOrder(
+    frontmatter as unknown as Record<string, unknown>,
+  );
+  return matter.stringify(content, ordered, GRAY_MATTER_OPTIONS);
+}
+
+// -- Article Interface --
 
 export interface Article {
   slug: string;
@@ -33,84 +109,7 @@ export interface Article {
   tags: string[];
 }
 
-/**
- * Parse YAML frontmatter from markdown content
- */
-function parseFrontmatter(content: string): {
-  frontmatter: Record<string, unknown>;
-  body: string;
-} {
-  if (!content.startsWith("---")) {
-    return { frontmatter: {}, body: content };
-  }
-
-  const endIndex = content.indexOf("\n---", 3);
-  if (endIndex === -1) {
-    return { frontmatter: {}, body: content };
-  }
-
-  const frontmatterStr = content.slice(4, endIndex);
-  const body = content.slice(endIndex + 4).trim();
-
-  // Simple YAML parser for our use case
-  const frontmatter: Record<string, unknown> = {};
-  let currentKey = "";
-  let inArray = false;
-  const arrayValues: string[] = [];
-
-  for (const line of frontmatterStr.split("\n")) {
-    const trimmed = line.trim();
-
-    // Array item
-    if (trimmed.startsWith("- ") && inArray) {
-      arrayValues.push(trimmed.slice(2).trim());
-      continue;
-    }
-
-    // End of array
-    if (inArray && !trimmed.startsWith("-")) {
-      frontmatter[currentKey] = arrayValues.slice();
-      arrayValues.length = 0;
-      inArray = false;
-    }
-
-    // Key-value pair
-    const colonIndex = trimmed.indexOf(":");
-    if (colonIndex > 0) {
-      const key = trimmed.slice(0, colonIndex).trim();
-      let value = trimmed.slice(colonIndex + 1).trim();
-
-      // Check if this starts an array
-      if (value === "") {
-        currentKey = key;
-        inArray = true;
-        continue;
-      }
-
-      // Remove quotes
-      if (
-        (value.startsWith('"') && value.endsWith('"')) ||
-        (value.startsWith("'") && value.endsWith("'"))
-      ) {
-        value = value.slice(1, -1);
-      }
-
-      // Handle null
-      if (value === "null") {
-        frontmatter[key] = null;
-      } else {
-        frontmatter[key] = value;
-      }
-    }
-  }
-
-  // Handle trailing array
-  if (inArray) {
-    frontmatter[currentKey] = arrayValues;
-  }
-
-  return { frontmatter, body };
-}
+// -- Read --
 
 /**
  * Read a single article from a markdown file
@@ -120,25 +119,19 @@ export function readArticle(filePath: string): Article | null {
     return null;
   }
 
-  const content = readFileSync(filePath, "utf-8");
-  const { frontmatter, body } = parseFrontmatter(content);
-
-  const slug =
-    (frontmatter.slug as string) ||
-    filePath.replace(/.*\//, "").replace(/\.md$/, "");
+  const fileContent = readFileSync(filePath, "utf-8");
+  const { data, content } = matter(fileContent, GRAY_MATTER_OPTIONS);
+  const frontmatter = ArticleFrontmatterSchema.parse(data);
 
   return {
-    slug,
-    title: (frontmatter.title as string) || "Untitled",
-    description: (frontmatter.description as string) || "",
-    content: body,
-    date:
-      (frontmatter.date as string) || new Date().toISOString().split("T")[0],
-    status: ((frontmatter.status as string) || "draft") as
-      | "draft"
-      | "published",
-    coverImage: (frontmatter.coverImage as string) || null,
-    tags: (frontmatter.tags as string[]) || [],
+    slug: frontmatter.slug,
+    title: frontmatter.title,
+    description: frontmatter.description,
+    content: content.trim(),
+    date: frontmatter.date,
+    status: frontmatter.status,
+    coverImage: frontmatter.coverImage,
+    tags: frontmatter.tags ?? [],
   };
 }
 

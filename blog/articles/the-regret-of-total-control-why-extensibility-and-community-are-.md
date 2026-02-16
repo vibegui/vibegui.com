@@ -1,7 +1,7 @@
 ---
 slug: the-regret-of-total-control-why-extensibility-and-community-are-
-title: "The Regret of Total Control: Why Extensibility and Community Are Priority Zero"
-description: "A founder's hard-learned lesson about open-source, platform thinking, and the hidden cost of keeping control."
+title: 'The Regret of Total Control: Why Extensibility and Community Are Priority Zero'
+description: 'A founder''s hard-learned lesson about open-source, platform thinking, and the hidden cost of keeping control.'
 date: 2024-11-10
 status: published
 coverImage: null

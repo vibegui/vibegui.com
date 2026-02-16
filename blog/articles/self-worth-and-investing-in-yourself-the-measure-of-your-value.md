@@ -1,6 +1,6 @@
 ---
 slug: self-worth-and-investing-in-yourself-the-measure-of-your-value
-title: "Self-Worth and Investing in Yourself: The Measure of Your Value"
+title: 'Self-Worth and Investing in Yourself: The Measure of Your Value'
 description: Why the exact measure of your self-esteem is how much you invest in your tools and in yourself.
 date: 2024-11-07
 status: published

@@ -1,17 +1,17 @@
 ---
 slug: shipping-vibegui-bookmarks-v1-architecture-costs-and-lessons
-title: "Shipping vibegui Bookmarks v1: Architecture, Costs, and Lessons"
-description: How I built an AI-enriched bookmark manager using MCP, Gemini Flash, Firecrawl, and Perplexity — and what it cost to enrich 305 bookmarks.
+title: 'Shipping vibegui Bookmarks v1: Architecture, Costs, and Lessons'
+description: 'How I built an AI-enriched bookmark manager using MCP, Gemini Flash, Firecrawl, and Perplexity — and what it cost to enrich 305 bookmarks.'
 date: 2025-12-29
 status: published
 coverImage: null
 tags:
-  - tech:llm
-  - tech:mcp
-  - tech:supabase
-  - topic:ai-tools
-  - topic:architecture
-  - type:launch
+  - 'tech:llm'
+  - 'tech:mcp'
+  - 'tech:supabase'
+  - 'topic:ai-tools'
+  - 'topic:architecture'
+  - 'type:launch'
 ---
 # Shipping vibegui Bookmarks v1: Architecture, Costs, and Lessons
 

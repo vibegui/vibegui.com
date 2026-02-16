@@ -1,7 +1,7 @@
 ---
 slug: the-fast-fashion-era-of-saas-iteration-speed-as-competitive-adva
-title: "The Fast Fashion Era of SaaS: Iteration Speed as Competitive Advantage"
-description: "Sam Altman says we're entering the fast fashion era of SaaS. Here's what that means for Brazil."
+title: 'The Fast Fashion Era of SaaS: Iteration Speed as Competitive Advantage'
+description: Sam Altman says we're entering the fast fashion era of SaaS. Here's what that means for Brazil.
 date: 2025-08-05
 status: published
 coverImage: null

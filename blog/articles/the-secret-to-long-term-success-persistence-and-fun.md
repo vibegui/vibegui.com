@@ -1,6 +1,6 @@
 ---
 slug: the-secret-to-long-term-success-persistence-and-fun
-title: "The Secret to Long-Term Success: Persistence and Fun"
+title: 'The Secret to Long-Term Success: Persistence and Fun'
 description: Why building a billion-dollar company requires finding the tribe you want to survive hardships with—and learning to enjoy the journey.
 date: 2025-04-22
 status: published

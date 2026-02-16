@@ -1,17 +1,17 @@
 ---
 slug: the-great-ssg-simplification-killing-json-fetches-one-page-at-a-
-title: "SEO-First SSG: From Social Embeds to Zero-Fetch Pages"
-description: How adding proper SEO meta tags led me to embed everything — articles, context pages, and the manifest — directly into static HTML. The journey from broken social previews to sub-15-second deploys.
+title: 'SEO-First SSG: From Social Embeds to Zero-Fetch Pages'
+description: 'How adding proper SEO meta tags led me to embed everything — articles, context pages, and the manifest — directly into static HTML. The journey from broken social previews to sub-15-second deploys.'
 date: 2026-01-01
 status: published
 coverImage: null
 tags:
-  - tech:ssg
-  - tech:vite
-  - tech:cloudflare
-  - topic:architecture
-  - topic:performance
-  - type:devlog
+  - 'tech:ssg'
+  - 'tech:vite'
+  - 'tech:cloudflare'
+  - 'topic:architecture'
+  - 'topic:performance'
+  - 'type:devlog'
 ---
 # SEO-First SSG: From Social Embeds to Zero-Fetch Pages
 

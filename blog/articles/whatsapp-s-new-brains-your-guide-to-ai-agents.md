@@ -1,11 +1,11 @@
 ---
 slug: whatsapp-s-new-brains-your-guide-to-ai-agents
-title: "WhatsApp's New Brains: Your Guide to AI Agents"
-description: Explore the exciting arrival of AI agents within WhatsApp, promising enhanced conversations and productivity. Learn how these new AI companions will transform your messaging experience.
+title: 'WhatsApp''s New Brains: Your Guide to AI Agents'
+description: 'Explore the exciting arrival of AI agents within WhatsApp, promising enhanced conversations and productivity. Learn how these new AI companions will transform your messaging experience.'
 date: 2026-01-05
 status: draft
 coverImage: null
-tags:
+tags: null
 ---
 # WhatsApp's New Brains: Your Guide to AI Agents
 

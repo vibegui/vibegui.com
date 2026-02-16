@@ -1,7 +1,7 @@
 ---
 slug: today-s-challenge-was-yesterday-s-wish
-title: "Today's Challenge Was Yesterday's Wish"
-description: Every time I feel overwhelmed by real-world challenges, I remember that this was once my greatest desire.
+title: Today's Challenge Was Yesterday's Wish
+description: 'Every time I feel overwhelmed by real-world challenges, I remember that this was once my greatest desire.'
 date: 2025-11-25
 status: published
 coverImage: null

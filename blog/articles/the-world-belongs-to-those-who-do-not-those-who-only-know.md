@@ -1,6 +1,6 @@
 ---
 slug: the-world-belongs-to-those-who-do-not-those-who-only-know
-title: The World Belongs to Those Who Do, Not Those Who Only Know
+title: 'The World Belongs to Those Who Do, Not Those Who Only Know'
 description: Why action beats knowledge in the AI age—and the trap of endless preparation.
 date: 2025-06-23
 status: published

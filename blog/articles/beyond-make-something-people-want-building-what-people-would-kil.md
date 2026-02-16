@@ -1,7 +1,7 @@
 ---
 slug: beyond-make-something-people-want-building-what-people-would-kil
-title: "Beyond 'Make Something People Want': Building What People Would Kill For"
-description: "\"Make something people want\" is NOT ENOUGH! If I knew how Paul Graham was subtly wrong with that sentence, it would've saved me years of building."
+title: 'Beyond ''Make Something People Want'': Building What People Would Kill For'
+description: '"Make something people want" is NOT ENOUGH! If I knew how Paul Graham was subtly wrong with that sentence, it would''ve saved me years of building.'
 date: 2024-11-12
 status: published
 coverImage: null

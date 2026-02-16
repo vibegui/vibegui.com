@@ -1,6 +1,6 @@
 ---
 slug: startup-or-big-tech-it-s-not-a-binary-choice
-title: "Startup or Big Tech? It's Not a Binary Choice"
+title: Startup or Big Tech? It's Not a Binary Choice
 description: Three questions to help you navigate the spectrum between chaos and stability.
 date: 2024-11-19
 status: published

@@ -1,7 +1,7 @@
 ---
 slug: hello-world-building-an-mcp-native-blog
-title: "Hello World: Building an MCP-Native Blog"
-description: Welcome to vibegui.com — a personal blog built entirely through MCP, served at the edge with sub-100KB payloads.
+title: 'Hello World: Building an MCP-Native Blog'
+description: 'Welcome to vibegui.com — a personal blog built entirely through MCP, served at the edge with sub-100KB payloads.'
 date: 2025-12-21
 status: published
 coverImage: null

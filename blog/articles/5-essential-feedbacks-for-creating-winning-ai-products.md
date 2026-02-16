@@ -1,7 +1,7 @@
 ---
 slug: 5-essential-feedbacks-for-creating-winning-ai-products
 title: 5 Essential Feedbacks for Creating Winning AI Products
-description: Lessons from judging an AI hackathon—on focus, distribution, and why capitalism works.
+description: 'Lessons from judging an AI hackathon—on focus, distribution, and why capitalism works.'
 date: 2025-12-15
 status: published
 coverImage: null

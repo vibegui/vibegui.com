@@ -1,6 +1,6 @@
 ---
 slug: from-whatsapp-to-bookmarks-building-an-mcp-powered-link-aggregat
-title: "From WhatsApp to Bookmarks: Building an MCP-Powered Link Aggregator"
+title: 'From WhatsApp to Bookmarks: Building an MCP-Powered Link Aggregator'
 description: Building a link aggregation system with AI enrichment — from WhatsApp scraping to SQLite databases to a searchable dashboard.
 date: 2025-12-27
 status: published

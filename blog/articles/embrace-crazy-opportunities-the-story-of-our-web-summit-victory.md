@@ -1,6 +1,6 @@
 ---
 slug: embrace-crazy-opportunities-the-story-of-our-web-summit-victory
-title: "Embrace Crazy Opportunities: The Story of Our Web Summit Victory"
+title: 'Embrace Crazy Opportunities: The Story of Our Web Summit Victory'
 description: How we won the Web Summit Pitch competition with a deck written over a weekend—and what it taught me about seizing unexpected chances.
 date: 2024-12-03
 status: published

@@ -1,7 +1,7 @@
 ---
 slug: the-non-coder-s-advantage-why-ai-makes-it-easier-for-non-technic
-title: "The Non-Coder's Advantage: Why AI Makes It Easier for Non-Technical Founders"
-description: For the first time ever, there are MANY relevant theses you can pursue without a technical co-founder.
+title: 'The Non-Coder''s Advantage: Why AI Makes It Easier for Non-Technical Founders'
+description: 'For the first time ever, there are MANY relevant theses you can pursue without a technical co-founder.'
 date: 2025-09-21
 status: published
 coverImage: null

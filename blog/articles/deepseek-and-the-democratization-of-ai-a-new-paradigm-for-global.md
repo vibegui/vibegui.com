@@ -1,7 +1,7 @@
 ---
 slug: deepseek-and-the-democratization-of-ai-a-new-paradigm-for-global
-title: "DeepSeek and the Democratization of AI: A New Paradigm for Global Innovation"
-description: DeepSeek is giving away powerful AI models for free, and Silicon Valley is scrambling. This is bigger than just cost savings.
+title: 'DeepSeek and the Democratization of AI: A New Paradigm for Global Innovation'
+description: 'DeepSeek is giving away powerful AI models for free, and Silicon Valley is scrambling. This is bigger than just cost savings.'
 date: 2025-02-03
 status: published
 coverImage: null

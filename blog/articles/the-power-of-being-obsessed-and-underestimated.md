@@ -1,7 +1,7 @@
 ---
 slug: the-power-of-being-obsessed-and-underestimated
 title: The Power of Being Obsessed and Underestimated
-description: "Why being doubted is my greatest fuel for building Brazil's tech future."
+description: Why being doubted is my greatest fuel for building Brazil's tech future.
 date: 2024-11-03
 status: published
 coverImage: null

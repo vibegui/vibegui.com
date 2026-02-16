@@ -1,7 +1,7 @@
 ---
 slug: o-profissional-do-futuro-ja-esta-sendo-treinado-por-ias
-title: "O Profissional do Futuro Já Está Sendo Treinado por IAs — E Isso É Bom (Se Soubermos Aprender com Elas)"
-description: "Por que a IA é a melhor coisa que aconteceu para quem quer construir uma carreira em tech — e o que ela não substitui."
+title: O Profissional do Futuro Já Está Sendo Treinado por IAs — E Isso É Bom (Se Soubermos Aprender com Elas)
+description: Por que a IA é a melhor coisa que aconteceu para quem quer construir uma carreira em tech — e o que ela não substitui.
 date: 2026-02-09
 status: draft
 coverImage: null

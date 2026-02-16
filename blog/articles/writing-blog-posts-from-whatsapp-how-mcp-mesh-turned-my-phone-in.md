@@ -1,11 +1,11 @@
 ---
 slug: writing-blog-posts-from-whatsapp-how-mcp-mesh-turned-my-phone-in
-title: "Writing Blog Posts from WhatsApp: How MCP Mesh Turned My Phone Into a Publishing Platform"
-description: ""
+title: 'Writing Blog Posts from WhatsApp: How MCP Mesh Turned My Phone Into a Publishing Platform'
+description: ''
 date: 2026-01-03
 status: draft
 coverImage: null
-tags:
+tags: null
 ---
 # Writing Blog Posts from WhatsApp: How MCP Mesh Turned My Phone Into a Publishing Platform
 

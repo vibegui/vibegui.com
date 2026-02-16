@@ -1,7 +1,7 @@
 ---
 slug: the-pathology-of-apathy-why-companies-die-when-people-stop-belie
-title: "The Pathology of Apathy: Why Companies Die When People Stop Believing"
-description: "Companies don't end because they run out of money. They end because people stop caring about a powerful future."
+title: 'The Pathology of Apathy: Why Companies Die When People Stop Believing'
+description: Companies don't end because they run out of money. They end because people stop caring about a powerful future.
 date: 2025-07-17
 status: published
 coverImage: null

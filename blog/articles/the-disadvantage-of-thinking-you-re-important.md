@@ -1,6 +1,6 @@
 ---
 slug: the-disadvantage-of-thinking-you-re-important
-title: "The Disadvantage of Thinking You're Important"
+title: The Disadvantage of Thinking You're Important
 description: Why letting go of your self-importance is the key to infinite possibilities.
 date: 2025-02-21
 status: published

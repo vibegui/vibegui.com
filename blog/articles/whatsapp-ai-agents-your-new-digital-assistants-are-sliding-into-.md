@@ -1,11 +1,11 @@
 ---
 slug: whatsapp-ai-agents-your-new-digital-assistants-are-sliding-into-
-title: "WhatsApp AI Agents: Your New Digital Assistants Are Sliding Into Your DMs"
-description: ""
+title: 'WhatsApp AI Agents: Your New Digital Assistants Are Sliding Into Your DMs'
+description: ''
 date: 2026-01-04
 status: draft
 coverImage: null
-tags:
+tags: null
 ---
 # WhatsApp AI Agents: Your New Digital Assistants Are Sliding Into Your DMs
 

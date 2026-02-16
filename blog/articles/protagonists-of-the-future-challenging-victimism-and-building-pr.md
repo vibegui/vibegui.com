@@ -1,7 +1,7 @@
 ---
 slug: protagonists-of-the-future-challenging-victimism-and-building-pr
-title: "Protagonists of the Future: Challenging Victimism and Building Prosperity"
-description: "The past doesn't determine the future. The future is made now. Let's be protagonists of the world's prosperity."
+title: 'Protagonists of the Future: Challenging Victimism and Building Prosperity'
+description: The past doesn't determine the future. The future is made now. Let's be protagonists of the world's prosperity.
 date: 2025-08-11
 status: published
 coverImage: null

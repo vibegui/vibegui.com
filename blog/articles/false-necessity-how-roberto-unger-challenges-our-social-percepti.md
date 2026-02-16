@@ -1,7 +1,7 @@
 ---
 slug: false-necessity-how-roberto-unger-challenges-our-social-percepti
-title: "False Necessity: How Mangabeira Challenges Our Social Perceptions"
-description: "Harvard's most radical professor taught one dangerous idea for 40 years: everything you think is fixed about society is an illusion."
+title: 'False Necessity: How Mangabeira Challenges Our Social Perceptions'
+description: 'Harvard''s most radical professor taught one dangerous idea for 40 years: everything you think is fixed about society is an illusion.'
 date: 2025-01-30
 status: published
 coverImage: null

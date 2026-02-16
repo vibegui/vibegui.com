@@ -1,7 +1,7 @@
 ---
 slug: alignment-and-integrity-the-two-essential-dimensions-of-success
-title: "Alignment and Integrity: The Two Essential Dimensions of Success"
-description: "You can confuse yourself with as many metrics as you want, but you'll always return to these two dimensions."
+title: 'Alignment and Integrity: The Two Essential Dimensions of Success'
+description: 'You can confuse yourself with as many metrics as you want, but you''ll always return to these two dimensions.'
 date: 2025-05-10
 status: published
 coverImage: null

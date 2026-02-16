@@ -1,6 +1,6 @@
 ---
 slug: the-golden-opportunity-in-ai-teach-and-build-your-personal-brand
-title: "The Golden Opportunity in AI: Teach and Build Your Personal Brand"
+title: 'The Golden Opportunity in AI: Teach and Build Your Personal Brand'
 description: Why the next two years are the best time to teach AI—and how being early is your biggest advantage.
 date: 2025-08-22
 status: published

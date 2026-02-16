@@ -1,7 +1,7 @@
 ---
 slug: the-fragility-of-life-and-the-urgency-of-results
 title: The Fragility of Life and the Urgency of Results
-description: "A reflection on mortality, presence, and why we shouldn't waste time defending ourselves in meetings."
+description: 'A reflection on mortality, presence, and why we shouldn''t waste time defending ourselves in meetings.'
 date: 2025-09-24
 status: published
 coverImage: null

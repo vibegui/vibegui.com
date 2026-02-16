@@ -1,7 +1,7 @@
 ---
 slug: why-i-will-never-move-to-s-o-paulo
 title: Why I Will Never Move to São Paulo
-description: On choosing your game, defining your conditions of satisfaction, and betting on Rio as a global AI hub.
+description: 'On choosing your game, defining your conditions of satisfaction, and betting on Rio as a global AI hub.'
 date: 2025-01-11
 status: published
 coverImage: null

@@ -1,7 +1,7 @@
 ---
 slug: the-inferiority-complex-of-brazilian-software
 title: The Inferiority Complex of Brazilian Software
-description: "Why saying Brazilian software \"competes with\" foreign tools is an insult, not a compliment."
+description: 'Why saying Brazilian software "competes with" foreign tools is an insult, not a compliment.'
 date: 2024-11-11
 status: published
 coverImage: null

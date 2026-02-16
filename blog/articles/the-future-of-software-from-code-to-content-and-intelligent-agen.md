@@ -1,7 +1,7 @@
 ---
 slug: the-future-of-software-from-code-to-content-and-intelligent-agen
-title: "The Future of Software: From Code to Content and Intelligent Agents"
-description: Why software is becoming content, and how agents with access to tools will transform every industry.
+title: 'The Future of Software: From Code to Content and Intelligent Agents'
+description: 'Why software is becoming content, and how agents with access to tools will transform every industry.'
 date: 2025-03-17
 status: published
 coverImage: null

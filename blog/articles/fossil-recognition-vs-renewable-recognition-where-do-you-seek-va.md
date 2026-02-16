@@ -1,7 +1,7 @@
 ---
 slug: fossil-recognition-vs-renewable-recognition-where-do-you-seek-va
-title: "Fossil Recognition vs. Renewable Recognition: Where Do You Seek Validation?"
-description: Are you renewable, hybrid, or still 100% dependent on fossil recognition? A reflection on where we seek validation.
+title: 'Fossil Recognition vs. Renewable Recognition: Where Do You Seek Validation?'
+description: 'Are you renewable, hybrid, or still 100% dependent on fossil recognition? A reflection on where we seek validation.'
 date: 2024-12-27
 status: published
 coverImage: null

@@ -1,6 +1,6 @@
 ---
 slug: the-anime-generation-how-japanese-animation-shaped-values-of-fri
-title: "The Anime Generation: How Japanese Animation Shaped Values of Friendship and Justice"
+title: 'The Anime Generation: How Japanese Animation Shaped Values of Friendship and Justice'
 description: How TV Manchete and Japanese anime morally formed a generation of Brazilians.
 date: 2025-11-13
 status: published

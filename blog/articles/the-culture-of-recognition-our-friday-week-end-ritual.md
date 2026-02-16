@@ -1,7 +1,7 @@
 ---
 slug: the-culture-of-recognition-our-friday-week-end-ritual
-title: "The Culture of Recognition: Our Friday Week End Ritual"
-description: Why explicit recognition matters, and the meeting structure that makes extraordinary results possible.
+title: 'The Culture of Recognition: Our Friday Week End Ritual'
+description: 'Why explicit recognition matters, and the meeting structure that makes extraordinary results possible.'
 date: 2025-06-20
 status: published
 coverImage: null

@@ -1,11 +1,11 @@
 ---
 slug: whatsapp-s-ai-agents-your-new-chatbot-companions
-title: "WhatsApp's AI Agents: Your New Chatbot Companions?"
-description: Explore the upcoming integration of AI agents within WhatsApp, promising enhanced user experiences and new communication possibilities.
+title: 'WhatsApp''s AI Agents: Your New Chatbot Companions?'
+description: 'Explore the upcoming integration of AI agents within WhatsApp, promising enhanced user experiences and new communication possibilities.'
 date: 2026-01-05
 status: draft
 coverImage: null
-tags:
+tags: null
 ---
 # WhatsApp's AI Agents: Your New Chatbot Companions?
 

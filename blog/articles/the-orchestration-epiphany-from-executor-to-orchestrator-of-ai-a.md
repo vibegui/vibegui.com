@@ -1,7 +1,7 @@
 ---
 slug: the-orchestration-epiphany-from-executor-to-orchestrator-of-ai-a
-title: "The Orchestration Epiphany: From Executor to Orchestrator of AI Agents"
-description: In a world where I can set an objective, turn on the token faucet, and watch work happen—every moment away from the computer without it thinking is monumental waste.
+title: 'The Orchestration Epiphany: From Executor to Orchestrator of AI Agents'
+description: 'In a world where I can set an objective, turn on the token faucet, and watch work happen—every moment away from the computer without it thinking is monumental waste.'
 date: 2025-10-01
 status: published
 coverImage: null
