@@ -1,7 +1,7 @@
 /**
  * Content Manifest Utilities
  *
- * Handles loading content from JSON files generated from SQLite.
+ * Handles loading content from JSON manifest files generated at build time.
  * Articles have a status field (draft/published) - no separate drafts array.
  */
 

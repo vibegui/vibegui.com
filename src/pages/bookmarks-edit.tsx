@@ -92,7 +92,7 @@ const TRACK_CONFIG = {
   investor: { label: "VC Investor", color: "#10b981", icon: "💰" },
 };
 
-// Note: Bookmarks are now loaded from SQLite via /api/bookmarks
+// Note: Bookmarks are loaded from Supabase
 
 function StarRating({ stars }: { stars?: number | null }) {
   if (!stars) return <span className="text-gray-400">—</span>;

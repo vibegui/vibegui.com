@@ -6,7 +6,7 @@
  * - Process SSG HTML files (replace dev scripts with prod assets)
  * - Embed manifest data directly into index.html
  *
- * Does NOT require SQLite - only reads from .build/ and dist/.
+ * Only reads from .build/ and dist/ (no database access needed).
  */
 
 import {

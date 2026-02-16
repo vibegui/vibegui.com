@@ -3,17 +3,12 @@
   "version": "0.1.0",
   "type": "module",
   "private": true,
-  "bin": {
-    "vibegui-mcp": "./server/cli.ts"
-  },
   "scripts": {
     "dev": "bun scripts/build.ts --mode=dev",
     "build": "bun scripts/build.ts --mode=prod",
     "preview": "bun scripts/preview-server.ts",
     "preview:build": "bun run build && bun run preview",
     "pages:build": "node --no-warnings --experimental-strip-types scripts/build.ts --mode=pages",
-    "mcp:stdio": "bun server/stdio.ts",
-    "mcp:stdio:dev": "bun --watch server/stdio.ts",
     "check": "tsc --noEmit -p tsconfig.check.json",
     "lint": "oxlint --ignore-pattern dist/",
     "fmt": "biome format --write .",
@@ -29,6 +24,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
+    "deco-cli": "^0.28.5",
     "@playwright/test": "^1.49.1",
     "@tailwindcss/vite": "^4.1.3",
     "@types/react": "^19.1.0",
