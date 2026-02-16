@@ -76,10 +76,10 @@ Plans:
   4. Dry-run mode shows proposed changes without writing files
   5. Sync handles errors gracefully (one failed article doesn't abort entire sync)
   6. Articles without slugs get auto-generated slugs from titles
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- TBD
+- [ ] 04-01-PLAN.md — Build sync-articles.ts script with hash-based diffing, dry-run mode, and package.json wiring
 
 ### Phase 5: Integration & Verification
 **Goal**: Direction is enforced (DB is source of truth), AI agents can create/edit articles via MCP, and complete pipeline works E2E
