@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
-  - saas
   - brazil
   - linkedin-import
+  - saas
 ---
 Sam Altman: "fast fashion era of SaaS very soon."
 

@@ -6,10 +6,10 @@ date: 2025-04-22
 status: published
 coverImage: null
 tags:
-  - persistence
-  - startup
   - leadership
   - linkedin-import
+  - persistence
+  - startup
 ---
 "If it were easy, any idiot would do it." Rafael Crespo burst out laughing when I said this today, because it's a simple truth. Building a billion-dollar company requires you to "align stars and keep them aligned."
 

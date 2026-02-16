@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
-  - startup
   - founders
   - linkedin-import
+  - startup
 ---
 For the first time ever, there are MANY relevant theses you can pursue without a technical co-founder.
 

@@ -6,10 +6,10 @@ date: 2024-12-03
 status: published
 coverImage: null
 tags:
-  - startup
   - founder-story
-  - opportunity
   - linkedin-import
+  - opportunity
+  - startup
 ---
 It's surreal to think it was just this year that we won the Web Summit Pitch! The funniest thing is that we didn't prepare for it 😬 it's almost embarrassing to tell.
 

@@ -8,8 +8,8 @@ coverImage: null
 tags:
   - culture
   - leadership
-  - rituals
   - linkedin-import
+  - rituals
 ---
 Another wonderful week comes to an end, and at deco we always have the Week End meeting from 4:30 to 6:00 PM on Friday. It's, without a doubt, my favorite moment of the week. The structure is:
 

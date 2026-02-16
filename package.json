@@ -20,7 +20,8 @@
     "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true",
     "optimize:images": "bun scripts/optimize-images.ts",
     "backup": "bun scripts/backup-supabase.ts",
-    "restore": "bun scripts/restore-supabase.ts"
+    "restore": "bun scripts/restore-supabase.ts",
+    "sync": "bun scripts/sync-articles.ts"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",

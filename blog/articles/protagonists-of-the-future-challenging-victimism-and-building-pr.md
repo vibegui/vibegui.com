@@ -6,10 +6,10 @@ date: 2025-08-11
 status: published
 coverImage: null
 tags:
-  - mindset
   - brazil
   - leadership
   - linkedin-import
+  - mindset
 ---
 I have a friend who insists on saying that "the system is wrong," that the world is getting worse, that nothing has a solution... I don't know what world my friend lives in, but here on planet Earth, capitalism, science, technology, and democracy have been generating unprecedented prosperity. Just look at the data on infant mortality, access to education, poverty, and life expectancy.
 

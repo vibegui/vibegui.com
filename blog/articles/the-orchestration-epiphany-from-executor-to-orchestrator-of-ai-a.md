@@ -6,10 +6,10 @@ date: 2025-10-01
 status: published
 coverImage: null
 tags:
-  - ai
   - agents
-  - productivity
+  - ai
   - linkedin-import
+  - productivity
 ---
 I had an epiphany today: in a world where I can set an objective, turn on the token faucet, and watch work happen until the objective is achieved, every moment I leave the computer without it thinking is monumental waste.
 

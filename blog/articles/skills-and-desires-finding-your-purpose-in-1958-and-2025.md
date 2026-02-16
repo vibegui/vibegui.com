@@ -6,10 +6,10 @@ date: 2025-03-28
 status: published
 coverImage: null
 tags:
-  - purpose
   - career
-  - philosophy
   - linkedin-import
+  - philosophy
+  - purpose
 ---
 Today someone sent me this 1958 letter about "How to find your purpose" and I got CHILLS, because I was working on exactly that—a "Zone of Genius" vs "Comfort Zone/Growth Zone" quadrant. And the letter talks about ABILITIES AND DESIRES.
 

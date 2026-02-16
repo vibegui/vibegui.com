@@ -6,10 +6,10 @@ date: 2024-11-01
 status: published
 coverImage: null
 tags:
-  - brazil
   - brain-drain
-  - purpose
+  - brazil
   - linkedin-import
+  - purpose
 ---
 You were born in a house with many brothers and sisters. It's an enormous house, but poorly maintained, and you and your siblings suffer from various afflictions. All your life you heard that beyond that puddle, far away (the puddle is wide), there exists another house, much better. There are fewer people in that house, and everything is renovated and new. Nobody suffers from basic problems.
 

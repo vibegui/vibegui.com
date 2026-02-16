@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - brazil
-  - tech
-  - mindset
   - linkedin-import
+  - mindset
+  - tech
 ---
 I HATE it when someone reviews Brazilian software and says, astonished, that it "competes head-to-head" with foreign tools. Really? You expected it to compete... sideways?
 

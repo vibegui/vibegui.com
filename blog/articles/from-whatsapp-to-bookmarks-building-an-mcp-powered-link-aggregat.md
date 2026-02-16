@@ -6,11 +6,11 @@ date: 2025-12-27
 status: published
 coverImage: null
 tags:
-  - mcp
-  - whatsapp
+  - agentic-workflows
   - bookmarks
   - chrome-extension
-  - agentic-workflows
+  - mcp
+  - whatsapp
 ---
 # From WhatsApp to Bookmarks: Building an MCP-Powered Link Aggregator
 

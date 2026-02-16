@@ -6,10 +6,10 @@ date: 2024-11-19
 status: published
 coverImage: null
 tags:
-  - career
-  - startup
   - advice
+  - career
   - linkedin-import
+  - startup
 ---
 Should I work at a Startup or Big Tech?
 

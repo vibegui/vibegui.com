@@ -6,10 +6,10 @@ date: 2025-09-09
 status: published
 coverImage: null
 tags:
-  - philosophy
   - brazil
   - economics
   - linkedin-import
+  - philosophy
 ---
 Yesterday I had the privilege of interviewing Professor Roberto Mangabeira Unger. Those who know me know that since my VTEX days, I had the dream of bringing him to an event. And it happened—at deco.day?
 

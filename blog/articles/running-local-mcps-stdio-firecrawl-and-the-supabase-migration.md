@@ -6,11 +6,11 @@ date: 2025-12-28
 status: published
 coverImage: null
 tags:
+  - 'tech:firecrawl'
   - 'tech:mcp'
   - 'tech:supabase'
-  - 'tech:firecrawl'
-  - 'type:devlog'
   - 'topic:vibecoding'
+  - 'type:devlog'
 ---
 # Running Local MCPs: STDIO, Firecrawl, and the Supabase Migration
 

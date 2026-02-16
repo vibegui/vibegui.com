@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - action
-  - mindset
   - ai
   - linkedin-import
+  - mindset
 ---
 We were taught that "those who prepare and study hard will get a better job." The classic adolescent terror of needing to get into a "good university" because "someone will look at the resume pile and discard you if you're not from the top 5."
 

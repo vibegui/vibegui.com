@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - leadership
+  - linkedin-import
   - mindset
   - motivation
-  - linkedin-import
 ---
 The pessimist has the easiest job: they just need to "wait for things to go wrong." In other words, given something that WON'T happen predictably, the pessimist DOES NOTHING and waits for it not to happen. When it doesn't happen, they victoriously proclaim: "See? It failed!" and slowly return to their depressing cave.
 

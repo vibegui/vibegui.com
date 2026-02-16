@@ -6,11 +6,11 @@ date: 2025-12-31
 status: published
 coverImage: null
 tags:
-  - deco
-  - startup
-  - leadership
-  - year-in-review
   - '2025'
+  - deco
+  - leadership
+  - startup
+  - year-in-review
 ---
 We started the year with over 50 people, a burn rate that only makes sense when everything goes right, and a lot of confidence that we were early enough to figure things out as we went. By March, it was already clear that this wouldn't be that kind of year.
 

@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - brazil
-  - tech
   - data
   - linkedin-import
+  - tech
 ---
 Do you believe that 🇧🇷 Brazil is more "efficient" in terms of developers in the economy than the 🇺🇸 United States?
 

@@ -6,9 +6,9 @@ date: 2024-12-05
 status: published
 coverImage: null
 tags:
-  - leadership
   - emotional-intelligence
   - entrepreneurship
+  - leadership
   - linkedin-import
 ---
 All violent (or sarcastic) communication hides a person frustrated with something that feels like a great threat to them.

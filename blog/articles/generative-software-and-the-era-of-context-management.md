@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
-  - software
   - context
   - linkedin-import
+  - software
 ---
 Although we'd like to see ourselves as deliberate artists of precisely constructed systems, the truth is that modern software engineering has been largely about "throwing things at the wall and seeing what sticks."
 

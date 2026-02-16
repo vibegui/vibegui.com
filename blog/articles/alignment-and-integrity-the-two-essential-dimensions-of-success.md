@@ -6,10 +6,10 @@ date: 2025-05-10
 status: published
 coverImage: null
 tags:
-  - leadership
-  - performance
   - culture
+  - leadership
   - linkedin-import
+  - performance
 ---
 You can confuse yourself with as many metrics as you want to invent, but you'll always return to the only two dimensions that REALLY compose success:
 

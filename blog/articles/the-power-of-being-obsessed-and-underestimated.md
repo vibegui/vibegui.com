@@ -6,10 +6,10 @@ date: 2024-11-03
 status: published
 coverImage: null
 tags:
-  - motivation
-  - mindset
   - brazil
   - linkedin-import
+  - mindset
+  - motivation
 ---
 The best part of being obsessed is watching those who underestimated you be disappointed over time. 🤫
 

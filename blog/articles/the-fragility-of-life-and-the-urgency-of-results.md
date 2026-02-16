@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - life
-  - urgency
-  - mindset
   - linkedin-import
+  - mindset
+  - urgency
 ---
 It's so sad when someone ahead of their time dies before their time. Today I learned that a friend—someone I hadn't been in touch with for a few years, but with whom I had an intensely and spectacularly productive relationship—is gone.
 

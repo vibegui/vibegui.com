@@ -6,11 +6,11 @@ date: 2025-09-11
 status: published
 coverImage: null
 tags:
+  - agents
   - ai
   - debugging
-  - mcp
-  - agents
   - linkedin-import
+  - mcp
 ---
 Normally, a startup writes product code that customers use directly. deco, however, is a platform. That means we write the "base" code, on top of which our customers write their code.
 

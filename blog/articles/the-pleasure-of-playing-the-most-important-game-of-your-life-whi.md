@@ -6,10 +6,10 @@ date: 2024-11-11
 status: published
 coverImage: null
 tags:
-  - mindset
-  - startup
-  - motivation
   - linkedin-import
+  - mindset
+  - motivation
+  - startup
 ---
 Call me a masochist, but for me the most delicious thing in life is choosing to play the hardest game you can find—and committing fully to it. This feeling of obsessive searching for which moves are essential RIGHT NOW, simultaneously generates stress, and simultaneously is the greatest possible connection with the sensation of being ALIVE.
 

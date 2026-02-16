@@ -6,9 +6,9 @@ date: 2024-12-27
 status: published
 coverImage: null
 tags:
+  - linkedin-import
   - mindset
   - personal-growth
-  - linkedin-import
 ---
 Are you renewable, hybrid, or still 100% dependent on fossil recognition? 🦖 🦴
 

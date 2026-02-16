@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
-  - opportunity
   - career
   - linkedin-import
+  - opportunity
 ---
 In the next 2 years, those who teach AI clearly will get rich. Those who only consume content will keep complaining that they missed the wave.
 

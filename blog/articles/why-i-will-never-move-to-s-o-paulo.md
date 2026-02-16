@@ -7,10 +7,10 @@ status: published
 coverImage: null
 tags:
   - brazil
-  - rio
-  - mission
   - career
   - linkedin-import
+  - mission
+  - rio
 ---
 Often our future is limited by something from the past. Our natural human tendency is to think that the future is a repetition, or a linear progression, of the past. Therefore, it's predictable what can and cannot happen in X amount of time. I don't need to explain to you that this is far from the truth, and that any future worth building *by definition* is not adjacent to the past, but rather an extraordinary leap.
 

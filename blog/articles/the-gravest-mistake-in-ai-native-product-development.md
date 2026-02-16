@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
+  - linkedin-import
   - product
   - startups
-  - linkedin-import
 ---
 The gravest mistake I'm seeing AI-native product companies make (us included) is to confuse the lack of limits that AI enables for the lack of limits to the product's use case.
 

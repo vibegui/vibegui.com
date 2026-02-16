@@ -6,9 +6,9 @@ date: 2024-11-12
 status: published
 coverImage: null
 tags:
-  - startups
-  - product
   - linkedin-import
+  - product
+  - startups
 ---
 "Make something people want" is NOT ENOUGH! If I knew how Paul Graham was subtly wrong with that sentence, it would've saved me and my company two years worth of building. Here's why:
 

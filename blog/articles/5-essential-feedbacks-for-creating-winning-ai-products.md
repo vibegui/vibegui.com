@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - ai
+  - linkedin-import
   - product
   - startup
-  - linkedin-import
 ---
 Today I had the pleasure of being a judge at the "Devs de Impacto" hackathon. It was sensational! At the end, I gave 5 feedbacks for the teams to do even better next time. When I was leaving, one of the participants asked if I could send the feedback, and I committed to writing it down. Here they are:
 

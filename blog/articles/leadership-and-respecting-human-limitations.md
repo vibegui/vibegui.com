@@ -6,9 +6,9 @@ date: 2024-11-18
 status: published
 coverImage: null
 tags:
-  - leadership
   - empathy
   - growth
+  - leadership
   - linkedin-import
 ---
 The faster you distinguish that each person has their limitations and it's not up to you to "solve" them, but only to discover how to work effectively with them, the better leader you'll be—including of yourself.

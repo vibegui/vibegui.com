@@ -6,10 +6,10 @@ date: 2025-01-30
 status: published
 coverImage: null
 tags:
-  - philosophy
-  - society
   - change
   - linkedin-import
+  - philosophy
+  - society
 ---
 Harvard's most radical professor taught one dangerous idea for 40 years:
 

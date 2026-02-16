@@ -6,10 +6,10 @@ date: 2024-11-10
 status: published
 coverImage: null
 tags:
-  - startup
+  - linkedin-import
   - open-source
   - platform
-  - linkedin-import
+  - startup
 ---
 If there's one thing I BITTERLY regret (not) doing at deco.cx, it was not starting open-source from the beginning. I kept deferring the focus on extensibility by the community because "the product wasn't ready" or "we still had to focus on customers and prove value" or... etc.
 

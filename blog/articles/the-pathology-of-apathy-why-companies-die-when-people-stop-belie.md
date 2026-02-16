@@ -6,10 +6,10 @@ date: 2025-07-17
 status: published
 coverImage: null
 tags:
-  - leadership
   - culture
-  - startup
+  - leadership
   - linkedin-import
+  - startup
 ---
 Companies don't end because they run out of money. They end because people stop believing and caring about a powerful future.
 

@@ -6,10 +6,10 @@ date: 2025-11-06
 status: published
 coverImage: null
 tags:
-  - brazil
-  - mindset
   - action
+  - brazil
   - linkedin-import
+  - mindset
 ---
 It deeply irritates and saddens me that most people live their lives from: "Let me show you what happened in the past, and explain how everything is going to go wrong and stay bad."
 

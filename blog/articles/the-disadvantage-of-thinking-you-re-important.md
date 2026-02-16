@@ -6,10 +6,10 @@ date: 2025-02-21
 status: published
 coverImage: null
 tags:
-  - leadership
   - humility
-  - mindset
+  - leadership
   - linkedin-import
+  - mindset
 ---
 I feel sorry for people who go through life thinking they're very important. It's a massive disadvantage I carried for a long time. If you take yourself too seriously, you lose the ability to remain open to learning simple things that contradict your sense of importance.
 

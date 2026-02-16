@@ -6,10 +6,10 @@ date: 2024-11-07
 status: published
 coverImage: null
 tags:
-  - self-development
-  - mindset
   - growth
   - linkedin-import
+  - mindset
+  - self-development
 ---
 The exact measure of your self-esteem is how much you invest in your tools and in yourself. What an interesting distinction.
 

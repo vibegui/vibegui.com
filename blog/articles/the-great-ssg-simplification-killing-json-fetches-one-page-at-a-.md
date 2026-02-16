@@ -6,9 +6,9 @@ date: 2026-01-01
 status: published
 coverImage: null
 tags:
+  - 'tech:cloudflare'
   - 'tech:ssg'
   - 'tech:vite'
-  - 'tech:cloudflare'
   - 'topic:architecture'
   - 'topic:performance'
   - 'type:devlog'

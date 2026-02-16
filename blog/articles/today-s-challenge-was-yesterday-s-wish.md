@@ -7,9 +7,9 @@ status: published
 coverImage: null
 tags:
   - gratitude
-  - mindset
   - growth
   - linkedin-import
+  - mindset
 ---
 Every time I feel overwhelmed by the real-life challenges of serving ~a billion pageviews (hello Black Friday), I remember that, once upon a time, this was my greatest wish, and it took a lot of work to get here.
 

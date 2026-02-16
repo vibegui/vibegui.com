@@ -6,10 +6,10 @@ date: 2025-12-21
 status: published
 coverImage: null
 tags:
-  - hello-world
-  - mcp
   - architecture
   - edge
+  - hello-world
+  - mcp
   - performance
 ---
 # Hello World: Building an MCP-Native Blog

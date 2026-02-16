@@ -7,8 +7,8 @@ status: published
 coverImage: null
 tags:
   - ai
-  - open-source
   - linkedin-import
+  - open-source
 ---
 The AI industry just got disrupted by an unexpected player.
 
