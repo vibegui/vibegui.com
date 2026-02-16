@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies. Supabase is the single source of truth for both articles and bookmarks.
-**Current focus:** Phase 2 - Parser Foundation
+**Current focus:** Phase 3 - Supabase Schema & Import
 
 ## Current Position
 
-Phase: 2 of 5 (Parser Foundation)
-Plan: 1 of 1 in current phase (COMPLETE)
-Status: Phase 2 complete
-Last activity: 2026-02-16 — Executed 02-01-PLAN.md (gray-matter parser + Zod schema + roundtrip tests)
+Phase: 3 of 5 (Supabase Schema & Import)
+Plan: 1 of 2 in current phase (COMPLETE)
+Status: Executing Phase 3
+Last activity: 2026-02-16 — Executed 03-01-PLAN.md (Supabase schema: tables, triggers, RLS policies)
 
-Progress: [████░░░░░░] 40%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 5.5 min
-- Total execution time: 0.18 hours
+- Total plans completed: 3
+- Average duration: 6 min
+- Total execution time: 0.3 hours
 
 **By Phase:**
 
@@ -29,10 +29,11 @@ Progress: [████░░░░░░] 40%
 |-------|-------|-------|----------|
 | 01-migration-cleanup | 1 | 3 min | 3 min |
 | 02-parser-foundation | 1 | 8 min | 8 min |
+| 03-supabase-schema-import | 1 | 7 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 02-01 (8 min)
-- Trend: Slightly longer (more complex tasks)
+- Last 5 plans: 01-01 (3 min), 02-01 (8 min), 03-01 (7 min)
+- Trend: Consistent 5-8 min per plan
 
 *Updated after each plan completion*
 
@@ -49,6 +50,8 @@ Recent decisions affecting current work:
 - gray-matter with yaml.JSON_SCHEMA as sole parser — Prevents date coercion, handles 100% of YAML (02-01)
 - Numeric tags coerced to strings via Zod transform — yaml.JSON_SCHEMA still parses bare numbers as numbers (02-01)
 - Schema validated at parse time — ArticleFrontmatterSchema.parse() called in readArticle() (02-01)
+- Supabase CLI migrations for schema management — Local files tracked in git, pushed via `supabase db push` (03-01)
+- Repaired remote migration history — Pre-existing migrations marked as reverted to align local/remote state (03-01)
 
 ### Pending Todos
 
@@ -61,5 +64,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 02-01-PLAN.md — Phase 2 complete, ready for Phase 3
+Stopped at: Completed 03-01-PLAN.md — Schema applied, ready for 03-02 (import script)
 Resume file: None
