@@ -2,7 +2,7 @@ import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve } from "node:path";
-import { watch, statSync, existsSync, readFileSync } from "node:fs";
+import { watch, existsSync, readFileSync } from "node:fs";
 import { exec } from "node:child_process";
 
 // Load .env file for server-side use
@@ -849,14 +849,13 @@ function ssgDevPlugin() {
 }
 
 /**
- * Plugin to watch the SQLite database for changes.
+ * Plugin to watch blog/articles/ for changes.
  * Regenerates content and triggers a full page reload.
  */
-function databaseWatcherPlugin() {
-  let dbWatcher: ReturnType<typeof watch> | null = null;
+function articleWatcherPlugin() {
+  let articlesWatcher: ReturnType<typeof watch> | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let isExporting = false;
-  let lastMtime = 0;
   let viteServer: { ws: { send: (msg: { type: string }) => void } } | null =
     null;
 
@@ -866,7 +865,7 @@ function databaseWatcherPlugin() {
     }
     isExporting = true;
 
-    console.log("\n🔄 Database changed, regenerating content...");
+    console.log("\n🔄 Articles changed, regenerating content...");
     exec(
       "bun scripts/generate.ts",
       { cwd: resolve(__dirname) },
@@ -889,44 +888,31 @@ function databaseWatcherPlugin() {
   };
 
   return {
-    name: "database-watcher",
+    name: "article-watcher",
     configureServer(server: {
       ws: { send: (msg: { type: string }) => void };
     }) {
       viteServer = server;
-      const dbPath = resolve(__dirname, "data", "content.db");
+      const articlesDir = resolve(__dirname, "blog", "articles");
 
-      // Get initial mtime
-      try {
-        lastMtime = statSync(dbPath).mtimeMs;
-      } catch {
-        // File doesn't exist yet
-      }
-
-      // Watch the database file for changes
-      dbWatcher = watch(dbPath, { persistent: false }, (eventType) => {
-        if (eventType === "change") {
-          try {
-            const currentMtime = statSync(dbPath).mtimeMs;
-            if (currentMtime === lastMtime) {
-              return;
-            }
-            lastMtime = currentMtime;
-          } catch {
-            return;
+      // Watch the articles directory for changes
+      articlesWatcher = watch(
+        articlesDir,
+        { persistent: false, recursive: true },
+        (_eventType, filename) => {
+          if (filename?.endsWith(".md")) {
+            if (debounceTimer) clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(runExport, 300);
           }
+        },
+      );
 
-          if (debounceTimer) clearTimeout(debounceTimer);
-          debounceTimer = setTimeout(runExport, 300);
-        }
-      });
-
-      console.log("👁️  Watching database for changes...");
+      console.log("👁️  Watching blog/articles/ for changes...");
     },
     closeBundle() {
-      if (dbWatcher) {
-        dbWatcher.close();
-        dbWatcher = null;
+      if (articlesWatcher) {
+        articlesWatcher.close();
+        articlesWatcher = null;
       }
     },
   };
@@ -949,7 +935,7 @@ export default defineConfig({
     tailwindcss(),
     ssgDevPlugin(),
     bookmarksApiPlugin(),
-    databaseWatcherPlugin(),
+    articleWatcherPlugin(),
   ],
 
   resolve: {

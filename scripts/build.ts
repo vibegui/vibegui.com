@@ -52,17 +52,13 @@ function run(
 }
 
 /**
- * Run generate.ts (Step 1: SQLite → manifest.json + SSG HTML)
+ * Run generate.ts (Step 1: Markdown articles → manifest.json + SSG HTML)
  */
 async function generate() {
   console.log("\n📚 Generating content...\n");
   // Use node for pages mode (no bun on Cloudflare), bun otherwise
   if (mode === "pages") {
-    await run("node", [
-      "--experimental-strip-types",
-      "--experimental-sqlite",
-      "scripts/generate.ts",
-    ]);
+    await run("node", ["--experimental-strip-types", "scripts/generate.ts"]);
   } else {
     await run("bun", ["scripts/generate.ts"]);
   }

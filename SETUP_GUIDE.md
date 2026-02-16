@@ -40,7 +40,6 @@ This guide sets up:
 
 - **Node.js** ≥ 22.0.0
 - **Bun** (for local MCPs): `curl -fsSL https://bun.sh/install | bash`
-- **Docker** and **Docker Compose** (for PostgreSQL)
 - **Chrome browser** (for Mesh Bridge extension)
 - **API Keys:**
   - OpenRouter: https://openrouter.ai/keys

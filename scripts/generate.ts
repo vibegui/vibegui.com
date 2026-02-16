@@ -6,7 +6,7 @@
  * - .build/article/{slug}/index.html (SSG article pages)
  * - .build/context/{path}/index.html (SSG context pages)
  *
- * Runs BEFORE Vite build. Requires SQLite access.
+ * Reads articles from blog/articles/*.md (markdown with YAML frontmatter).
  */
 
 import {
@@ -18,11 +18,7 @@ import {
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import {
-  getAllContent,
-  getAllProjects,
-  type Content,
-} from "../lib/db/content.ts";
+import { getAllContent, type Article } from "../lib/articles.ts";
 
 const startTime = performance.now();
 
@@ -45,8 +41,8 @@ mkdirSync(CONTENT_DIR, { recursive: true });
 mkdirSync(ARTICLE_DIR, { recursive: true });
 mkdirSync(CONTEXT_DIR, { recursive: true });
 
-const allArticles = getAllContent();
-const projects = getAllProjects();
+const ARTICLES_DIR = join(PROJECT_ROOT, "blog/articles");
+const allArticles = getAllContent(ARTICLES_DIR);
 
 // Filter drafts in production
 const articles = isProduction
@@ -64,7 +60,7 @@ const manifest = {
     tags: c.tags,
     coverImage: c.coverImage,
   })),
-  projects: projects,
+  projects: [], // Projects removed - can be added back if needed
 };
 writeFileSync(join(CONTENT_DIR, "manifest.json"), JSON.stringify(manifest));
 
@@ -81,7 +77,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function generateArticleHtml(article: Content): string {
+function generateArticleHtml(article: Article): string {
   const title = `${article.title} | vibegui`;
   const description =
     article.description ||
@@ -204,7 +200,7 @@ function extractDescription(content: string, maxLength = 160): string {
       paragraph.slice(0, maxLength - 3).replace(/\s+\S*$/, "") + "...";
   }
 
-  return paragraph || `Notes on ${title}`;
+  return paragraph || "Notes";
 }
 
 // Generate context HTML files
@@ -318,5 +314,5 @@ const exportInfo = isProduction
 
 const elapsed = (performance.now() - startTime).toFixed(0);
 console.log(
-  `📚 Built: ${exportInfo}, ${projects.length} projects, ${contextCount} context (${elapsed}ms)`,
+  `📚 Built: ${exportInfo}, ${contextCount} context pages (${elapsed}ms)`,
 );
