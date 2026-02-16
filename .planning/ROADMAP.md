@@ -43,10 +43,10 @@ Plans:
   1. Custom YAML parser in lib/articles.ts is replaced with gray-matter library
   2. Roundtrip test (file → parse → stringify → compare) passes for all 52 articles without data loss
   3. Canonical frontmatter schema is documented with required fields and types
-**Plans**: TBD
+**Plans:** 1 plan
 
 Plans:
-- TBD
+- [ ] 02-01-PLAN.md — Replace custom parser with gray-matter + Zod schema, reformat articles, add roundtrip tests
 
 ### Phase 3: Supabase Schema & Import
 **Goal**: Articles table exists in Supabase with proper schema, all 52 markdown articles successfully imported and verified
