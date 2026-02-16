@@ -59,10 +59,11 @@ Plans:
   4. RLS policies allow public read for published articles, authenticated write for all articles
   5. Import script successfully loads all 52 articles with validation (dry-run tested first)
   6. Query confirms exactly 52 articles exist in Supabase after import
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- TBD
+- [ ] 03-01-PLAN.md — Create articles, tags, article_tags tables with indexes, triggers, and RLS policies
+- [ ] 03-02-PLAN.md — Write and execute import script for all 52 articles with dry-run and tag management
 
 ### Phase 4: Sync Pipeline
 **Goal**: Sync script exports Supabase articles to markdown files with smart diffing, only writing changed files to minimize git noise
@@ -105,7 +106,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Migration Cleanup | 1/1 | Complete | 2026-02-16 |
 | 2. Parser Foundation | 1/1 | Complete | 2026-02-16 |
-| 3. Supabase Schema & Import | 0/TBD | Not started | - |
+| 3. Supabase Schema & Import | 0/2 | Not started | - |
 | 4. Sync Pipeline | 0/TBD | Not started | - |
 | 5. Integration & Verification | 0/TBD | Not started | - |
 
