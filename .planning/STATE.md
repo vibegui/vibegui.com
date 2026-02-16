@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies. Supabase is the single source of truth for both articles and bookmarks.
-**Current focus:** Phase 3 - Supabase Schema & Import
+**Current focus:** Phase 3 complete, ready for Phase 4
 
 ## Current Position
 
-Phase: 3 of 5 (Supabase Schema & Import)
-Plan: 1 of 2 in current phase (COMPLETE)
-Status: Executing Phase 3
-Last activity: 2026-02-16 — Executed 03-01-PLAN.md (Supabase schema: tables, triggers, RLS policies)
+Phase: 3 of 5 (Supabase Schema & Import) COMPLETE
+Plan: 2 of 2 in current phase (COMPLETE)
+Status: Phase 3 Complete
+Last activity: 2026-02-16 — Executed 03-02-PLAN.md (Article import: 52 articles with tags into Supabase)
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 6 min
-- Total execution time: 0.3 hours
+- Total plans completed: 4
+- Average duration: 5 min
+- Total execution time: 0.35 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [██████░░░░] 60%
 |-------|-------|-------|----------|
 | 01-migration-cleanup | 1 | 3 min | 3 min |
 | 02-parser-foundation | 1 | 8 min | 8 min |
-| 03-supabase-schema-import | 1 | 7 min | 7 min |
+| 03-supabase-schema-import | 2 | 10 min | 5 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (3 min), 02-01 (8 min), 03-01 (7 min)
-- Trend: Consistent 5-8 min per plan
+- Last 5 plans: 01-01 (3 min), 02-01 (8 min), 03-01 (7 min), 03-02 (3 min)
+- Trend: Consistent 3-8 min per plan
 
 *Updated after each plan completion*
 
@@ -52,6 +52,8 @@ Recent decisions affecting current work:
 - Schema validated at parse time — ArticleFrontmatterSchema.parse() called in readArticle() (02-01)
 - Supabase CLI migrations for schema management — Local files tracked in git, pushed via `supabase db push` (03-01)
 - Repaired remote migration history — Pre-existing migrations marked as reverted to align local/remote state (03-01)
+- Service role client for scripts uses SUPABASE_URL + SUPABASE_SERVICE_KEY with manual .env loading (03-02)
+- Tag management via delete + re-insert pattern on article_tags junction table (03-02)
 
 ### Pending Todos
 
@@ -64,5 +66,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 03-01-PLAN.md — Schema applied, ready for 03-02 (import script)
+Stopped at: Completed 03-02-PLAN.md — Phase 3 complete, all 52 articles imported into Supabase
 Resume file: None
