@@ -12,8 +12,8 @@ This roadmap completes the vibegui.com migration from SQLite to Supabase-first a
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Migration Cleanup** - Review and commit Feb 9 changes, remove SQLite artifacts, verify builds and tests pass
-- [ ] **Phase 2: Parser Foundation** - Replace custom YAML parser with gray-matter, validate roundtrip fidelity for all 52 articles
+- [x] **Phase 1: Migration Cleanup** - Review and commit Feb 9 changes, remove SQLite artifacts, verify builds and tests pass (2026-02-16)
+- [x] **Phase 2: Parser Foundation** - Replace custom YAML parser with gray-matter, validate roundtrip fidelity for all 52 articles (2026-02-16)
 - [ ] **Phase 3: Supabase Schema & Import** - Create articles table with search/audit columns, import markdown articles to database
 - [ ] **Phase 4: Sync Pipeline** - Build DB→file sync script with hash-based diffing and deterministic formatting
 - [ ] **Phase 5: Integration & Verification** - Enforce direction with hooks, add AI agent tools, verify E2E pipeline
@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans:** 1 plan
 
 Plans:
-- [ ] 01-01-PLAN.md -- Delete SQLite artifacts, fix stale references, verify build/tests, commit cleanup
+- [x] 01-01-PLAN.md -- Delete SQLite artifacts, fix stale references, verify build/tests, commit cleanup
 
 ### Phase 2: Parser Foundation
 **Goal**: Frontmatter parsing is reliable and bidirectional using gray-matter, validated against all existing articles
@@ -46,7 +46,7 @@ Plans:
 **Plans:** 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Replace custom parser with gray-matter + Zod schema, reformat articles, add roundtrip tests
+- [x] 02-01-PLAN.md — Replace custom parser with gray-matter + Zod schema, reformat articles, add roundtrip tests
 
 ### Phase 3: Supabase Schema & Import
 **Goal**: Articles table exists in Supabase with proper schema, all 52 markdown articles successfully imported and verified
@@ -103,8 +103,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Migration Cleanup | 0/1 | Planned | - |
-| 2. Parser Foundation | 0/TBD | Not started | - |
+| 1. Migration Cleanup | 1/1 | Complete | 2026-02-16 |
+| 2. Parser Foundation | 1/1 | Complete | 2026-02-16 |
 | 3. Supabase Schema & Import | 0/TBD | Not started | - |
 | 4. Sync Pipeline | 0/TBD | Not started | - |
 | 5. Integration & Verification | 0/TBD | Not started | - |
