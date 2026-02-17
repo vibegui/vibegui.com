@@ -18,7 +18,7 @@ import {
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getAllContent, type Article } from "../lib/articles.ts";
+import { getAllContent, type Article } from "../lib/articles-reader.ts";
 
 const startTime = performance.now();
 
