@@ -33,28 +33,19 @@ bun run precommit
 
 ### Articles
 
-Articles live as **markdown files** in `blog/articles/` with YAML frontmatter:
+Articles are managed in **Supabase** (source of truth) and synced to `blog/articles/` as markdown build artifacts via `bun run sync`. The sync uses SHA-256 hash comparison to only write files when content has actually changed.
 
-```markdown
----
-slug: my-article
-title: "My Article Title"
-description: "Brief description"
-date: 2025-01-27
-status: published
-coverImage: /images/articles/my-article.png
-tags:
-  - tag1
-  - tag2
----
+**Workflow:**
+1. Create or edit articles in Supabase (via helper functions or MCP tools)
+2. Run `bun run sync` to export markdown files
+3. Run `bun run build` to generate the site
 
-Article content in markdown...
-```
+> **Do not edit `blog/articles/*.md` directly** -- changes will be overwritten on next sync. A pre-commit hook warns if these files are manually staged.
 
-To create a new article, add a `.md` file to `blog/articles/`. The dev server watches this directory and auto-regenerates content on changes.
+Article frontmatter includes: `slug`, `title`, `description`, `date`, `status`, `coverImage`, and `tags`.
 
-- **status: published** — Visible in production
-- **status: draft** — Visible in dev only (hidden when `CI=true`)
+- **status: published** -- Visible in production
+- **status: draft** -- Visible in dev only (hidden when `CI=true`)
 
 ### Bookmarks
 
@@ -68,9 +59,10 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CONTENT SOURCES                              │
 │                                                                  │
-│   blog/articles/*.md          Supabase (PostgreSQL)             │
-│   ├── YAML frontmatter        ├── 400+ curated bookmarks       │
-│   └── Markdown content        └── AI enrichment data            │
+│   Supabase (PostgreSQL)       blog/articles/*.md (build artifacts)│
+│   ├── Articles (source)       ├── Synced via: bun run sync      │
+│   ├── 400+ curated bookmarks  └── YAML frontmatter + markdown   │
+│   └── AI enrichment data                                         │
 └───────────────────────────┬──────────────────────────────────────┘
                             │
                             ▼
@@ -125,7 +117,7 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 19, Vite, Tailwind CSS v4 |
-| Content | Markdown files (blog/articles/) |
+| Content | Supabase (articles + bookmarks), synced to markdown |
 | Bookmarks | Supabase (PostgreSQL) via MCP Mesh |
 | Testing | Playwright (E2E), Bun test (unit/constraints) |
 | Deployment | Cloudflare Pages (edge, zero-install build) |
@@ -160,7 +152,7 @@ All content pages are pre-rendered with data embedded directly in the HTML — *
 ```
 vibegui.com/
 ├── blog/
-│   └── articles/              # Markdown articles (source of truth)
+│   └── articles/              # Markdown articles (build artifacts from Supabase)
 │       ├── my-article.md
 │       └── ...
 │

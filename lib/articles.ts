@@ -147,7 +147,7 @@ export function readAllArticles(articlesDir: string): Article[] {
   const files = readdirSync(articlesDir);
 
   for (const file of files) {
-    if (!file.endsWith(".md")) {
+    if (!file.endsWith(".md") || file === "README.md") {
       continue;
     }
 
