@@ -7,6 +7,7 @@ allowed-tools:
   - Write
   - Glob
   - mcp__nano-banana-agent__GENERATE_IMAGE
+  - Bash
 ---
 
 <objective>
@@ -63,8 +64,12 @@ Gritty, heroic, retro-futuristic aesthetic. Dark but powerful. No text.
 
 6. **Present to user.** Show the generated image and ask for approval. If rejected, ask what to change and regenerate.
 
-7. **On approval:**
-   - Save the image to `public/images/articles/{slug}.png`
+7. **On approval — save and optimize:**
+   - Save the image to `public/images/articles/{slug}.png` (use `curl` to download from the returned URL)
+   - **Optimize the image** to meet the 250KB constraint:
+     1. Resize to max 1200px wide: `sips --resampleWidth 1200 public/images/articles/{slug}.png --out public/images/articles/{slug}.png`
+     2. Run the project optimizer: `bun run optimize:images public/images/articles/{slug}.png`
+     3. If still over 250KB, resize smaller (900px, then 800px) and re-run `bun run optimize:images` until under the limit
    - Update `coverImage` in `blog/articles/{slug}.md` frontmatter to `/images/articles/{slug}.png`
 
 8. **Report.**
@@ -86,4 +91,5 @@ Next step: /article:publish {slug}
 - Image is saved to `public/images/articles/{slug}.png`
 - Article frontmatter `coverImage` is updated to `/images/articles/{slug}.png`
 - User explicitly approved the image before saving
+- Image is optimized to under 250KB (using `sips` resize + `bun run optimize:images`)
 </success_criteria>

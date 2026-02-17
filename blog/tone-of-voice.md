@@ -119,6 +119,20 @@ Begin with a concrete, specific moment.
 - ❌ Statistics-first openings
 - ❌ "In today's world..." (cliché setup)
 
+### 3.3 AI-Speak Slop (Kill on Sight)
+
+These are patterns LLMs produce by default. They sound polished but read as soulless. Rewrite every instance:
+
+- ❌ **"No X. No Y. Just Z."** — The tricolon summary. Dead giveaway of AI writing. ("No CMS. No context switching. Just an agent." → rewrite as a specific, messy, human sentence)
+- ❌ **"This isn't X. It's Y."** — Defensive reframing nobody asked for. ("This isn't AI writing my blog. It's vibecoding." → just say what it is, don't pre-argue against phantom critics)
+- ❌ **"Let's dive in" / "Here's the thing" / "At its core"** — Filler transitions that add zero meaning
+- ❌ **"It's worth noting" / "Importantly" / "Interestingly"** — Metacommentary that tells the reader how to feel instead of letting the content do it
+- ❌ **Tidy parallel structures as punchlines** — ("X gives it hands. Y gives it a brain." — too neat, too packaged, reads like a slide deck)
+- ❌ **Starting consecutive paragraphs with the same structure** — AI loves repeating "The X..." or "This Y..." paragraph after paragraph
+- ❌ **"...and that's a game-changer" / "...and it changes everything"** — Hollow escalation
+
+✅ **Instead**: Write like you're explaining it to a friend over coffee. Messy. Specific. Human. If a sentence could appear in any LinkedIn post by any person, it's not Guilherme's voice.
+
 ---
 
 ## SECTION 4: STRUCTURAL BLUEPRINTS
