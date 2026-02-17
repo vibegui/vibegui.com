@@ -44,8 +44,7 @@ export function ArticleCard({
             <img
               src={coverImage}
               alt=""
-              className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-              style={{ aspectRatio: "1200 / 630" }}
+              className="w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
             />
           </div>
         )}

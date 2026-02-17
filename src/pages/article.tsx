@@ -87,12 +87,7 @@ export function Article({ slug }: { slug: string }) {
       {/* Cover image */}
       {article.coverImage && (
         <div className="mb-6 -mx-4 md:mx-0 overflow-hidden md:rounded-lg">
-          <img
-            src={article.coverImage}
-            alt=""
-            className="w-full h-auto object-cover"
-            style={{ aspectRatio: "1200 / 630" }}
-          />
+          <img src={article.coverImage} alt="" className="w-full h-auto" />
         </div>
       )}
 
