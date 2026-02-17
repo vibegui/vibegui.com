@@ -10,7 +10,9 @@ import {
 const ARTICLES_DIR = join(import.meta.dir, "../../blog/articles");
 
 describe("Article Roundtrip Fidelity", () => {
-  const files = readdirSync(ARTICLES_DIR).filter((f) => f.endsWith(".md"));
+  const files = readdirSync(ARTICLES_DIR).filter(
+    (f) => f.endsWith(".md") && f !== "README.md",
+  );
 
   test("all articles exist", () => {
     expect(files.length).toBeGreaterThanOrEqual(52);
