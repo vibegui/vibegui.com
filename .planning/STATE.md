@@ -60,6 +60,8 @@ Recent decisions affecting current work:
 - Orphan files warned but never auto-deleted — safe by default (04-01)
 - Tags sorted alphabetically for deterministic frontmatter output (04-01)
 - Article helpers created in 05-01 ahead of schedule, verified in 05-02 — required createdBy/updatedBy params enforce audit trail (05-02)
+- Warning hook is non-blocking (exits 0) to avoid disrupting commit flow (05-01)
+- README.md in blog/articles/ requires excluding from article parser and constraint tests (05-01)
 
 ### Pending Todos
 
@@ -72,5 +74,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 05-02-PLAN.md — Article CRUD helpers verified
+Stopped at: Completed 05-01-PLAN.md — Direction enforcement (lefthook warning + docs)
 Resume file: None
