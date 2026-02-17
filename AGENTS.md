@@ -16,9 +16,13 @@ Guidelines for AI agents working on this repository.
 
 ## Content Management
 
-### Articles (DB-first workflow)
+### Articles
 
-Articles are managed in **Supabase** (source of truth). The markdown files in `blog/articles/` are **build artifacts** -- do not edit them directly. Changes will be overwritten on the next sync.
+Two workflows coexist for article management:
+
+#### DB-first workflow (existing articles, sync)
+
+Articles managed in **Supabase** (source of truth). The markdown files in `blog/articles/` are **build artifacts** for these — do not edit them directly. Changes will be overwritten on the next sync.
 
 **Helper functions** (`lib/article-helpers.ts`):
 - `createArticle(data)` -- Create a new article in Supabase
@@ -31,8 +35,41 @@ Articles are managed in **Supabase** (source of truth). The markdown files in `b
 3. Run `bun run build` to regenerate the site
 4. Run `bun run preview` to verify locally
 
-**Important:**
-- Articles should follow the tone in `context/GUILHERME_TONE_OF_VOICE.md`
+#### File-first workflow (new articles, `/article:*` skills)
+
+New articles are authored locally using the `/article:*` skill pipeline, then published to Supabase.
+
+**Skills** (`.claude/commands/article/`):
+
+| Skill | Purpose |
+|-------|---------|
+| `/article:new <topic>` | Create brief + draft skeleton |
+| `/article:research <slug>` | Deep research via Perplexity |
+| `/article:outline <slug>` | Beat-by-beat structure |
+| `/article:draft <slug>` | Write the full article |
+| `/article:image <slug>` | Generate cover image |
+| `/article:publish <slug>` | Upsert to Supabase |
+| `/article:preview <slug>` | Build + serve locally |
+| `/article:status` | Show all articles and progress |
+| `/article:resume <slug>` | Pick up where you left off |
+| `/article:quick <topic>` | Full pipeline in one session |
+
+**File layout:**
+- `content/briefs/{slug}/` — Planning artifacts (BRIEF.md, RESEARCH.md, OUTLINE.md)
+- `blog/articles/{slug}.md` — The article (status: draft until published)
+- `public/images/articles/` — Generated cover images
+
+**Lifecycle:** new → research → outline → draft → image → publish
+
+**MCPs used:**
+- Supabase (`mcp__supabase-agent__execute_sql`) — Article CRUD on `juzhkuutiuqkyuwbcivk`
+- Nano Banana (`mcp__nano-banana-agent__GENERATE_IMAGE`) — Cover image generation
+- Perplexity (`mcp__perplexity-ai-agent__ask`) — Research
+
+#### Shared rules
+
+- Articles should follow the tone in `blog/tone-of-voice.md`
+- Images should follow the style in `blog/visual-style.md`
 - Don't publish articles without user review
 - The sync script uses SHA-256 hash comparison and only writes changed files
 - A lefthook pre-commit hook warns if `blog/articles/*.md` files are manually staged
