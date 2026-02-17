@@ -5,6 +5,16 @@ pre-commit:
   parallel: false
   piped: true  # Stop on first error - don't continue if a command fails
   commands:
+    0_warn_articles:
+      glob: "blog/articles/*.md"
+      run: |
+        echo ""
+        echo "WARNING: blog/articles/*.md files are staged."
+        echo "These are build artifacts synced from Supabase."
+        echo "Direct edits will be overwritten on next sync."
+        echo "Edit in Supabase, then: bun run sync"
+        echo ""
+
     1_format:
       run: bun run fmt
       stage_fixed: true
