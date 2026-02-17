@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Parser Foundation** - Replace custom YAML parser with gray-matter, validate roundtrip fidelity for all 52 articles (2026-02-16)
 - [ ] **Phase 3: Supabase Schema & Import** - Create articles table with search/audit columns, import markdown articles to database
 - [x] **Phase 4: Sync Pipeline** - Build DB→file sync script with hash-based diffing and deterministic formatting (completed 2026-02-16)
-- [ ] **Phase 5: Integration & Verification** - Enforce direction with hooks, add AI agent tools, verify E2E pipeline
+- [x] **Phase 5: Integration & Verification** - Enforce direction with hooks, add AI agent tools, verify E2E pipeline (completed 2026-02-17)
 
 ## Phase Details
 
@@ -92,7 +92,7 @@ Plans:
   4. Audit columns (created_by, updated_by) are populated on all database writes
   5. Full pipeline works: edit article in Supabase → sync-articles.ts → generate.ts → vite build → dist/
   6. Local preview server (`bun run preview`) correctly serves all articles from built site
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 05-01-PLAN.md — Direction enforcement: lefthook warning + documentation updates
@@ -110,7 +110,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 2. Parser Foundation | 1/1 | Complete | 2026-02-16 |
 | 3. Supabase Schema & Import | 0/2 | Not started | - |
 | 4. Sync Pipeline | 0/TBD | Complete    | 2026-02-16 |
-| 5. Integration & Verification | 0/3 | Not started | - |
+| 5. Integration & Verification | 0/3 | Complete    | 2026-02-17 |
 
 ---
 *Roadmap created: 2026-02-16*
