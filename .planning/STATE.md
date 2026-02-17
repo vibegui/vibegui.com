@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The site builds and deploys cleanly on Cloudflare Pages with zero SQLite dependencies. Supabase is the single source of truth for both articles and bookmarks.
-**Current focus:** Phase 5 in progress — article helpers verified, MCP integration next
+**Current focus:** All 5 phases complete — full Supabase-first pipeline verified end-to-end
 
 ## Current Position
 
 Phase: 5 of 5 (Integration Verification)
-Plan: 2 of 3 in current phase (COMPLETE)
-Status: Executing Phase 5
-Last activity: 2026-02-16 — Executed 05-02-PLAN.md (article CRUD helpers for AI agents)
+Plan: 3 of 3 in current phase (COMPLETE)
+Status: ALL PHASES COMPLETE
+Last activity: 2026-02-16 — Executed 05-03-PLAN.md (E2E pipeline verification)
 
-Progress: [█████████░] 93%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
+- Total plans completed: 8
 - Average duration: 4 min
-- Total execution time: 0.48 hours
+- Total execution time: 0.55 hours
 
 **By Phase:**
 
@@ -31,10 +31,10 @@ Progress: [█████████░] 93%
 | 02-parser-foundation | 1 | 8 min | 8 min |
 | 03-supabase-schema-import | 2 | 10 min | 5 min |
 | 04-sync-pipeline | 1 | 2 min | 2 min |
-| 05-integration-verification | 2 | 6 min | 3 min |
+| 05-integration-verification | 3 | 10 min | 3 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (8 min), 03-01 (7 min), 03-02 (3 min), 04-01 (2 min), 05-02 (3 min)
+- Last 5 plans: 03-01 (7 min), 03-02 (3 min), 04-01 (2 min), 05-02 (3 min), 05-03 (4 min)
 - Trend: Consistent 2-8 min per plan
 
 *Updated after each plan completion*
@@ -62,6 +62,8 @@ Recent decisions affecting current work:
 - Article helpers created in 05-01 ahead of schedule, verified in 05-02 — required createdBy/updatedBy params enforce audit trail (05-02)
 - Warning hook is non-blocking (exits 0) to avoid disrupting commit flow (05-01)
 - README.md in blog/articles/ requires excluding from article parser and constraint tests (05-01)
+- E2E pipeline tests verify built dist/ output only — no sync or build inside tests (05-03)
+- Used known stable article slug from existing content.spec.ts for reliable E2E assertions (05-03)
 
 ### Pending Todos
 
@@ -74,5 +76,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-16 (plan execution)
-Stopped at: Completed 05-01-PLAN.md — Direction enforcement (lefthook warning + docs)
+Stopped at: Completed 05-03-PLAN.md — All phases complete
 Resume file: None
