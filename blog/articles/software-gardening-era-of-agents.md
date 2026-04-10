@@ -1,16 +1,16 @@
 ---
 slug: software-gardening-era-of-agents
-title: 'Software Gardening in the Era of Agents'
+title: Software Gardening in the Era of Agents
 description: 'Atwood called it Software Gardening in 2008. Karpathy named it vibecoding in 2025. When code is almost free, the bottleneck was always somewhere else — and the teams winning now are the ones who figured out where.'
 date: 2026-04-08
-status: draft
+status: published
 coverImage: /images/articles/software-gardening-era-of-agents.png
 tags:
+  - agents
   - ai
   - mcp
-  - agents
-  - startup
   - product
+  - startup
 ---
 For most of my career, I thought I was doing software wrong.
 
@@ -78,6 +78,6 @@ The teams winning now aren't the ones with the most agents. They're the ones who
 
 If you've been building iteratively and felt like you were cutting corners — you weren't. You were learning. That was always the game. Agents just collapsed the timeline.
 
-The opportunity isn't closing. It's multiplying. More gardens than ever are going unplanted — not because building is too hard, but because most people still think the bottleneck is code.
+The construction metaphor promised certainty. The garden metaphor demands something harder: staying close enough to what's growing to know when to prune, when to water, and when to let something die.
 
-It isn't. It never was.
+Agents accelerated everything. Except the fundamentals. You still plant, tend, learn, and adapt. The more things change, the more the garden demands the same thing it always did.

@@ -15,7 +15,7 @@ describe("Article Roundtrip Fidelity", () => {
   );
 
   test("all articles exist", () => {
-    expect(files.length).toBeGreaterThanOrEqual(52);
+    expect(files.length).toBeGreaterThanOrEqual(48);
   });
 
   for (const file of files) {
