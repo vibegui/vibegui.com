@@ -1,7 +1,7 @@
 ---
 slug: software-gardening-era-of-agents
 title: Software Gardening in the Era of Agents
-description: 'Atwood called it Software Gardening in 2008. Karpathy named it vibecoding in 2025. When code is almost free, the bottleneck was always somewhere else — and the teams winning now are the ones who figured out where.'
+description: Agents made coding cheap. Now the teams tending their software daily are burying the ones still drawing blueprints.
 date: 2026-04-08
 status: published
 coverImage: /images/articles/software-gardening-era-of-agents.png
