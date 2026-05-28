@@ -2,7 +2,7 @@
 
 > Personal blog, experiments sandbox, and AI-curated bookmarks by Guilherme Rodrigues (@vibegui)
 
-A minimal, high-performance static site with markdown-based articles and Supabase-powered bookmarks. This project serves as both a personal platform and an educational reference for building MCP-first applications.
+A minimal, high-performance static site. Articles are markdown files in the repo; bookmarks are stored in Supabase. This project serves as both a personal platform and an educational reference for building MCP-first applications.
 
 **Live at [vibegui.com](https://vibegui.com)**
 
@@ -33,19 +33,26 @@ bun run precommit
 
 ### Articles
 
-Articles are managed in **Supabase** (source of truth) and synced to `blog/articles/` as markdown build artifacts via `bun run sync`. The sync uses SHA-256 hash comparison to only write files when content has actually changed.
+Markdown files in `blog/articles/` are the source of truth. Edit, commit, push — Cloudflare Pages builds and deploys. There is no parallel database for articles.
 
 **Workflow:**
-1. Create or edit articles in Supabase (via helper functions or MCP tools)
-2. Run `bun run sync` to export markdown files
-3. Run `bun run build` to generate the site
+1. Edit (or create) `blog/articles/{slug}.md`.
+2. `git commit && git push` — or run `/article:publish <slug>` to flip frontmatter to published, commit, and push in one shot.
+3. Cloudflare picks up the push and deploys.
 
-> **Do not edit `blog/articles/*.md` directly** -- changes will be overwritten on next sync. A pre-commit hook warns if these files are manually staged.
+Article frontmatter:
 
-Article frontmatter includes: `slug`, `title`, `description`, `date`, `status`, `coverImage`, and `tags`.
+| Field | Notes |
+|-------|-------|
+| `slug` | unique, matches filename |
+| `title` | display title |
+| `description` | shown on home + meta description |
+| `date` | `YYYY-MM-DD`, used for ordering |
+| `status` | `published` (live) or `draft` (dev-only, hidden when `CI=true`) |
+| `coverImage` | path under `public/images/articles/`, or `null` |
+| `tags` | array of strings, optional |
 
-- **status: published** -- Visible in production
-- **status: draft** -- Visible in dev only (hidden when `CI=true`)
+For authoring assistance, use the `/article:*` skills (see `AGENTS.md`).
 
 ### Bookmarks
 
@@ -59,10 +66,9 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CONTENT SOURCES                              │
 │                                                                  │
-│   Supabase (PostgreSQL)       blog/articles/*.md (build artifacts)│
-│   ├── Articles (source)       ├── Synced via: bun run sync      │
-│   ├── 400+ curated bookmarks  └── YAML frontmatter + markdown   │
-│   └── AI enrichment data                                         │
+│   blog/articles/*.md          Supabase (PostgreSQL)              │
+│   ├── Source of truth         └── 400+ curated bookmarks         │
+│   └── YAML frontmatter + md       (read-only via anon key)       │
 └───────────────────────────┬──────────────────────────────────────┘
                             │
                             ▼
@@ -117,7 +123,7 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 | Layer | Technology |
 |-------|------------|
 | Frontend | React 19, Vite, Tailwind CSS v4 |
-| Content | Supabase (articles + bookmarks), synced to markdown |
+| Articles | Markdown files in `blog/articles/`, committed to the repo |
 | Bookmarks | Supabase (PostgreSQL) via MCP Mesh |
 | Testing | Playwright (E2E), Bun test (unit/constraints) |
 | Deployment | Cloudflare Pages (edge, zero-install build) |
@@ -152,13 +158,14 @@ All content pages are pre-rendered with data embedded directly in the HTML — *
 ```
 vibegui.com/
 ├── blog/
-│   └── articles/              # Markdown articles (build artifacts from Supabase)
+│   └── articles/              # Markdown articles (source of truth)
 │       ├── my-article.md
 │       └── ...
 │
 ├── lib/
 │   ├── articles.ts            # Markdown parser (frontmatter + body)
-│   └── supabase.ts            # Supabase client (bookmarks)
+│   ├── articles-reader.ts     # Zero-dep parser used by Cloudflare Pages build
+│   └── supabase.ts            # Supabase client (bookmarks only)
 │
 ├── scripts/
 │   ├── build.ts               # Unified build script (dev/prod/pages)

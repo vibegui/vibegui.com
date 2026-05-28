@@ -1,16 +1,15 @@
 ---
-description: Publish an article to Supabase
+description: Publish an article by committing and pushing to origin
 argument-hint: "<slug>"
 allowed-tools:
   - Read
   - Edit
   - Glob
   - Bash
-  - mcp__supabase-agent__execute_sql
 ---
 
 <objective>
-Publish an article from the local markdown file to Supabase. Handles both new articles (INSERT) and updates (UPDATE). Sets status to published and verifies roundtrip consistency.
+Publish an article by flipping its frontmatter to `status: published` and pushing the commit. Markdown is the source of truth — committing the file is the entire publish act. Cloudflare Pages will pick up the push and deploy.
 </objective>
 
 <context>
@@ -21,82 +20,42 @@ Arguments: $ARGUMENTS
 
 <process>
 
-1. **Resolve the slug.** If `$ARGUMENTS` is provided, use it as the slug. Otherwise, scan `blog/articles/` for files with `status: draft`, and list them.
+1. **Resolve the slug.** If `$ARGUMENTS` is provided, use it as the slug. Otherwise scan `blog/articles/` for files with `status: draft` and ask the user which to publish.
 
-2. **Read and parse the article.** Read `blog/articles/{slug}.md` and extract:
-   - Frontmatter: slug, title, description, date, status, coverImage, tags
-   - Content: the markdown body
+2. **Read the article.** Read `blog/articles/{slug}.md`. Confirm the frontmatter parses and the body isn't empty.
 
-3. **Check if article exists in Supabase.** Use `mcp__supabase-agent__execute_sql` on project `juzhkuutiuqkyuwbcivk`:
+3. **Update frontmatter.**
+   - Set `status: published`.
+   - If `date` is unset or in the future (relative to today), set it to today (`YYYY-MM-DD`).
+   - Leave every other field untouched.
 
-```sql
-SELECT id, slug, status FROM articles WHERE slug = '{slug}';
-```
+4. **Stage.** Run `git add blog/articles/{slug}.md`. If `coverImage` points to a file under `public/images/articles/` that is currently untracked or modified, stage that too.
 
-4. **Upsert the article.**
-
-   **If new (no rows returned):** INSERT:
-   ```sql
-   INSERT INTO articles (slug, title, description, content, date, status, cover_image, created_by, updated_by)
-   VALUES ('{slug}', '{title}', '{description}', '{content}', '{date}', 'published', '{coverImage}', 'claude-article-skill', 'claude-article-skill')
-   RETURNING id;
+5. **Commit.** Use the convention from recent history:
    ```
-
-   **If exists:** UPDATE:
-   ```sql
-   UPDATE articles
-   SET title = '{title}',
-       description = '{description}',
-       content = '{content}',
-       date = '{date}',
-       status = 'published',
-       cover_image = '{coverImage}',
-       updated_by = 'claude-article-skill'
-   WHERE slug = '{slug}'
-   RETURNING id;
+   feat(article): publish '{slug}'
    ```
+   No body required for a simple publish.
 
-5. **Handle tags.** If the article has tags:
+6. **Push.** `git push origin HEAD`. This skill is the one authorized exception to the "never auto-push" rule in `AGENTS.md`.
 
-   a. Upsert each tag name into the `tags` table:
-   ```sql
-   INSERT INTO tags (name) VALUES ('{tag}') ON CONFLICT (name) DO NOTHING;
-   ```
+7. **Report.**
 
-   b. Clear existing article_tags:
-   ```sql
-   DELETE FROM article_tags WHERE article_id = {article_id};
-   ```
-
-   c. Insert new junction rows:
-   ```sql
-   INSERT INTO article_tags (article_id, tag_id)
-   SELECT {article_id}, id FROM tags WHERE name IN ('{tag1}', '{tag2}', ...);
-   ```
-
-6. **Update local file status.** Edit `blog/articles/{slug}.md` to change `status: draft` to `status: published`.
-
-7. **Verify roundtrip.** Run `bun run sync --dry-run` to confirm the sync script sees no changes (the local file should match what the DB would produce).
-
-8. **Report.**
-
-Output:
 ```
 Published: {title}
-  - Slug: {slug}
-  - Article ID: {id}
-  - Tags: {tags}
-  - Status: published
-  - URL: /article/{slug}
-  - Roundtrip: {pass/fail}
+  Slug:    {slug}
+  Date:    {date}
+  Commit:  {short-sha}
+  URL:     https://vibegui.com/article/{slug}
+
+Pushed to origin. Cloudflare Pages will deploy shortly.
 ```
 
 </process>
 
 <success_criteria>
-- Article exists in Supabase with status `published`
-- Tags are properly linked via `article_tags` junction table
-- Local file status is updated to `published`
-- `bun run sync --dry-run` shows no diff for this article (roundtrip consistent)
-- `updated_by` is set to `claude-article-skill`
+- `blog/articles/{slug}.md` has `status: published` and a sensible `date`.
+- A commit was created on the current branch with the expected message.
+- The commit was pushed to `origin`.
+- No Supabase calls. No sync. No build invocation (the deployment pipeline handles build).
 </success_criteria>

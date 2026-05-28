@@ -4,7 +4,7 @@ Guidelines for AI agents working on this repository.
 
 ## Git Operations
 
-- **Never auto-push**: After committing changes, wait for the user to review and push manually. Only push when explicitly requested.
+- **Never auto-push**, with one exception: `/article:publish` is authorized to push directly to origin — that skill *is* the publish action. For any other change, commit locally and wait for the user to push.
 - **Commit often**: Small, focused commits with clear messages are preferred.
 - **Use conventional commits**: `type(scope): message` format.
 
@@ -18,26 +18,7 @@ Guidelines for AI agents working on this repository.
 
 ### Articles
 
-Two workflows coexist for article management:
-
-#### DB-first workflow (existing articles, sync)
-
-Articles managed in **Supabase** (source of truth). The markdown files in `blog/articles/` are **build artifacts** for these — do not edit them directly. Changes will be overwritten on the next sync.
-
-**Helper functions** (`lib/article-helpers.ts`):
-- `createArticle(data)` -- Create a new article in Supabase
-- `updateArticle(slug, data)` -- Update an existing article
-- `getArticleBySlug(slug)` -- Fetch a single article by slug
-
-**Workflow:**
-1. Use helper functions or Supabase MCP tools to create/edit articles in the database
-2. Run `bun run sync` to export articles from Supabase to `blog/articles/*.md`
-3. Run `bun run build` to regenerate the site
-4. Run `bun run preview` to verify locally
-
-#### File-first workflow (new articles, `/article:*` skills)
-
-New articles are authored locally using the `/article:*` skill pipeline, then published to Supabase.
+Markdown files in `blog/articles/` are the source of truth. Committing the file publishes the article — there is no parallel database, no sync step.
 
 **Skills** (`.claude/commands/article/`):
 
@@ -48,7 +29,7 @@ New articles are authored locally using the `/article:*` skill pipeline, then pu
 | `/article:outline <slug>` | Beat-by-beat structure |
 | `/article:draft <slug>` | Write the full article |
 | `/article:image <slug>` | Generate cover image |
-| `/article:publish <slug>` | Upsert to Supabase |
+| `/article:publish <slug>` | Flip frontmatter to published, commit, push |
 | `/article:preview <slug>` | Build + serve locally |
 | `/article:status` | Show all articles and progress |
 | `/article:resume <slug>` | Pick up where you left off |
@@ -62,21 +43,18 @@ New articles are authored locally using the `/article:*` skill pipeline, then pu
 **Lifecycle:** new → research → outline → draft → image → publish
 
 **MCPs used:**
-- Supabase (`mcp__supabase-agent__execute_sql`) — Article CRUD on `juzhkuutiuqkyuwbcivk`
 - Nano Banana (`mcp__nano-banana-agent__GENERATE_IMAGE`) — Cover image generation
 - Perplexity (`mcp__perplexity-ai-agent__ask`) — Research
 
-#### Shared rules
-
-- Articles should follow the tone in `blog/tone-of-voice.md`
-- Images should follow the style in `blog/visual-style.md`
-- Don't publish articles without user review
-- The sync script uses SHA-256 hash comparison and only writes changed files
-- A lefthook pre-commit hook warns if `blog/articles/*.md` files are manually staged
+**Rules:**
+- Follow the tone in `blog/tone-of-voice.md`.
+- Follow the visual style in `blog/visual-style.md`.
+- Don't publish articles without user review.
+- Edit `blog/articles/*.md` freely — these files are the source of truth, not build artifacts.
 
 ### Bookmarks
 
-- Use the MCP tools for bookmark CRUD operations.
+Bookmarks live in Supabase (separate from articles). Use the MCP tools for bookmark CRUD operations.
 
 ## Code Style
 

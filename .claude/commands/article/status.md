@@ -3,11 +3,10 @@ description: Show status of all articles and their progress
 allowed-tools:
   - Read
   - Glob
-  - mcp__supabase-agent__execute_sql
 ---
 
 <objective>
-Display a comprehensive status table of all articles — both local drafts and published articles — showing their progress through the authoring pipeline.
+Display a status table of all articles, derived entirely from the filesystem. Shows where each article sits in the pipeline and suggests the next step.
 </objective>
 
 <context>
@@ -16,57 +15,43 @@ Arguments: $ARGUMENTS
 
 <process>
 
-1. **Scan local articles.** Use `Glob` to find all `blog/articles/*.md` files (excluding README.md). Read each file's frontmatter to extract: slug, title, status, date, coverImage.
+1. **Scan articles.** `Glob` for `blog/articles/*.md` (skip `README.md`). For each file, read its frontmatter and capture: slug, title, status, date, coverImage.
 
-2. **Scan briefs.** Use `Glob` to find all directories in `content/briefs/`. For each slug directory, check for:
-   - `BRIEF.md` (has brief?)
-   - `RESEARCH.md` (has research?)
-   - `OUTLINE.md` (has outline?)
+2. **Scan briefs.** `Glob` for `content/briefs/*/`. For each slug dir, check for `BRIEF.md`, `RESEARCH.md`, `OUTLINE.md`.
 
-3. **Check Supabase.** Query all articles in the database using `mcp__supabase-agent__execute_sql` on project `juzhkuutiuqkyuwbcivk`:
-
-```sql
-SELECT slug, status FROM articles ORDER BY date DESC;
-```
-
-4. **Build the status table.** Cross-reference all three sources and display:
+3. **Render the table.** Sort by date descending. Columns:
 
 ```
-| Slug                    | Status    | Brief | Research | Outline | Image | In DB |
-|-------------------------|-----------|-------|----------|---------|-------|-------|
-| my-new-article          | draft     | yes   | yes      | no      | no    | no    |
-| hello-world-building... | published | no    | no       | no      | no    | yes   |
-| ...                     | ...       | ...   | ...      | ...     | ...   | ...   |
+| Slug                | Status    | Brief | Research | Outline | Image |
+|---------------------|-----------|-------|----------|---------|-------|
+| my-new-article      | draft     | yes   | yes      | no      | no    |
+| hello-world-...     | published | no    | no       | no      | yes   |
 ```
 
-- **Status**: from local file frontmatter (`draft` or `published`)
-- **Brief**: `yes` if `content/briefs/{slug}/BRIEF.md` exists
-- **Research**: `yes` if `content/briefs/{slug}/RESEARCH.md` exists
-- **Outline**: `yes` if `content/briefs/{slug}/OUTLINE.md` exists
-- **Image**: `yes` if `coverImage` is not null in frontmatter
-- **In DB**: `yes` if slug exists in Supabase
+- **Status**: from frontmatter (`draft` | `published`).
+- **Brief/Research/Outline**: `yes` if the respective file exists under `content/briefs/{slug}/`.
+- **Image**: `yes` if `coverImage` in frontmatter is non-null.
 
-5. **Show summary counts.**
+4. **Summary counts.**
 
 ```
 Total: {N} articles
-  - Published (in DB): {N}
-  - Drafts (local only): {N}
-  - In progress (have briefs): {N}
+  Published: {N}
+  Drafts:    {N}
+  In planning (has brief, no article file): {N}
 ```
 
-6. **Highlight actionable items.** List any articles that are in an incomplete state with their suggested next step:
-   - Has brief but no research → `/article:research {slug}`
-   - Has research but no outline → `/article:outline {slug}`
-   - Has outline but draft is empty → `/article:draft {slug}`
-   - Has content but no image → `/article:image {slug}`
-   - Has content + image but not in DB → `/article:publish {slug}`
+5. **Next-step suggestions.** For any in-progress article, print the next command:
+- Has BRIEF.md only → `/article:research {slug}`
+- Has BRIEF.md + RESEARCH.md → `/article:outline {slug}`
+- Has OUTLINE.md, but article body is empty/skeleton → `/article:draft {slug}`
+- Has draft content but no `coverImage` → `/article:image {slug}`
+- Has draft + image, ready to ship → `/article:publish {slug}`
 
 </process>
 
 <success_criteria>
-- All local articles are listed with accurate status
-- Brief/Research/Outline presence is correctly detected
-- Supabase status is cross-referenced
-- Actionable next steps are shown for in-progress articles
+- All local articles listed with accurate state.
+- No network calls — pure filesystem inspection.
+- Next steps printed only for articles that aren't already published.
 </success_criteria>

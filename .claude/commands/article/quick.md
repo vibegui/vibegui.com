@@ -11,7 +11,6 @@ allowed-tools:
   - mcp__perplexity-ai-agent__ask
   - mcp__perplexity-ai-agent__chat
   - mcp__nano-banana-agent__GENERATE_IMAGE
-  - mcp__supabase-agent__execute_sql
 ---
 
 <objective>
@@ -75,11 +74,10 @@ Arguments: $ARGUMENTS
 - Save image and update frontmatter
 
 ### Step 6: Publish (from /article:publish)
-- Read article, check Supabase for existing entry
-- INSERT or UPDATE in Supabase (project: `juzhkuutiuqkyuwbcivk`)
-- Handle tags
-- Update local status to published
-- Verify with `bun run sync --dry-run`
+- Flip frontmatter to `status: published`; set `date` to today if unset/future
+- `git add` the article (and cover image if newly created)
+- Commit: `feat(article): publish '{slug}'`
+- `git push origin HEAD` — the publish flow is the one authorized auto-push
 
 ### Final Report
 
@@ -92,9 +90,9 @@ Pipeline summary:
   3. Outline: content/briefs/{slug}/OUTLINE.md ({N} beats)
   4. Draft: blog/articles/{slug}.md ({word_count} words)
   5. Image: public/images/articles/{slug}.png
-  6. Published to Supabase (ID: {id})
+  6. Pushed: {short-sha} on origin/{branch}
 
-URL: /article/{slug}
+URL: https://vibegui.com/article/{slug}
 ```
 
 </process>
@@ -102,9 +100,8 @@ URL: /article/{slug}
 <success_criteria>
 - All 6 steps completed successfully
 - User approved at all 3 checkpoints (outline, draft, image)
-- Article is published in Supabase with status `published`
+- Article is committed and pushed to `origin` with frontmatter `status: published`
 - All planning artifacts exist in `content/briefs/{slug}/`
 - Cover image exists in `public/images/articles/`
 - Voice checklist passes
-- Roundtrip sync is consistent
 </success_criteria>
