@@ -990,6 +990,12 @@ export default defineConfig({
   server: {
     port: 4001,
     strictPort: true,
+    // Bind on all interfaces so the Deco Studio preview proxy can reach it
+    host: true,
+    // Vite 6 blocks requests whose Host header isn't localhost by default.
+    // The Studio preview proxies through a *.preview-studio.decocms.com
+    // subdomain, so we need to allow that host explicitly.
+    allowedHosts: [".decocms.com", "localhost"],
     // Serve content files during development
     fs: {
       allow: [".", "content"],
