@@ -12,9 +12,9 @@ import { Link } from "../app";
 import { ThemeToggle } from "./theme-toggle";
 
 const NAV_LINKS = [
-  { href: "/", label: "Content" },
-  { href: "/context", label: "Context" },
-  { href: "/commitment", label: "Commitment" },
+  { href: "/", label: "Writing" },
+  { href: "/context", label: "Library" },
+  { href: "/commitment", label: "About" },
 ];
 
 function useCurrentPath() {
@@ -50,8 +50,11 @@ export function Header() {
         {/* Logo */}
         <Link
           href="/"
-          className="font-semibold text-lg tracking-tight hover:no-underline"
-          style={{ color: "var(--color-accent)" }}
+          className="text-lg tracking-tight hover:no-underline"
+          style={{
+            color: "var(--color-fg)",
+            fontFamily: "var(--font-serif)",
+          }}
         >
           vibegui
         </Link>
@@ -67,8 +70,7 @@ export function Header() {
                 color: isActive(link.href)
                   ? "var(--color-fg)"
                   : "var(--color-fg-muted)",
-                textDecoration: isActive(link.href) ? "underline" : "none",
-                textUnderlineOffset: "4px",
+                textDecoration: "none",
               }}
             >
               {link.label}

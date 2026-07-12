@@ -2,9 +2,9 @@
  * vibegui.com - Main Stylesheet
  *
  * Design principles:
- * - Mobile-first, minimalistic
+ * - Mobile-first, quiet editorial design
  * - Reading comfort (60-75 char line length)
- * - Green accent: terminal green (dark), forest green (light)
+ * - Warm neutrals with a restrained sage accent
  */
 
 @import "tailwindcss";
@@ -16,32 +16,32 @@
 @theme {
   /* Typography */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
   /* Spacing for reading comfort */
   --prose-width: 65ch;
+  --content-width: 48rem;
 }
 
 :root {
-  /* Light mode colors (default) */
-  --color-bg: #fafafa;
-  --color-bg-secondary: #f0f0f0;
-  --color-fg: #1a1a1a;
-  --color-fg-muted: #525252;
-  --color-accent: #1b4332;
-  --color-accent-hover: #143726;
-  --color-border: #e5e5e5;
+  --color-bg: #f7f5ef;
+  --color-bg-secondary: #efede6;
+  --color-fg: #22211e;
+  --color-fg-muted: #6f6b63;
+  --color-accent: #476454;
+  --color-accent-hover: #344c3e;
+  --color-border: #dedbd2;
 }
 
 [data-theme="dark"] {
-  /* Dark mode - deep forest green theme */
-  --color-bg: #0a1510;
-  --color-bg-secondary: #0f1f18;
-  --color-fg: #f0f6fc;
-  --color-fg-muted: #9ca3af;
-  --color-accent: #b8e035;
-  --color-accent-hover: #c9eb52;
-  --color-border: #1a3328;
+  --color-bg: #121310;
+  --color-bg-secondary: #1b1d18;
+  --color-fg: #eeede7;
+  --color-fg-muted: #a29f96;
+  --color-accent: #a6bda8;
+  --color-accent-hover: #c1d1c2;
+  --color-border: #2b2e27;
 }
 
 /* ============================================================================
@@ -67,22 +67,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle grid pattern for dark mode body background */
-[data-theme="dark"] body {
-  background-image: linear-gradient(
-      rgba(255, 255, 255, 0.015) 1px,
-      transparent 1px
-    ), linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: -1px -1px;
-}
-
-/* Header gets solid background (no grid pattern) */
-[data-theme="dark"] header {
-  background-color: var(--color-bg);
-  background-image: none;
-}
-
 /* ============================================================================
    Typography
    ============================================================================ */
@@ -93,8 +77,9 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 600;
-  line-height: 1.25;
+  font-family: var(--font-serif);
+  font-weight: 500;
+  line-height: 1.15;
   color: var(--color-fg);
 }
 
@@ -261,6 +246,11 @@ a:hover {
   max-width: 1024px;
   margin-inline: auto;
   padding-inline: 1rem;
+}
+
+.content-width {
+  width: 100%;
+  max-width: var(--content-width);
 }
 
 @media (min-width: 640px) {

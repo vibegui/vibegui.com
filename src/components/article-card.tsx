@@ -11,8 +11,6 @@ interface ArticleCardProps {
   title: string;
   date: string;
   description?: string | null;
-  coverImage?: string | null;
-  featured?: boolean;
 }
 
 function formatDate(dateStr: string): string {
@@ -30,50 +28,41 @@ export function ArticleCard({
   title,
   date,
   description,
-  coverImage,
-  featured = false,
 }: ArticleCardProps) {
   return (
     <article
-      className={`group ${featured ? "pb-5 border-[var(--color-border)]" : "py-3"}`}
+      data-testid="article-card"
+      className="group py-8 md:py-10 border-b"
+      style={{ borderColor: "var(--color-border)" }}
     >
       {/* Full page load ensures SSG HTML with embedded data */}
       <a href={`/article/${slug}`} className="block hover:no-underline">
-        {coverImage && (
-          <div className="mb-3 overflow-hidden rounded-lg">
-            <img
-              src={coverImage}
-              alt=""
-              className="w-full h-auto transition-transform duration-300 group-hover:scale-[1.02]"
-            />
-          </div>
-        )}
         <time
           dateTime={date}
-          className="text-sm"
+          className="text-xs tracking-wide"
           style={{ color: "var(--color-fg-muted)" }}
         >
           {formatDate(date)}
         </time>
         <h2
-          className={`mt-1 font-semibold transition-colors ${featured ? "text-xl" : "text-lg"}`}
+          className="mt-3 text-2xl md:text-3xl transition-colors group-hover:text-[var(--color-accent)]"
           style={{ color: "var(--color-fg)" }}
         >
           {title}
         </h2>
         {description && (
           <p
-            className="mt-2 text-sm line-clamp-2"
+            className="mt-3 text-base leading-relaxed max-w-2xl"
             style={{ color: "var(--color-fg-muted)" }}
           >
             {description}
           </p>
         )}
         <span
-          className="mt-3 inline-block text-sm"
+          className="mt-5 inline-block text-sm"
           style={{ color: "var(--color-accent)" }}
         >
-          Read more →
+          Read essay →
         </span>
       </a>
     </article>

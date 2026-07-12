@@ -118,6 +118,15 @@ test.describe("Article Pages", () => {
       page.locator("text=Hello World: Building an MCP-Native Blog"),
     ).toBeVisible();
   });
+
+  test("writing list stays editorial and image-free", async ({ page }) => {
+    await page.goto("/content");
+    await page.waitForLoadState("domcontentloaded");
+
+    const cards = page.getByTestId("article-card");
+    await expect(cards.first()).toBeVisible();
+    await expect(cards.locator("img")).toHaveCount(0);
+  });
 });
 
 test.describe("Content Loading", () => {
