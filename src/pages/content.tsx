@@ -31,8 +31,8 @@ export function Content() {
   const hasDrafts = drafts.length > 0;
 
   return (
-    <div className="container py-6">
-      <div style={{ maxWidth: "var(--prose-width)" }}>
+    <div className="container py-8 md:py-12">
+      <div className="content-width">
         <PageHeader />
 
         {loading ? (
@@ -139,8 +139,6 @@ export function Content() {
                       title={article.title}
                       date={article.date}
                       description={article.description}
-                      coverImage={article.coverImage}
-                      featured={false}
                     />
                   </div>
                 ))}
@@ -167,15 +165,13 @@ export function Content() {
                     Published
                   </h2>
                 )}
-                {published.map((article, index) => (
+                {published.map((article) => (
                   <ArticleCard
                     key={article.slug}
                     slug={article.slug}
                     title={article.title}
                     date={article.date}
                     description={article.description}
-                    coverImage={article.coverImage}
-                    featured={index === 0 && !hasDrafts}
                   />
                 ))}
               </>

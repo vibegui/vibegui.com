@@ -55,3 +55,8 @@ data/
 
 supabase/.build/
 supabase/.temp/
+
+# Personal AI OS Worker
+mcp/.dev.vars
+mcp/.wrangler/
+mcp/dist/

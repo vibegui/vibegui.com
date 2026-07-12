@@ -29,68 +29,72 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
     );
   }
 
-  // Default header for blog home
+  // Personal introduction for the writing home
   return (
-    <div className="mb-6 flex flex-wrap gap-3">
-      <div
-        className="px-4 py-3 rounded-2xl text-sm"
-        style={{
-          backgroundColor: "var(--color-bg-secondary)",
-          color: "var(--color-fg)",
-        }}
-      >
-        <div>
-          Personal blog of{" "}
-          <strong>
+    <section
+      className="mb-8 md:mb-12 pb-8 md:pb-12 border-b"
+      style={{ borderColor: "var(--color-border)" }}
+    >
+      <div className="flex flex-col-reverse sm:flex-row sm:items-start gap-7 sm:gap-10">
+        <div className="flex-1">
+          <p
+            className="text-sm mb-4"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            Guilherme Rodrigues · Rio de Janeiro
+          </p>
+          <h1
+            className="text-4xl md:text-5xl"
+            style={{ color: "var(--color-fg)" }}
+          >
+            Ideas I wish I had earlier.
+          </h1>
+          <p
+            className="mt-5 text-base md:text-lg leading-relaxed"
+            style={{ color: "var(--color-fg-muted)" }}
+          >
+            I build software and companies, currently as co-founder of{" "}
+            <a
+              href="https://decocms.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              deco
+            </a>
+            . This is where I work through the distinctions that shape how I
+            lead, build, and imagine possible futures—for technology, Brazil,
+            and myself.
+          </p>
+          <nav
+            className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm"
+            aria-label="Personal links"
+          >
             <a
               href="https://www.linkedin.com/in/vibegui/"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Guilherme Rodrigues
+              LinkedIn
             </a>
-          </strong>
-          , co-founder of{" "}
-          <a
-            href="https://decocms.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-medium"
-          >
-            decocms.com
-          </a>
-          , RJ ↔ NY
+            <a
+              href="https://github.com/vibegui"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              GitHub
+            </a>
+            <a href="/bookmarks">Bookmarks</a>
+          </nav>
         </div>
-        <div style={{ color: "var(--color-fg-muted)" }} className="mt-1">
-          Articles, essays, and thoughts on technology, leadership, and building
-          in Brazil.
-        </div>
+        <img
+          src="/images/guilherme-rodrigues.jpeg"
+          alt="Guilherme Rodrigues"
+          width="800"
+          height="800"
+          className="w-28 h-28 md:w-32 md:h-32 rounded-full object-cover shrink-0"
+          style={{ border: "1px solid var(--color-border)" }}
+        />
       </div>
-
-      <a
-        href="/bookmarks"
-        className="px-4 py-3 rounded-2xl text-sm block hover:scale-[1.02] transition-transform"
-        style={{
-          backgroundColor: "var(--color-bg-secondary)",
-          color: "var(--color-fg)",
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="text-xs font-semibold px-1.5 py-0.5 rounded"
-            style={{
-              backgroundColor: "var(--color-accent)",
-              color: "var(--color-bg)",
-            }}
-          >
-            new
-          </span>
-          <span className="font-semibold">vibegui Bookmarks</span>
-        </div>
-        <div style={{ color: "var(--color-fg-muted)" }} className="mt-1">
-          An AI-curated list of relevant articles and projects.
-        </div>
-      </a>
-    </div>
+    </section>
   );
 }

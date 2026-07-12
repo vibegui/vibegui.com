@@ -17,7 +17,7 @@ export function Commitment() {
           <h2 className="text-2xl font-semibold mb-4">About the author</h2>
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             <img
-              src="/images/profile-2025-12.png"
+              src="/images/guilherme-rodrigues.jpeg"
               alt="Guilherme Rodrigues"
               className="w-64 h-64 rounded-md object-cover shrink-0"
               style={{ border: "1px solid var(--color-border)" }}
