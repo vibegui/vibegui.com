@@ -94,3 +94,45 @@ bun run preview
 ```
 
 The preview server mimics Cloudflare's behavior with proper caching headers.
+
+## Personal AI OS Worker
+
+The public site and `mcp/` deploy independently. From `mcp/`:
+
+```bash
+bun install
+bun run check
+bun run test
+bun run deploy:dry
+
+# First deployment only
+bunx wrangler d1 create vibegui-personal-ai-os
+bunx wrangler d1 migrations apply vibegui-personal-ai-os --remote
+bunx wrangler r2 bucket create vibegui-corpus
+bun run corpus:upload:remote
+bunx wrangler ai-search create vibegui-writing \
+  --type r2 \
+  --source vibegui-corpus \
+  --prefix 'articles/' \
+  --embedding-model '@cf/baai/bge-m3' \
+  --hybrid-search \
+  --chunk-size 512 \
+  --chunk-overlap 20 \
+  --max-num-results 10 \
+  --score-threshold 0.35
+
+# Set interactively; never put values in shell history
+bunx wrangler secret put MCP_PRIVATE_TOKEN
+bunx wrangler secret put GITHUB_TOKEN
+
+bun run deploy
+```
+
+The current single-token MVP needs a classic GitHub PAT with `repo` scope because the mapped private repositories span multiple owners (`vibegui`, `decocms`, and `deco-cx`). The Worker only performs GET requests, but the token itself has broader permissions than ideal. Authorize organization SSO when required and replace this with GitHub App authentication later.
+
+Connect `https://<worker-host>/mcp` to Studio:
+
+- Public connection: no authorization header; published writing tools only.
+- Private connection: `Authorization: Bearer <MCP_PRIVATE_TOKEN>`; Personal AI OS tools and UI.
+
+The private token proves possession, not caller identity. Keep it only in the private Studio connection.

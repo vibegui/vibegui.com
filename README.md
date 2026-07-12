@@ -1,8 +1,8 @@
 # vibegui.com
 
-> Personal blog, experiments sandbox, and AI-curated bookmarks by Guilherme Rodrigues (@vibegui)
+> Guilherme Rodrigues' Personal AI OS, public ideas, and AI-curated library.
 
-A minimal, high-performance static site. Articles are markdown files in the repo; bookmarks are stored in Supabase. This project serves as both a personal platform and an educational reference for building MCP-first applications.
+A minimal, high-performance public site plus one copyable MCP that becomes a persistent personal agent in deco Studio. Articles are Markdown files in the repo; published Markdown is mirrored to R2 only for AutoRAG. Bookmarks are stored in Supabase; private projects, goals, memory, decisions, captures, and daily briefs live in D1.
 
 **Live at [vibegui.com](https://vibegui.com)**
 
@@ -25,6 +25,26 @@ bun run preview:build
 
 # Run all checks (pre-commit)
 bun run precommit
+```
+
+---
+
+## Personal AI OS
+
+`mcp/` is a separate Cloudflare Worker with one public endpoint and two capability levels:
+
+- Without authentication: published writing tools.
+- With the private Studio token: project map, goals, memory, decisions, captures, GitHub evidence, daily briefs, and the Personal AI OS MCP App.
+
+The implementation is public and copyable; personal state and credentials stay in D1 and Worker secrets. See [`mcp/README.md`](./mcp/README.md).
+
+The December 2026 project charter, outcomes, conditions of satisfaction, and scorecard live in [`DECLARATION.md`](./DECLARATION.md).
+
+```bash
+bun run mcp:check
+bun run mcp:test
+bun run mcp:build
+bun run mcp:dev
 ```
 
 ---
@@ -124,9 +144,11 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 |-------|------------|
 | Frontend | React 19, Vite, Tailwind CSS v4 |
 | Articles | Markdown files in `blog/articles/`, committed to the repo |
+| Article retrieval | Published Markdown mirror in R2 + Cloudflare AI Search |
 | Bookmarks | Supabase (PostgreSQL) via MCP Mesh |
+| Personal AI OS | Cloudflare Worker, D1, MCP App |
 | Testing | Playwright (E2E), Bun test (unit/constraints) |
-| Deployment | Cloudflare Pages (edge, zero-install build) |
+| Deployment | Cloudflare Pages + Worker |
 | Quality | Biome (format), oxlint (lint), TypeScript strict |
 
 ---
@@ -178,6 +200,12 @@ vibegui.com/
 │   ├── leadership/*.md        # Leadership summaries
 │   └── LINKEDIN_PROFILE.md    # Author context
 │
+├── mcp/                       # Personal AI OS Worker and MCP App
+│   ├── src/                   # Public/private tools, state, auth, GitHub sync
+│   ├── web/                   # Private Studio MCP App
+│   ├── migrations/            # Private D1 schema
+│   └── wrangler.jsonc         # Worker configuration
+│
 ├── src/                       # Frontend source
 │   ├── main.tsx               # Entry point
 │   ├── app.tsx                # Router and layout
@@ -222,6 +250,9 @@ vibegui.com/
 | `bun run check` | TypeScript type checking |
 | `bun run lint` | oxlint linting |
 | `bun run fmt` | Biome formatting |
+| `bun run mcp:check` | Type-check the Personal AI OS |
+| `bun run mcp:test` | Test public/private MCP isolation |
+| `bun run mcp:build` | Build the single-file Studio MCP App |
 
 ---
 
