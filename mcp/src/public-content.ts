@@ -17,6 +17,24 @@ interface Manifest {
 
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
+export async function getDeclaration(env: Env) {
+  const rawOrigin = normalizedOrigin(
+    env.PUBLIC_REPO_RAW_ORIGIN,
+    "https://raw.githubusercontent.com/vibegui/vibegui.com/main",
+  );
+  const response = await fetch(`${rawOrigin}/DECLARATION.md`, {
+    headers: { accept: "text/markdown,text/plain" },
+    cf: { cacheTtl: 300, cacheEverything: true },
+  });
+  if (!response.ok) {
+    throw new Error(`Declaration request failed (${response.status})`);
+  }
+  return {
+    markdown: await response.text(),
+    source: "https://github.com/vibegui/vibegui.com/blob/main/DECLARATION.md",
+  };
+}
+
 export async function listPublicWriting(env: Env): Promise<PublicWriting[]> {
   const siteOrigin = normalizedOrigin(
     env.PUBLIC_SITE_ORIGIN,

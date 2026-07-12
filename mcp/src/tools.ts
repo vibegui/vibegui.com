@@ -1,6 +1,7 @@
 import type { AccessLevel, Env } from "./env.ts";
 import { refreshGitHub } from "./github.ts";
 import {
+  getDeclaration,
   getPublicWriting,
   listPublicWriting,
   searchPublicWriting,
@@ -25,10 +26,11 @@ import {
   remember,
   saveDailyBrief,
   saveProject,
+  setProjectProgress,
   updateGoal,
 } from "./state.ts";
 
-export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os";
+export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v5";
 
 export interface ToolDefinition {
   name: string;
@@ -100,9 +102,18 @@ export const tools: ToolDefinition[] = [
     },
   },
   {
+    name: "GET_DECLARATION",
+    description:
+      "Return the canonical VibeGui December 2026 declaration: charter, strategic outcomes, conditions of satisfaction, and scorecard.",
+    access: "private",
+    inputSchema: objectSchema({}),
+    _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
+    execute: async (env) => getDeclaration(env),
+  },
+  {
     name: "GET_PORTFOLIO",
     description:
-      "Open the private Personal AI OS project map: projects, investment modes, active goals, inbox counts, and declared focus.",
+      "Open the private Personal AI OS project map: draft, active, and archived projects with goals, progress, work, and activity.",
     access: "private",
     inputSchema: objectSchema({}),
     _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
@@ -110,8 +121,7 @@ export const tools: ToolDefinition[] = [
   },
   {
     name: "SAVE_PROJECT",
-    description:
-      "Create or update a project in the private project map. Setting one project to focus moves any previous focus project to maintain.",
+    description: "Create or update a project in the private project map.",
     access: "private",
     inputSchema: objectSchema(
       {
@@ -126,17 +136,19 @@ export const tools: ToolDefinition[] = [
           type: ["string", "null"],
           description: "GitHub owner/repo",
         },
-        investment_mode: {
+        lifecycle: {
           type: "string",
-          enum: ["focus", "maintain", "incubate", "archive"],
-        },
-        status: {
-          type: "string",
-          enum: ["active", "paused", "completed", "archived"],
+          enum: ["draft", "active", "archived"],
         },
         current_outcome: { type: "string" },
         success_criteria: { type: "string" },
         next_review: { type: ["string", "null"] },
+        progress_percent: {
+          type: ["number", "null"],
+          minimum: 0,
+          maximum: 100,
+        },
+        progress_note: { type: "string" },
       },
       ["name"],
     ),
@@ -148,22 +160,43 @@ export const tools: ToolDefinition[] = [
         description: optionalString(input, "description"),
         spirit: optionalString(input, "spirit"),
         repository: optionalNullableString(input, "repository"),
-        investment_mode: optionalEnum(input, "investment_mode", [
-          "focus",
-          "maintain",
-          "incubate",
-          "archive",
-        ]),
-        status: optionalEnum(input, "status", [
+        lifecycle: optionalEnum(input, "lifecycle", [
+          "draft",
           "active",
-          "paused",
-          "completed",
           "archived",
         ]),
         current_outcome: optionalString(input, "current_outcome"),
         success_criteria: optionalString(input, "success_criteria"),
         next_review: optionalNullableString(input, "next_review"),
+        progress_percent: optionalNullableNumber(input, "progress_percent"),
+        progress_note: optionalString(input, "progress_note"),
       }),
+  },
+  {
+    name: "SET_PROJECT_PROGRESS",
+    description:
+      "Set a project's explicit progress percentage and optional evidence-based note. Never infer this from activity volume.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        id: { type: "string" },
+        progress_percent: {
+          type: "number",
+          minimum: 0,
+          maximum: 100,
+        },
+        progress_note: { type: "string" },
+      },
+      ["id", "progress_percent"],
+    ),
+    _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
+    execute: async (env, input) =>
+      setProjectProgress(
+        env,
+        requiredString(input, "id"),
+        requiredNumber(input, "progress_percent"),
+        optionalString(input, "progress_note") ?? "",
+      ),
   },
   {
     name: "GET_PROJECT",
@@ -645,6 +678,24 @@ function optionalNumber(
   if (value === undefined) return undefined;
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error(`${key} must be a number`);
+  }
+  return value;
+}
+
+function requiredNumber(input: Record<string, unknown>, key: string): number {
+  const value = optionalNumber(input, key);
+  if (value === undefined) throw new Error(`${key} is required`);
+  return value;
+}
+
+function optionalNullableNumber(
+  input: Record<string, unknown>,
+  key: string,
+): number | null | undefined {
+  const value = input[key];
+  if (value === undefined || value === null) return value;
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    throw new Error(`${key} must be a number or null`);
   }
   return value;
 }

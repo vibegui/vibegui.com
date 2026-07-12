@@ -158,7 +158,7 @@ function privateInstructions(): string {
     "Treat activity as evidence of attention, never as measured hours.",
     "Distinguish facts, observations, and recommendations. Cite repository or issue URLs when available.",
     "Persist only durable information. Routine conversation is not memory.",
-    "One project may be focus; spread curiosity remains visible, execution remains concentrated.",
+    "Project lifecycle is explicit: draft, active, or archived. Do not invent additional priority labels.",
   ].join("\n");
 }
 

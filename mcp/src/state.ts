@@ -1,7 +1,6 @@
 import type { Env } from "./env.ts";
 
-type InvestmentMode = "focus" | "maintain" | "incubate" | "archive";
-type ProjectStatus = "active" | "paused" | "completed" | "archived";
+type ProjectLifecycle = "draft" | "active" | "archived";
 type GoalStatus = "active" | "paused" | "completed" | "cancelled";
 type MemoryKind =
   | "fact"
@@ -16,11 +15,12 @@ export interface SaveProjectInput {
   description?: string;
   spirit?: string;
   repository?: string | null;
-  investment_mode?: InvestmentMode;
-  status?: ProjectStatus;
+  lifecycle?: ProjectLifecycle;
   current_outcome?: string;
   success_criteria?: string;
   next_review?: string | null;
+  progress_percent?: number | null;
+  progress_note?: string;
 }
 
 export interface CreateGoalInput {
@@ -65,75 +65,79 @@ export async function getPortfolio(env: Env) {
       (SELECT COUNT(*) FROM work_items w WHERE w.project_id = p.id AND w.state = 'open') AS open_work_item_count
     FROM projects p
     ORDER BY
-      CASE p.investment_mode
-        WHEN 'focus' THEN 0
-        WHEN 'maintain' THEN 1
-        WHEN 'incubate' THEN 2
+      CASE p.lifecycle
+        WHEN 'active' THEN 0
+        WHEN 'draft' THEN 1
         ELSE 3
       END,
       p.name`,
   ).all();
 
-  const focus = await env.DB.prepare(
-    `SELECT f.*, p.name AS project_name
-     FROM focus_declarations f
-     LEFT JOIN projects p ON p.id = f.project_id
-     WHERE f.ends_at IS NULL OR f.ends_at > CURRENT_TIMESTAMP
-     ORDER BY f.starts_at DESC
-     LIMIT 1`,
+  const dailyBrief = await env.DB.prepare(
+    "SELECT * FROM daily_briefs ORDER BY brief_date DESC LIMIT 1",
   ).first();
 
-  return { projects: projects.results, focus };
+  return { daily_brief: dailyBrief, projects: projects.results };
 }
 
 export async function saveProject(env: Env, input: SaveProjectInput) {
   const id = input.id?.trim() || slugify(input.name);
   if (!id) throw new Error("Project id or name is required");
 
-  const mode = input.investment_mode ?? "incubate";
-  const statements: D1PreparedStatement[] = [];
-  if (mode === "focus") {
-    statements.push(
-      env.DB.prepare(
-        `UPDATE projects
-         SET investment_mode = 'maintain', updated_at = CURRENT_TIMESTAMP
-         WHERE investment_mode = 'focus' AND id != ?`,
-      ).bind(id),
-    );
-  }
-
-  statements.push(
-    env.DB.prepare(
-      `INSERT INTO projects (
-        id, name, description, spirit, repository, investment_mode, status,
-        current_outcome, success_criteria, next_review
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  await env.DB.prepare(
+    `INSERT INTO projects (
+        id, name, description, spirit, repository, lifecycle,
+        current_outcome, success_criteria, next_review, progress_percent,
+        progress_note
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(id) DO UPDATE SET
         name = excluded.name,
         description = excluded.description,
         spirit = excluded.spirit,
         repository = excluded.repository,
-        investment_mode = excluded.investment_mode,
-        status = excluded.status,
+        lifecycle = excluded.lifecycle,
         current_outcome = excluded.current_outcome,
         success_criteria = excluded.success_criteria,
         next_review = excluded.next_review,
+        progress_percent = excluded.progress_percent,
+        progress_note = excluded.progress_note,
         updated_at = CURRENT_TIMESTAMP`,
-    ).bind(
+  )
+    .bind(
       id,
       input.name.trim(),
       input.description?.trim() ?? "",
       input.spirit?.trim() ?? "",
       input.repository?.trim() || null,
-      mode,
-      input.status ?? "active",
+      input.lifecycle ?? "draft",
       input.current_outcome?.trim() ?? "",
       input.success_criteria?.trim() ?? "",
       input.next_review ?? null,
-    ),
-  );
+      input.progress_percent ?? null,
+      input.progress_note?.trim() ?? "",
+    )
+    .run();
+  return getProject(env, id);
+}
 
-  await env.DB.batch(statements);
+export async function setProjectProgress(
+  env: Env,
+  id: string,
+  progressPercent: number,
+  progressNote = "",
+) {
+  const boundedProgress = Math.min(
+    100,
+    Math.max(0, Math.round(progressPercent)),
+  );
+  const result = await env.DB.prepare(
+    `UPDATE projects
+     SET progress_percent = ?, progress_note = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+  )
+    .bind(boundedProgress, progressNote.trim(), id)
+    .run();
+  if (!result.meta.changes) throw new Error(`Project not found: ${id}`);
   return getProject(env, id);
 }
 
@@ -203,7 +207,7 @@ export async function getAttentionMap(env: Env, days = 30) {
     `SELECT
       p.id AS project_id,
       p.name AS project_name,
-      p.investment_mode,
+      p.lifecycle,
       a.source,
       a.kind,
       COUNT(*) AS event_count,
@@ -211,7 +215,7 @@ export async function getAttentionMap(env: Env, days = 30) {
     FROM activity_events a
     JOIN projects p ON p.id = a.project_id
     WHERE a.occurred_at >= datetime('now', ?)
-    GROUP BY p.id, p.name, p.investment_mode, a.source, a.kind
+    GROUP BY p.id, p.name, p.lifecycle, a.source, a.kind
     ORDER BY event_count DESC, last_activity_at DESC`,
   )
     .bind(modifier)
@@ -234,7 +238,7 @@ export async function getStaleProjects(env: Env, days = 14) {
       MAX(a.occurred_at) AS last_activity_at
     FROM projects p
     LEFT JOIN activity_events a ON a.project_id = p.id
-    WHERE p.status = 'active'
+    WHERE p.lifecycle = 'active'
     GROUP BY p.id
     HAVING COALESCE(MAX(a.occurred_at), p.updated_at) < datetime('now', ?)
     ORDER BY COALESCE(MAX(a.occurred_at), p.updated_at) ASC`,
@@ -511,7 +515,7 @@ export async function getDailyBriefInput(env: Env, date = today()) {
     instructions: [
       "State what changed since the previous brief.",
       "Identify which goals moved and which are stale or blocked.",
-      "Compare observed activity with declared focus without calling activity hours.",
+      "Compare observed activity with active project goals without calling activity hours.",
       "Surface pending decisions.",
       "Recommend the smallest high-leverage next steps.",
     ],
