@@ -46,7 +46,6 @@
     "tsx": "^4.21.0",
     "typescript": "^5.7.2",
     "vite": "^6.0.6",
-    "vite-plugin-imagemin": "^0.6.1",
     "zod": "^3.25.76",
     "zod-to-json-schema": "^3.25.1"
   },
