@@ -390,7 +390,9 @@ export function AnalyticsView({
   callTool: (name: string, args?: Record<string, unknown>) => Promise<unknown>;
 }) {
   const days = number(result.days) || 7;
-  const siteFilter = text(result.site) || null;
+  const filters = (result.filters ?? {}) as JsonRecord;
+  const filtro = (dim: string) => text(filters[dim]) || null;
+  const siteFilter = filtro("site") || text(result.site) || null;
   const sites = asRecords(result.sites);
   const series = asRecords(result.series);
   const topPages = asRecords(result.topPages);
@@ -414,12 +416,29 @@ export function AnalyticsView({
     ? (totalPageviews / totalVisitors).toFixed(1)
     : "—";
 
-  const reload = (args: Record<string, unknown>) =>
-    void callTool("SITES_OVERVIEW", {
-      days,
-      ...(siteFilter ? { site: siteFilter } : {}),
-      ...args,
-    });
+  const ativos: Record<string, string> = {};
+  for (const dim of FILTER_DIMS) {
+    const valor = dim === "site" ? siteFilter : filtro(dim);
+    if (valor) ativos[dim] = valor;
+  }
+
+  const reload = (args: Record<string, unknown>) => {
+    const merged: Record<string, unknown> = { days, ...ativos, ...args };
+    for (const [k, v] of Object.entries(merged)) {
+      if (v === undefined || v === null || v === "") delete merged[k];
+    }
+    void callTool("SITES_OVERVIEW", merged);
+  };
+
+  // clicar de novo na mesma linha remove o filtro daquela dimensão
+  const toggle = (patch: Record<string, string>) => {
+    const igual = Object.entries(patch).every(([k, v]) => ativos[k] === v);
+    reload(
+      Object.fromEntries(
+        Object.keys(patch).map((k) => [k, igual ? undefined : patch[k]]),
+      ),
+    );
+  };
 
   return (
     <div className="analytics">
@@ -428,7 +447,7 @@ export function AnalyticsView({
           <button
             type="button"
             className={siteFilter ? "" : "active"}
-            onClick={() => void callTool("SITES_OVERVIEW", { days })}
+            onClick={() => reload({ site: undefined })}
           >
             Todos os sites
           </button>
@@ -437,7 +456,7 @@ export function AnalyticsView({
               type="button"
               key={text(site.site)}
               className={siteFilter === text(site.site) ? "active" : ""}
-              onClick={() => reload({ site: text(site.site) })}
+              onClick={() => toggle({ site: text(site.site) })}
             >
               {text(site.site)}
             </button>
@@ -456,6 +475,27 @@ export function AnalyticsView({
           ))}
         </div>
       </div>
+
+      {Object.keys(ativos).filter((dim) => dim !== "site").length > 0 && (
+        <div className="analytics-filters">
+          {Object.entries(ativos)
+            .filter(([dim]) => dim !== "site")
+            .map(([dim, valor]) => (
+              <button
+                type="button"
+                key={dim}
+                onClick={() => reload({ [dim]: undefined })}
+                title={`Remover filtro ${FILTER_LABEL[dim]}`}
+              >
+                {FILTER_LABEL[dim]}:{" "}
+                <strong>
+                  {dim === "country" ? countryLabel(valor) : valor}
+                </strong>{" "}
+                ×
+              </button>
+            ))}
+        </div>
+      )}
 
       <div className="analytics-stats">
         <button
@@ -490,6 +530,11 @@ export function AnalyticsView({
             label: text(page.path) || "/",
             hint: siteFilter ? undefined : text(page.site),
             value: number(page.pageviews),
+            active:
+              ativos.path === text(page.path) &&
+              (!ativos.site || ativos.site === text(page.site)),
+            onSelect: () =>
+              toggle({ site: text(page.site), path: text(page.path) }),
           }))}
         />
         <AnalyticsPanel
@@ -498,6 +543,8 @@ export function AnalyticsView({
             key: text(referrer.ref),
             label: text(referrer.ref),
             value: number(referrer.pageviews),
+            active: ativos.ref === text(referrer.ref),
+            onSelect: () => toggle({ ref: text(referrer.ref) }),
           }))}
         />
         <AnalyticsPanel
@@ -506,12 +553,22 @@ export function AnalyticsView({
             key: text(row.country),
             label: countryLabel(text(row.country)),
             value: number(row.pageviews),
+            active: ativos.country === text(row.country),
+            onSelect: () => toggle({ country: text(row.country) }),
           }))}
         />
       </div>
     </div>
   );
 }
+
+const FILTER_DIMS = ["site", "path", "country", "ref"] as const;
+const FILTER_LABEL: Record<string, string> = {
+  site: "site",
+  path: "página",
+  country: "país",
+  ref: "fonte",
+};
 
 const METRIC_LABEL = {
   visitors: "visitantes",
@@ -721,7 +778,14 @@ function AnalyticsPanel({
   rows,
 }: {
   title: string;
-  rows: Array<{ key: string; label: string; hint?: string; value: number }>;
+  rows: Array<{
+    key: string;
+    label: string;
+    hint?: string;
+    value: number;
+    active?: boolean;
+    onSelect?: () => void;
+  }>;
 }) {
   const max = Math.max(1, ...rows.map((row) => row.value));
   return (
@@ -729,19 +793,37 @@ function AnalyticsPanel({
       <h3>{title}</h3>
       {rows.length === 0 && <p className="empty">Nada ainda.</p>}
       <ul>
-        {rows.map((row) => (
-          <li key={row.key}>
-            <span
-              className="analytics-fill"
-              style={{ width: `${Math.max(2, (row.value / max) * 100)}%` }}
-            />
-            <span className="analytics-path">
-              {row.hint && <em>{row.hint}</em>}
-              {row.label}
-            </span>
-            <strong>{row.value.toLocaleString("pt-BR")}</strong>
-          </li>
-        ))}
+        {rows.map((row) => {
+          const conteudo = (
+            <>
+              <span
+                className="analytics-fill"
+                style={{ width: `${Math.max(2, (row.value / max) * 100)}%` }}
+              />
+              <span className="analytics-path">
+                {row.hint && <em>{row.hint}</em>}
+                {row.label}
+              </span>
+              <strong>{row.value.toLocaleString("pt-BR")}</strong>
+            </>
+          );
+          return (
+            <li key={row.key}>
+              {row.onSelect ? (
+                <button
+                  type="button"
+                  className="analytics-row"
+                  aria-pressed={Boolean(row.active)}
+                  onClick={row.onSelect}
+                >
+                  {conteudo}
+                </button>
+              ) : (
+                <div className="analytics-row">{conteudo}</div>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </section>
   );

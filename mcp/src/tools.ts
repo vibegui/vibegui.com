@@ -72,12 +72,25 @@ export const tools: ToolDefinition[] = [
         description:
           "Filtrar tudo por um site (vibegui.com | poesiadairene.com | buscamalvados.com)",
       },
+      path: { type: "string", description: "Filtrar por caminho (ex.: /1712)" },
+      country: {
+        type: "string",
+        description: "Filtrar por país (código ISO de 2 letras, ex.: FR)",
+      },
+      ref: {
+        type: "string",
+        description:
+          "Filtrar pela fonte: hostname do referrer (ex.: google.com) ou '(direto)'",
+      },
     }),
     _meta: { ui: { resourceUri: ANALYTICS_RESOURCE } },
     execute: async (env, input) =>
       sitesOverview(env, {
         days: optionalNumber(input, "days"),
         site: optionalString(input, "site"),
+        path: optionalString(input, "path"),
+        country: optionalString(input, "country"),
+        ref: optionalString(input, "ref"),
       }),
   },
   {

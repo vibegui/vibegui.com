@@ -1058,6 +1058,25 @@ button {
   color: var(--bg);
   border-color: transparent;
 }
+.analytics-filters {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+.analytics-filters button {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px dashed var(--border);
+  background: var(--accent-soft);
+  color: inherit;
+  cursor: pointer;
+}
+.analytics-filters strong {
+  font-weight: 600;
+}
 .analytics-stats {
   display: flex;
   gap: 0.75rem;
@@ -1160,16 +1179,33 @@ button {
   padding: 0;
   margin: 0;
 }
-.analytics-list li {
+.analytics-row {
   position: relative;
   display: flex;
+  width: 100%;
   justify-content: space-between;
   gap: 1rem;
   padding: 0.4rem 0.55rem;
   margin-bottom: 3px;
+  border: 0;
   border-radius: 0.35rem;
+  font: inherit;
   font-size: 0.88rem;
+  text-align: left;
+  background: transparent;
+  color: inherit;
   overflow: hidden;
+}
+button.analytics-row {
+  cursor: pointer;
+}
+button.analytics-row:hover .analytics-fill,
+button.analytics-row:focus-visible .analytics-fill {
+  background: var(--accent-soft-strong, var(--accent-soft));
+  filter: brightness(0.96);
+}
+.analytics-row[aria-pressed="true"] {
+  outline: 1px solid var(--accent);
 }
 .analytics-fill {
   position: absolute;
