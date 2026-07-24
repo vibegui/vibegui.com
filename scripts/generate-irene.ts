@@ -174,19 +174,25 @@ const CSS = `
   @media (min-width: 58rem) {
     .layout {
       display: grid;
-      grid-template-columns: minmax(19rem, 23rem) minmax(0, 1fr);
+      grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr);
     }
+    /* sidebar sempre visível, presa na altura da tela, rolando por dentro;
+       a página só rola pelo conteúdo da direita */
     .sumario {
       background: var(--papel-2);
       border-right: 1px solid var(--linha);
-      padding: 1.75rem 1.75rem 3rem;
+      padding: 2rem 2rem 3rem;
+      position: sticky;
+      top: 0;
+      height: 100dvh;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
     }
     .sumario[open] { padding-bottom: 3rem; border-bottom: none; }
-    .grupo-ano a { padding-block: .32rem; font-size: .95rem; }
-    .grupo-ano { margin-top: 1.4rem; }
+    .sumario summary { display: none; }
+    .sumario-inner { padding-top: 0; }
     .grupo-ano a:hover { background: var(--papel); }
-    /* índice fechado: só a alça, conteúdo ganha a tela */
-    .layout:has(.sumario:not([open])) { grid-template-columns: auto minmax(0, 1fr); }
   }
 `;
 
@@ -239,8 +245,10 @@ const SCRIPT_EXTRA = `
 (function () {
   var sumario = document.querySelector(".sumario");
   var desktop = window.matchMedia("(min-width: 58rem)");
-  // mobile: começa fechado (sem JS fica aberto, navegável por âncoras)
+  // desktop: sempre aberto (sem botão); mobile: começa fechado
+  // (sem JS fica aberto, navegável por âncoras)
   if (!desktop.matches) sumario.open = false;
+  desktop.addEventListener("change", function (e) { sumario.open = e.matches; });
   document.addEventListener("keydown", function (e) {
     if (e.target && e.target.tagName === "INPUT") return;
     if (e.key === "ArrowLeft") { var a = document.querySelector('[rel="prev"]'); if (a) location.href = a.href; }
