@@ -102,3 +102,4 @@ This package is intentionally one-person-per-deployment:
 8. Ask for `GET_DAILY_BRIEF_INPUT`, then save the resulting brief.
 
 The project/goals/memory/briefing core has no hardcoded VibeGui project data. The public writing tools are an example module for this site.
+<!-- build test 2026-07-24 15:45 -->
