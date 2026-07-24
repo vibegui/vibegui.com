@@ -109,6 +109,29 @@ const CSS = `
   .busca::placeholder { color: var(--tinta-suave); }
   .busca:focus { outline: 2px solid var(--sangue); outline-offset: 1px; border-color: transparent; }
   .contagem { padding-top: .5rem; font-size: .85rem; color: var(--tinta-suave); min-height: 1.5em; }
+  .ordenar {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding-top: .6rem;
+    font-size: .82rem;
+    color: var(--tinta-suave);
+  }
+  .ordenar button {
+    font: inherit;
+    font-size: .82rem;
+    color: var(--tinta);
+    background: transparent;
+    border: 1px solid var(--borda);
+    border-radius: 999px;
+    padding: .25rem .7rem;
+    cursor: pointer;
+  }
+  .ordenar button[aria-pressed="true"] {
+    background: var(--tinta);
+    color: var(--fundo);
+    border-color: transparent;
+  }
   .aviso-busca { padding-top: .25rem; font-size: .78rem; color: var(--tinta-suave); }
   .grade {
     margin-top: 2rem;
@@ -244,6 +267,11 @@ function landingHtml(strips: Strip[], site: Site): string {
   <div class="ferramentas">
     <input class="busca" type="search" data-busca placeholder="Buscar pelo texto das tirinhas…" aria-label="Buscar tirinhas">
     <p class="aviso-busca">A busca usa leitura automática (OCR) das imagens — nem todo texto foi lido perfeitamente.</p>
+    <div class="ordenar" role="group" aria-label="Ordenar tirinhas">
+      Ordenar:
+      <button type="button" data-ordem="recentes" aria-pressed="true">mais recentes</button>
+      <button type="button" data-ordem="vistas" aria-pressed="false">mais vistas</button>
+    </div>
     <p class="contagem" data-busca-count aria-live="polite"></p>
   </div>
 
@@ -254,7 +282,52 @@ ${cards}
 
   ${RODAPE}
 </div>
-<script>${searchScript(`${site.base}/busca.json`)}</script>`;
+<script>${searchScript(`${site.base}/busca.json`)}
+(function () {
+  var grade = document.querySelector(".grade");
+  var vazio = grade.querySelector("[data-busca-vazio]");
+  var botoes = document.querySelectorAll(".ordenar button");
+  var vistas = null; // { numero: views }
+  function numeroDe(card) {
+    return Number(card.getAttribute("data-busca-item")) || 0;
+  }
+  function ordenar(modo) {
+    var cards = Array.prototype.slice.call(grade.querySelectorAll(".tirinha-card"));
+    cards.sort(function (a, b) {
+      if (modo === "vistas" && vistas) {
+        var va = vistas[numeroDe(a)] || 0;
+        var vb = vistas[numeroDe(b)] || 0;
+        if (vb !== va) return vb - va;
+      }
+      return numeroDe(b) - numeroDe(a);
+    });
+    for (var i = 0; i < cards.length; i++) grade.appendChild(cards[i]);
+    grade.appendChild(vazio);
+  }
+  function aplicar(modo, botao) {
+    botoes.forEach(function (b) { b.setAttribute("aria-pressed", String(b === botao)); });
+    if (modo === "vistas" && !vistas) {
+      fetch("https://mcp.vibegui.com/popular?site=buscamalvados.com&days=90")
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          vistas = {};
+          (data.items || []).forEach(function (item) {
+            var partes = String(item.path || "").split("/").filter(Boolean);
+            var n = Number(partes[partes.length - 1]);
+            if (n > 0) vistas[n] = (vistas[n] || 0) + (item.views || 0);
+          });
+          ordenar("vistas");
+        })
+        .catch(function () {});
+      return;
+    }
+    ordenar(modo);
+  }
+  botoes.forEach(function (botao) {
+    botao.addEventListener("click", function () { aplicar(botao.getAttribute("data-ordem"), botao); });
+  });
+})();
+</script>`;
 
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",

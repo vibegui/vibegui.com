@@ -382,7 +382,7 @@ function WorkItemsView({ items }: { items: JsonRecord[] }) {
   );
 }
 
-function AnalyticsView({
+export function AnalyticsView({
   result,
   callTool,
 }: {
@@ -390,21 +390,56 @@ function AnalyticsView({
   callTool: (name: string, args?: Record<string, unknown>) => Promise<unknown>;
 }) {
   const days = number(result.days) || 7;
+  const siteFilter = text(result.site) || null;
   const sites = asRecords(result.sites);
+  const series = asRecords(result.series);
   const topPages = asRecords(result.topPages);
   const topReferrers = asRecords(result.topReferrers);
+  const countries = asRecords(result.countries);
+  const [metric, setMetric] = useState<"visitors" | "pageviews">("visitors");
+
+  const totalPageviews = series.reduce((n, r) => n + number(r.pageviews), 0);
+  const totalVisitors = series.reduce((n, r) => n + number(r.visitors), 0);
+  const perVisitor = totalVisitors
+    ? (totalPageviews / totalVisitors).toFixed(1)
+    : "—";
+
+  const reload = (args: Record<string, unknown>) =>
+    void callTool("SITES_OVERVIEW", {
+      days,
+      ...(siteFilter ? { site: siteFilter } : {}),
+      ...args,
+    });
 
   return (
     <div className="analytics">
       <div className="analytics-head">
-        <h2>Sites</h2>
+        <div className="analytics-chips">
+          <button
+            type="button"
+            className={siteFilter ? "" : "active"}
+            onClick={() => void callTool("SITES_OVERVIEW", { days })}
+          >
+            Todos os sites
+          </button>
+          {sites.map((site) => (
+            <button
+              type="button"
+              key={text(site.site)}
+              className={siteFilter === text(site.site) ? "active" : ""}
+              onClick={() => reload({ site: text(site.site) })}
+            >
+              {text(site.site)}
+            </button>
+          ))}
+        </div>
         <div className="analytics-range">
           {[7, 30, 90].map((option) => (
             <button
               type="button"
               key={option}
               className={days === option ? "active" : ""}
-              onClick={() => void callTool("SITES_OVERVIEW", { days: option })}
+              onClick={() => reload({ days: option })}
             >
               {option}d
             </button>
@@ -412,60 +447,220 @@ function AnalyticsView({
         </div>
       </div>
 
-      {sites.length === 0 && (
-        <p className="empty">Nenhum pageview registrado na janela.</p>
-      )}
-
-      <div className="analytics-sites">
-        {sites.map((site) => (
-          <article className="analytics-site" key={text(site.site)}>
-            <h3>{text(site.site)}</h3>
-            <div className="analytics-numbers">
-              <div>
-                <strong>{number(site.pageviews).toLocaleString()}</strong>
-                <span>pageviews</span>
-              </div>
-              <div>
-                <strong>{number(site.visitors).toLocaleString()}</strong>
-                <span>visitantes</span>
-              </div>
-            </div>
-          </article>
-        ))}
+      <div className="analytics-stats">
+        <button
+          type="button"
+          className={`stat ${metric === "visitors" ? "active" : ""}`}
+          onClick={() => setMetric("visitors")}
+        >
+          <strong>{totalVisitors.toLocaleString("pt-BR")}</strong>
+          <span>visitantes</span>
+        </button>
+        <button
+          type="button"
+          className={`stat ${metric === "pageviews" ? "active" : ""}`}
+          onClick={() => setMetric("pageviews")}
+        >
+          <strong>{totalPageviews.toLocaleString("pt-BR")}</strong>
+          <span>pageviews</span>
+        </button>
+        <div className="stat static">
+          <strong>{perVisitor}</strong>
+          <span>páginas por visitante</span>
+        </div>
       </div>
 
-      {topPages.length > 0 && (
-        <section className="analytics-list">
-          <h3>Top páginas</h3>
-          <ul>
-            {topPages.slice(0, 15).map((page, index) => (
-              <li key={`${text(page.site)}${text(page.path)}-${index}`}>
-                <span className="analytics-path">
-                  <em>{text(page.site)}</em>
-                  {text(page.path)}
-                </span>
-                <strong>{number(page.pageviews).toLocaleString()}</strong>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <TimelineChart series={series} metric={metric} />
 
-      {topReferrers.length > 0 && (
-        <section className="analytics-list">
-          <h3>Referrers</h3>
-          <ul>
-            {topReferrers.slice(0, 10).map((referrer, index) => (
-              <li key={`${text(referrer.ref)}-${index}`}>
-                <span className="analytics-path">{text(referrer.ref)}</span>
-                <strong>{number(referrer.pageviews).toLocaleString()}</strong>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
+      <div className="analytics-panels">
+        <AnalyticsPanel
+          title="Páginas"
+          rows={topPages.map((page) => ({
+            key: `${text(page.site)}${text(page.path)}`,
+            label: text(page.path) || "/",
+            hint: siteFilter ? undefined : text(page.site),
+            value: number(page.pageviews),
+          }))}
+        />
+        <AnalyticsPanel
+          title="Fontes"
+          rows={topReferrers.map((referrer) => ({
+            key: text(referrer.ref),
+            label: text(referrer.ref),
+            value: number(referrer.pageviews),
+          }))}
+        />
+        <AnalyticsPanel
+          title="Países"
+          rows={countries.map((row) => ({
+            key: text(row.country),
+            label: countryLabel(text(row.country)),
+            value: number(row.pageviews),
+          }))}
+        />
+      </div>
     </div>
   );
+}
+
+const METRIC_LABEL = {
+  visitors: "visitantes",
+  pageviews: "pageviews",
+} as const;
+
+function TimelineChart({
+  series,
+  metric,
+}: {
+  series: JsonRecord[];
+  metric: "visitors" | "pageviews";
+}) {
+  const [hover, setHover] = useState<number | null>(null);
+  const W = 720;
+  const H = 180;
+  const PAD_BOTTOM = 22;
+  const PAD_TOP = 12;
+  const plotH = H - PAD_BOTTOM - PAD_TOP;
+  const values = series.map((row) => number(row[metric]));
+  const max = Math.max(1, ...values);
+  const n = Math.max(1, series.length);
+  const step = W / n;
+  const barW = Math.max(3, Math.min(28, step - 2));
+  const labelEvery = Math.ceil(n / 6);
+
+  const dayLabel = (iso: string, long = false) => {
+    const [, month, dayOfMonth] = iso.split("-");
+    return long ? `${dayOfMonth}/${month}` : `${Number(dayOfMonth)}`;
+  };
+
+  const hovered = hover !== null ? series[hover] : null;
+
+  return (
+    <div className="chart-wrap">
+      {hovered && (
+        <div
+          className="chart-tooltip"
+          style={{ left: `${((hover! + 0.5) / n) * 100}%` }}
+        >
+          <strong>{dayLabel(text(hovered.day), true)}</strong>
+          {number(hovered.pageviews).toLocaleString("pt-BR")} pageviews ·{" "}
+          {number(hovered.visitors).toLocaleString("pt-BR")} visitantes
+        </div>
+      )}
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className="chart"
+        role="img"
+        aria-label={`${METRIC_LABEL[metric]} por dia`}
+        onMouseLeave={() => setHover(null)}
+      >
+        {[0.5, 1].map((fraction) => (
+          <g key={fraction}>
+            <line
+              className="chart-grid"
+              x1={0}
+              x2={W}
+              y1={PAD_TOP + plotH * (1 - fraction)}
+              y2={PAD_TOP + plotH * (1 - fraction)}
+            />
+            <text
+              className="chart-axis"
+              x={W - 4}
+              y={PAD_TOP + plotH * (1 - fraction) - 4}
+              textAnchor="end"
+            >
+              {Math.round(max * fraction).toLocaleString("pt-BR")}
+            </text>
+          </g>
+        ))}
+        <line
+          className="chart-baseline"
+          x1={0}
+          x2={W}
+          y1={PAD_TOP + plotH}
+          y2={PAD_TOP + plotH}
+        />
+        {series.map((row, index) => {
+          const value = number(row[metric]);
+          const h = Math.round((value / max) * (plotH - 4));
+          const x = index * step + (step - barW) / 2;
+          const y = PAD_TOP + plotH - h;
+          return (
+            <g key={text(row.day)}>
+              {h > 0 && (
+                <path
+                  className={`chart-bar ${hover === index ? "hover" : ""}`}
+                  d={`M${x},${PAD_TOP + plotH} V${y + 4} Q${x},${y} ${x + 4},${y} H${x + barW - 4} Q${x + barW},${y} ${x + barW},${y + 4} V${PAD_TOP + plotH} Z`}
+                />
+              )}
+              {index % labelEvery === 0 && (
+                <text
+                  className="chart-axis"
+                  x={index * step + step / 2}
+                  y={H - 6}
+                  textAnchor="middle"
+                >
+                  {dayLabel(text(row.day), n <= 14)}
+                </text>
+              )}
+              <rect
+                className="chart-hit"
+                x={index * step}
+                y={0}
+                width={step}
+                height={H}
+                onMouseEnter={() => setHover(index)}
+              />
+            </g>
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+function AnalyticsPanel({
+  title,
+  rows,
+}: {
+  title: string;
+  rows: Array<{ key: string; label: string; hint?: string; value: number }>;
+}) {
+  const max = Math.max(1, ...rows.map((row) => row.value));
+  return (
+    <section className="analytics-list">
+      <h3>{title}</h3>
+      {rows.length === 0 && <p className="empty">Nada ainda.</p>}
+      <ul>
+        {rows.map((row) => (
+          <li key={row.key}>
+            <span
+              className="analytics-fill"
+              style={{ width: `${Math.max(2, (row.value / max) * 100)}%` }}
+            />
+            <span className="analytics-path">
+              {row.hint && <em>{row.hint}</em>}
+              {row.label}
+            </span>
+            <strong>{row.value.toLocaleString("pt-BR")}</strong>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function countryLabel(code: string): string {
+  if (!code || code === "?") return "Desconhecido";
+  try {
+    const name = new Intl.DisplayNames(["pt"], { type: "region" }).of(code);
+    const flag = code
+      .toUpperCase()
+      .replace(/./g, (c) => String.fromCodePoint(127397 + c.charCodeAt(0)));
+    return `${flag} ${name ?? code}`;
+  } catch {
+    return code;
+  }
 }
 
 function GoalsView({ goals }: { goals: JsonRecord[] }) {

@@ -1022,66 +1022,129 @@ button {
 /* ---------- analytics ---------- */
 .analytics-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
 }
+.analytics-chips,
 .analytics-range {
   display: flex;
   gap: 0.35rem;
+  flex-wrap: wrap;
 }
+.analytics-chips button,
 .analytics-range button {
   font: inherit;
   font-size: 0.8rem;
-  padding: 0.3rem 0.7rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid var(--border, #333);
+  border: 1px solid var(--border);
   background: transparent;
   color: inherit;
   cursor: pointer;
 }
+.analytics-chips button.active,
 .analytics-range button.active {
-  background: var(--accent, #4f7);
-  color: #111;
+  background: var(--accent);
+  color: var(--bg);
   border-color: transparent;
 }
-.analytics-sites {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-.analytics-site {
-  border: 1px solid var(--border, #333);
-  border-radius: 0.6rem;
-  padding: 0.9rem 1rem;
-}
-.analytics-site h3 {
-  font-size: 0.85rem;
-  opacity: 0.75;
-  margin-bottom: 0.5rem;
-  word-break: break-all;
-}
-.analytics-numbers {
+.analytics-stats {
   display: flex;
-  gap: 1.25rem;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
 }
-.analytics-numbers strong {
+.analytics-stats .stat {
+  font: inherit;
+  text-align: left;
+  min-width: 10rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  border-bottom-width: 3px;
+}
+.analytics-stats .stat.active {
+  border-bottom-color: var(--accent);
+}
+.analytics-stats .stat.static {
+  cursor: default;
+}
+.analytics-stats strong {
   display: block;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
   line-height: 1.1;
+  font-variant-numeric: tabular-nums;
 }
-.analytics-numbers span {
+.analytics-stats span {
   font-size: 0.75rem;
-  opacity: 0.65;
+  color: var(--muted);
 }
-.analytics-list {
-  margin-top: 1.5rem;
+.chart-wrap {
+  position: relative;
+  margin-top: 1.25rem;
+}
+.chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+.chart-grid {
+  stroke: var(--border);
+  stroke-width: 1;
+  stroke-dasharray: 2 4;
+}
+.chart-baseline {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.chart-axis {
+  fill: var(--muted);
+  font-size: 10px;
+  paint-order: stroke;
+  stroke: var(--bg);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+.chart-bar {
+  fill: var(--accent);
+  opacity: 0.75;
+}
+.chart-bar.hover {
+  opacity: 1;
+}
+.chart-hit {
+  fill: transparent;
+}
+.chart-tooltip {
+  position: absolute;
+  top: -0.5rem;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.4rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+}
+.chart-tooltip strong {
+  display: block;
+}
+.analytics-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1.75rem;
 }
 .analytics-list h3 {
   font-size: 0.85rem;
-  opacity: 0.75;
+  color: var(--muted);
   margin-bottom: 0.5rem;
 }
 .analytics-list ul {
@@ -1090,14 +1153,24 @@ button {
   margin: 0;
 }
 .analytics-list li {
+  position: relative;
   display: flex;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--border, #2a2a2a);
-  font-size: 0.9rem;
+  padding: 0.4rem 0.55rem;
+  margin-bottom: 3px;
+  border-radius: 0.35rem;
+  font-size: 0.88rem;
+  overflow: hidden;
+}
+.analytics-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--accent-soft);
+  border-radius: 0.35rem;
 }
 .analytics-path {
+  position: relative;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1105,6 +1178,10 @@ button {
 }
 .analytics-path em {
   font-style: normal;
-  opacity: 0.55;
+  color: var(--muted);
   margin-right: 0.5rem;
+}
+.analytics-list strong {
+  position: relative;
+  font-variant-numeric: tabular-nums;
 }

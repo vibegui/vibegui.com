@@ -10,6 +10,32 @@ const worker: ExportedHandler<Env> = {
     const url = new URL(request.url);
     const access = accessForRequest(request, env);
 
+    // Public popularity ranking (feeds the "mais vistas" sort on the sites).
+    // Aggregated pageview counts only — no visitor data leaves the worker.
+    if (request.method === "GET" && url.pathname === "/popular") {
+      const site = url.searchParams.get("site") ?? "";
+      const days = Math.min(
+        Math.max(Number(url.searchParams.get("days")) || 90, 1),
+        90,
+      );
+      const since = Date.now() - days * 24 * 60 * 60 * 1000;
+      const { results } = await env.DB.prepare(
+        `SELECT path, COUNT(*) AS views
+         FROM events
+         WHERE name = 'pageview' AND ts >= ? AND site = ?
+         GROUP BY path ORDER BY views DESC LIMIT 2000`,
+      )
+        .bind(since, site)
+        .all();
+      return new Response(JSON.stringify({ site, days, items: results }), {
+        headers: {
+          "content-type": "application/json; charset=utf-8",
+          "access-control-allow-origin": "*",
+          "cache-control": "public, max-age=300",
+        },
+      });
+    }
+
     // Public analytics beacon (first-party, fire-and-forget). The vibegui.com
     // Pages middleware posts server-side pageviews here for the three sites.
     if (request.method === "POST" && url.pathname === "/e") {

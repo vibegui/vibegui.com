@@ -67,10 +67,18 @@ export const tools: ToolDefinition[] = [
         type: "number",
         description: "Janela em dias (1–90, padrão 7)",
       },
+      site: {
+        type: "string",
+        description:
+          "Filtrar tudo por um site (vibegui.com | poesiadairene.com | buscamalvados.com)",
+      },
     }),
     _meta: { ui: { resourceUri: ANALYTICS_RESOURCE } },
     execute: async (env, input) =>
-      sitesOverview(env, optionalNumber(input, "days") ?? 7),
+      sitesOverview(env, {
+        days: optionalNumber(input, "days"),
+        site: optionalString(input, "site"),
+      }),
   },
   {
     name: "SITE_METRICS",
