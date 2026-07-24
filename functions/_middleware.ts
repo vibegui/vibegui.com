@@ -31,7 +31,7 @@ const SITES = [
 
 // Beacon de analytics first-party: o worker do Personal AI OS grava o evento
 // em D1 e expõe as tools SITES_OVERVIEW / SITE_METRICS no MCP privado.
-const BEACON = "https://vibegui-personal-ai-os.deco-ceo.workers.dev/e";
+const BEACON = "https://mcp.vibegui.com/e";
 
 interface Contexto {
   request: Request;
