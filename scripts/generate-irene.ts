@@ -78,7 +78,7 @@ const CSS = `
     -webkit-font-smoothing: antialiased;
   }
   a { color: var(--verde-escuro); }
-  .capa { text-align: center; padding: clamp(1.5rem, 5vh, 3rem) 0 2rem; }
+  .capa { padding: clamp(1.5rem, 5vh, 3rem) 0 2rem; }
   .capa h1 {
     font-size: clamp(1.9rem, 5vw, 2.6rem);
     font-weight: 500;
@@ -90,8 +90,7 @@ const CSS = `
   .layout { min-height: 100dvh; }
   .leitura {
     min-width: 0;
-    max-width: 46rem;
-    margin: 0 auto;
+    max-width: 44rem;
     padding: 0 1.5rem 4rem;
   }
   /* ---------- índice ---------- */
@@ -188,7 +187,6 @@ const CSS = `
   .navegacao a:hover { text-decoration: underline; }
   footer {
     margin-top: 3.5rem;
-    text-align: center;
     font-family: "Alegreya Sans", system-ui, sans-serif;
     font-size: .85rem;
     color: var(--tinta-suave);
@@ -219,6 +217,7 @@ const CSS = `
     .sumario summary { display: none; }
     .sumario-inner { padding-top: 0; }
     .grupo-ano a:hover { background: var(--papel); }
+    .leitura { padding: 0 2rem 4rem clamp(2.5rem, 5vw, 4.5rem); }
   }
 `;
 
