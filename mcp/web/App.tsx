@@ -398,8 +398,18 @@ export function AnalyticsView({
   const countries = asRecords(result.countries);
   const [metric, setMetric] = useState<"visitors" | "pageviews">("visitors");
 
-  const totalPageviews = series.reduce((n, r) => n + number(r.pageviews), 0);
-  const totalVisitors = series.reduce((n, r) => n + number(r.visitors), 0);
+  const somaSites = (row: JsonRecord, key: "pageviews" | "visitors") =>
+    Object.values(
+      (row.sites ?? {}) as Record<string, Record<string, unknown>>,
+    ).reduce((n, v) => n + (Number(v[key]) || 0), 0);
+  const totalPageviews = series.reduce(
+    (n, r) => n + somaSites(r, "pageviews"),
+    0,
+  );
+  const totalVisitors = series.reduce(
+    (n, r) => n + somaSites(r, "visitors"),
+    0,
+  );
   const perVisitor = totalVisitors
     ? (totalPageviews / totalVisitors).toFixed(1)
     : "—";
@@ -508,6 +518,34 @@ const METRIC_LABEL = {
   pageviews: "pageviews",
 } as const;
 
+// identidade fixa por site (paleta categórica validada p/ CVD nos dois temas)
+const SITE_ORDER = [
+  "vibegui.com",
+  "poesiadairene.com",
+  "buscamalvados.com",
+  "outros",
+] as const;
+const SITE_VAR: Record<string, string> = {
+  "vibegui.com": "var(--serie-vibegui)",
+  "poesiadairene.com": "var(--serie-irene)",
+  "buscamalvados.com": "var(--serie-malvados)",
+  outros: "var(--serie-outros)",
+};
+
+function siteSlot(site: string): (typeof SITE_ORDER)[number] {
+  return (SITE_ORDER as readonly string[]).includes(site)
+    ? (site as (typeof SITE_ORDER)[number])
+    : "outros";
+}
+
+interface StackDay {
+  day: string;
+  total: number;
+  segments: Array<{ site: string; value: number }>;
+  pageviews: number;
+  visitors: number;
+}
+
 function TimelineChart({
   series,
   metric,
@@ -517,41 +555,90 @@ function TimelineChart({
 }) {
   const [hover, setHover] = useState<number | null>(null);
   const W = 720;
-  const H = 180;
+  const H = 190;
   const PAD_BOTTOM = 22;
   const PAD_TOP = 12;
   const plotH = H - PAD_BOTTOM - PAD_TOP;
-  const values = series.map((row) => number(row[metric]));
-  const max = Math.max(1, ...values);
-  const n = Math.max(1, series.length);
+
+  // agrega os hosts fora do trio canônico em "outros", na ordem fixa
+  const stack: StackDay[] = series.map((row) => {
+    const sites = (row.sites ?? {}) as Record<
+      string,
+      { pageviews?: number; visitors?: number }
+    >;
+    const bySlot = new Map<string, { pageviews: number; visitors: number }>();
+    for (const [site, v] of Object.entries(sites)) {
+      const slot = siteSlot(site);
+      const cur = bySlot.get(slot) ?? { pageviews: 0, visitors: 0 };
+      cur.pageviews += Number(v.pageviews) || 0;
+      cur.visitors += Number(v.visitors) || 0;
+      bySlot.set(slot, cur);
+    }
+    const segments = SITE_ORDER.filter((slot) => bySlot.has(slot)).map(
+      (slot) => ({ site: slot, value: bySlot.get(slot)![metric] }),
+    );
+    return {
+      day: text(row.day),
+      total: segments.reduce((n, seg) => n + seg.value, 0),
+      segments,
+      pageviews: [...bySlot.values()].reduce((n, v) => n + v.pageviews, 0),
+      visitors: [...bySlot.values()].reduce((n, v) => n + v.visitors, 0),
+    };
+  });
+
+  const presentes = SITE_ORDER.filter((slot) =>
+    stack.some((d) =>
+      d.segments.some((seg) => seg.site === slot && seg.value > 0),
+    ),
+  );
+  const max = Math.max(1, ...stack.map((d) => d.total));
+  const n = Math.max(1, stack.length);
   const step = W / n;
   const barW = Math.max(3, Math.min(28, step - 2));
   const labelEvery = Math.ceil(n / 6);
+  const GAP = 2;
 
   const dayLabel = (iso: string, long = false) => {
     const [, month, dayOfMonth] = iso.split("-");
     return long ? `${dayOfMonth}/${month}` : `${Number(dayOfMonth)}`;
   };
 
-  const hovered = hover !== null ? series[hover] : null;
+  const hovered = hover !== null ? stack[hover] : null;
 
   return (
     <div className="chart-wrap">
+      <div className="chart-legend">
+        {presentes.map((slot) => (
+          <span key={slot}>
+            <i style={{ background: SITE_VAR[slot] }} />
+            {slot}
+          </span>
+        ))}
+      </div>
       {hovered && (
         <div
           className="chart-tooltip"
           style={{ left: `${((hover! + 0.5) / n) * 100}%` }}
         >
-          <strong>{dayLabel(text(hovered.day), true)}</strong>
-          {number(hovered.pageviews).toLocaleString("pt-BR")} pageviews ·{" "}
-          {number(hovered.visitors).toLocaleString("pt-BR")} visitantes
+          <strong>{dayLabel(hovered.day, true)}</strong>
+          {hovered.segments
+            .filter((seg) => seg.value > 0)
+            .map((seg) => (
+              <span key={seg.site}>
+                <i style={{ background: SITE_VAR[seg.site] }} />
+                {seg.site}: {seg.value.toLocaleString("pt-BR")}
+              </span>
+            ))}
+          <em>
+            {hovered.total.toLocaleString("pt-BR")} {METRIC_LABEL[metric]}
+          </em>
         </div>
       )}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         className="chart"
         role="img"
-        aria-label={`${METRIC_LABEL[metric]} por dia`}
+        aria-label={`${METRIC_LABEL[metric]} por dia, por site`}
         onMouseLeave={() => setHover(null)}
       >
         {[0.5, 1].map((fraction) => (
@@ -580,19 +667,29 @@ function TimelineChart({
           y1={PAD_TOP + plotH}
           y2={PAD_TOP + plotH}
         />
-        {series.map((row, index) => {
-          const value = number(row[metric]);
-          const h = Math.round((value / max) * (plotH - 4));
+        {stack.map((diaData, index) => {
           const x = index * step + (step - barW) / 2;
-          const y = PAD_TOP + plotH - h;
+          let yCursor = PAD_TOP + plotH;
+          const visiveis = diaData.segments.filter((seg) => seg.value > 0);
           return (
-            <g key={text(row.day)}>
-              {h > 0 && (
-                <path
-                  className={`chart-bar ${hover === index ? "hover" : ""}`}
-                  d={`M${x},${PAD_TOP + plotH} V${y + 4} Q${x},${y} ${x + 4},${y} H${x + barW - 4} Q${x + barW},${y} ${x + barW},${y + 4} V${PAD_TOP + plotH} Z`}
-                />
-              )}
+            <g
+              key={diaData.day}
+              opacity={hover === null || hover === index ? 1 : 0.55}
+            >
+              {visiveis.map((seg, segIndex) => {
+                const h = Math.max(
+                  1.5,
+                  (seg.value / max) * (plotH - 4) - (segIndex > 0 ? GAP : 0),
+                );
+                const isTop = segIndex === visiveis.length - 1;
+                const y = yCursor - h - (segIndex > 0 ? GAP : 0);
+                yCursor = y;
+                const r = Math.min(4, barW / 2, h);
+                const d = isTop
+                  ? `M${x},${y + h} V${y + r} Q${x},${y} ${x + r},${y} H${x + barW - r} Q${x + barW},${y} ${x + barW},${y + r} V${y + h} Z`
+                  : `M${x},${y + h} V${y} H${x + barW} V${y + h} Z`;
+                return <path key={seg.site} d={d} fill={SITE_VAR[seg.site]} />;
+              })}
               {index % labelEvery === 0 && (
                 <text
                   className="chart-axis"
@@ -600,7 +697,7 @@ function TimelineChart({
                   y={H - 6}
                   textAnchor="middle"
                 >
-                  {dayLabel(text(row.day), n <= 14)}
+                  {dayLabel(diaData.day, n <= 14)}
                 </text>
               )}
               <rect

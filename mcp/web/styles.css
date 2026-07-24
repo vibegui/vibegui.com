@@ -1,4 +1,8 @@
 :root {
+  --serie-vibegui: #3e8558;
+  --serie-irene: #4573c4;
+  --serie-malvados: #c2502f;
+  --serie-outros: #8a5fc8;
   color-scheme: light dark;
   font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
@@ -22,6 +26,10 @@
   --text: var(--color-text-primary, #f1f0ea);
   --muted: var(--color-text-secondary, #9e9d95);
   --border: var(--color-border-primary, #2c312a);
+  --serie-vibegui: #42a065;
+  --serie-irene: #5d86de;
+  --serie-malvados: #e06a45;
+  --serie-outros: #a878e0;
   --accent: #9eb89c;
   --accent-soft: color-mix(in srgb, var(--accent) 11%, transparent);
 }
@@ -1184,4 +1192,31 @@ button {
 .analytics-list strong {
   position: relative;
   font-variant-numeric: tabular-nums;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+.chart-legend i,
+.chart-tooltip i {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  margin-right: 0.35rem;
+  vertical-align: -1px;
+}
+.chart-tooltip span {
+  display: block;
+}
+.chart-tooltip em {
+  display: block;
+  font-style: normal;
+  opacity: 0.75;
+  margin-top: 2px;
 }

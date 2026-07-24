@@ -116,10 +116,11 @@ export async function sitesOverview(env: Env, q: OverviewQuery = {}) {
       .all(),
     env.DB.prepare(
       `SELECT date(ts / 1000, 'unixepoch') AS day,
+              coalesce(site, '(sem site)') AS site,
               COUNT(*) AS pageviews,
               COUNT(DISTINCT visitor) AS visitors
        FROM events WHERE name = 'pageview' AND ts >= ?${scope}
-       GROUP BY day ORDER BY day ASC`,
+       GROUP BY day, site ORDER BY day ASC`,
     )
       .bind(since, ...scopeBinds)
       .all(),
@@ -164,23 +165,22 @@ export async function sitesOverview(env: Env, q: OverviewQuery = {}) {
     .sort((a, b) => b.pageviews - a.pageviews)
     .slice(0, 10);
 
-  // série diária com dias zerados preenchidos
-  const byDay = new Map(
-    (series.results as Array<Record<string, unknown>>).map((r) => [
-      String(r.day),
-      r,
-    ]),
-  );
-  const filled: Array<{ day: string; pageviews: number; visitors: number }> =
-    [];
+  // série diária empilhável por site, com dias zerados preenchidos
+  type DiaSites = Record<string, { pageviews: number; visitors: number }>;
+  const byDay = new Map<string, DiaSites>();
+  for (const row of series.results as Array<Record<string, unknown>>) {
+    const day = String(row.day);
+    const bucket = byDay.get(day) ?? {};
+    bucket[String(row.site)] = {
+      pageviews: Number(row.pageviews) || 0,
+      visitors: Number(row.visitors) || 0,
+    };
+    byDay.set(day, bucket);
+  }
+  const filled: Array<{ day: string; sites: DiaSites }> = [];
   for (let i = days - 1; i >= 0; i--) {
     const day = new Date(Date.now() - i * DAY_MS).toISOString().slice(0, 10);
-    const row = byDay.get(day);
-    filled.push({
-      day,
-      pageviews: row ? Number(row.pageviews) || 0 : 0,
-      visitors: row ? Number(row.visitors) || 0 : 0,
-    });
+    filled.push({ day, sites: byDay.get(day) ?? {} });
   }
 
   return {
