@@ -1,13 +1,19 @@
 /**
  * Generate the /irene mini-site (Poesia da Irene) — called from generate.ts.
  *
- * Reads content/irene/*.md and writes fully static, self-contained pages:
- *   .build/irene/index.html         landing: 5 most recent poems + full index + search
+ * Reads content/irene/*.md and writes fully static, self-contained pages.
+ * Layout: collapsible index sidebar + ONE poem open at a time, side by side
+ * on desktop; on mobile the index starts closed above the poem. /irene shows
+ * the most recent poem; every poem also has its own URL:
+ *
+ *   .build/irene/index.html         latest poem (canonical /irene)
  *   .build/irene/<slug>/index.html  one page per poem (prev/next navigation)
- *   .build/irene/busca.json         search index fetched on demand by the landing
+ *   .build/irene/busca.json         search index fetched on demand
  *
  * Zero-dependency and Node-compatible (runs on Cloudflare Pages without
  * installed deps). Look & feel: "caderno" — warm paper, Alegreya, sage accent.
+ * Works without JS: the sidebar is a native <details> (open by default in the
+ * markup), links are plain anchors; search controls are hidden via .no-js.
  */
 
 import { writeFileSync, mkdirSync } from "node:fs";
@@ -37,8 +43,7 @@ const CSS = `
     --linha: #ddd6c6;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  [hidden] { display: none !important; }
   body {
     background: var(--papel);
     color: var(--tinta);
@@ -47,108 +52,101 @@ const CSS = `
     -webkit-font-smoothing: antialiased;
   }
   a { color: var(--verde-escuro); }
-  .pagina { max-width: 40rem; margin: 0 auto; padding: 0 1.5rem 4rem; }
-  .capa { text-align: center; padding: clamp(2.5rem, 8vh, 5rem) 0 1.5rem; }
+  .capa { text-align: center; padding: clamp(2rem, 6vh, 3.5rem) 1.5rem 1.5rem; }
   .capa h1 {
-    font-size: clamp(2.2rem, 7vw, 3.4rem);
+    font-size: clamp(1.9rem, 5vw, 2.6rem);
     font-weight: 500;
     line-height: 1.1;
     text-wrap: balance;
   }
   .capa h1 a { color: inherit; text-decoration: none; }
-  .capa .autora { margin-top: .7rem; font-style: italic; font-size: 1.2rem; color: var(--verde); }
-  .capa .nota {
-    margin-top: 1rem;
-    font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .95rem;
-    color: var(--tinta-suave);
+  .capa .autora { margin-top: .4rem; font-style: italic; font-size: 1.1rem; color: var(--verde); }
+  .layout {
+    max-width: 66rem;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
   }
-  .no-js .ferramentas { display: none; }
-  .ferramentas { padding: 1.25rem 0 .25rem; font-family: "Alegreya Sans", system-ui, sans-serif; }
+  /* ---------- sumário ---------- */
+  .sumario { font-family: "Alegreya Sans", system-ui, sans-serif; }
+  .sumario summary {
+    cursor: pointer;
+    list-style: none;
+    display: inline-block;
+    font-size: .9rem;
+    color: var(--verde-escuro);
+    border: 1px solid var(--linha);
+    border-radius: 999px;
+    padding: .35rem .9rem;
+    user-select: none;
+  }
+  .sumario summary::before { content: "☰ "; }
+  .sumario summary::-webkit-details-marker { display: none; }
+  .sumario summary:hover { background: var(--papel-2); }
+  .sumario-inner { padding-top: 1rem; }
+  .no-js .busca-area { display: none; }
   .busca {
     width: 100%;
     font: inherit;
-    font-size: 1rem;
+    font-size: .95rem;
     color: var(--tinta);
     background: #fff;
     border: 1px solid var(--linha);
     border-radius: 999px;
-    padding: .55rem 1.1rem;
+    padding: .45rem 1rem;
   }
   .busca::placeholder { color: var(--tinta-suave); }
   .busca:focus { outline: 2px solid var(--verde); outline-offset: 1px; border-color: transparent; }
-  .contagem { padding-top: .5rem; font-size: .85rem; color: var(--tinta-suave); min-height: 1.6em; }
-  .poema { padding: clamp(2rem, 5vh, 3rem) 0; }
-  .poema + .poema { border-top: 1px solid var(--linha); }
-  .poema h2, .poema h1 { font-size: clamp(1.5rem, 4vw, 1.9rem); font-weight: 500; line-height: 1.2; text-wrap: balance; }
-  .poema h2 a { color: inherit; text-decoration: none; }
-  .poema h2 a:hover { color: var(--verde-escuro); }
-  .poema time {
-    display: block;
-    margin-top: .3rem;
-    font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .85rem;
-    color: var(--tinta-suave);
-  }
-  .texto { margin-top: 1.4rem; font-size: 1.15rem; max-width: 60ch; }
-  .texto p { margin-block: 1.1em; text-wrap: pretty; }
-  .texto p:first-child { margin-top: 0; }
-  .divisor {
-    text-align: center;
-    color: var(--tinta-suave);
-    padding: 2.5rem 0 .5rem;
-    font-size: 1.1rem;
-    letter-spacing: .5em;
-  }
-  .indice h2 {
-    font-size: 1.4rem;
-    font-weight: 500;
-    padding: 1.5rem 0 .25rem;
-  }
-  .grupo-ano { margin-top: 1.25rem; }
+  .contagem { padding-top: .4rem; font-size: .8rem; color: var(--tinta-suave); min-height: 1.4em; }
+  .grupo-ano { margin-top: 1.1rem; }
   .grupo-ano > h3 {
-    font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .85rem;
+    font-size: .8rem;
     font-weight: 500;
     color: var(--tinta-suave);
     border-bottom: 1px solid var(--linha);
     padding-bottom: .3rem;
     font-variant-numeric: tabular-nums;
   }
-  .grupo-ano ol { list-style: none; margin-top: .4rem; }
+  .grupo-ano ol { list-style: none; margin-top: .35rem; }
   .grupo-ano a {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    gap: 1rem;
-    padding: .35rem .5rem;
+    display: block;
+    padding: .26rem .5rem;
     margin-inline: -.5rem;
     border-radius: .35rem;
     color: var(--tinta);
     text-decoration: none;
+    font-size: .92rem;
     line-height: 1.35;
   }
   .grupo-ano a:hover { background: var(--papel-2); color: var(--verde-escuro); }
-  .grupo-ano a time {
+  .grupo-ano a[aria-current="page"] {
+    background: var(--verde);
+    color: var(--papel);
+  }
+  .vazio { padding: 1.5rem 0; font-style: italic; color: var(--tinta-suave); font-size: .9rem; }
+  /* ---------- poema ---------- */
+  .leitura { min-width: 0; }
+  .poema h2 {
+    font-size: clamp(1.6rem, 4vw, 2.1rem);
+    font-weight: 500;
+    line-height: 1.15;
+    text-wrap: balance;
+  }
+  .poema time {
+    display: block;
+    margin-top: .35rem;
     font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .78rem;
+    font-size: .85rem;
     color: var(--tinta-suave);
-    white-space: nowrap;
   }
-  .vazio { padding: 2.5rem 0; font-style: italic; color: var(--tinta-suave); text-align: center; }
-  .voltar {
-    display: inline-block;
-    font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .9rem;
-    text-decoration: none;
-    margin-top: 2.5rem;
-  }
+  .texto { margin-top: 1.6rem; font-size: 1.18rem; max-width: 58ch; }
+  .texto p { margin-block: 1.1em; text-wrap: pretty; }
+  .texto p:first-child { margin-top: 0; }
   .navegacao {
     display: flex;
     justify-content: space-between;
     gap: 1rem;
     margin-top: 3rem;
-    padding-top: 1.5rem;
+    padding-top: 1.25rem;
     border-top: 1px solid var(--linha);
     font-family: "Alegreya Sans", system-ui, sans-serif;
     font-size: .95rem;
@@ -162,13 +160,34 @@ const CSS = `
   }
   .navegacao a:hover { text-decoration: underline; }
   footer {
-    margin-top: 3rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--linha);
+    margin-top: 3.5rem;
     text-align: center;
     font-family: "Alegreya Sans", system-ui, sans-serif;
-    font-size: .9rem;
+    font-size: .85rem;
     color: var(--tinta-suave);
+  }
+  /* ---------- mobile: sumário empilhado acima do poema ---------- */
+  .sumario { margin-bottom: 2rem; }
+  .leitura .poema { margin-top: .5rem; }
+  /* ---------- desktop: lado a lado ---------- */
+  @media (min-width: 58rem) {
+    .layout {
+      display: grid;
+      grid-template-columns: 15.5rem minmax(0, 1fr);
+      gap: clamp(2rem, 5vw, 4rem);
+      align-items: start;
+    }
+    .sumario {
+      margin-bottom: 0;
+      position: sticky;
+      top: 1.25rem;
+      max-height: calc(100dvh - 2.5rem);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      padding-right: .25rem;
+    }
+    /* sumário fechado: coluna estreita, poema ganha o espaço */
+    .layout:has(.sumario:not([open])) { grid-template-columns: auto minmax(0, 1fr); }
   }
 `;
 
@@ -179,95 +198,69 @@ interface IrenePoem {
   content: string;
 }
 
-function poemArticle(p: IrenePoem, heading: "h1" | "h2"): string {
-  const titleHtml =
-    heading === "h2"
-      ? `<h2><a href="/irene/${p.slug}">${escapeHtml(p.title)}</a></h2>`
-      : `<h1>${escapeHtml(p.title)}</h1>`;
-  return `<article class="poema">
-  <header>
-    ${titleHtml}
-    <time datetime="${p.date}">${formatDatePt(p.date)}</time>
-  </header>
-  <div class="texto">
-${poemBodyHtml(p.content)}
-  </div>
-</article>`;
-}
-
-function landingHtml(poems: IrenePoem[]): string {
-  const recentes = poems.slice(0, 5);
+function sumarioHtml(poems: IrenePoem[], currentSlug: string): string {
   const anos = new Map<string, IrenePoem[]>();
   for (const p of poems) {
     const ano = p.date.slice(0, 4);
     if (!anos.has(ano)) anos.set(ano, []);
     anos.get(ano)!.push(p);
   }
-
   const grupos = [...anos.entries()]
     .map(
-      ([ano, lista]) => `    <section class="grupo-ano" data-busca-grupo>
-      <h3>${ano}</h3>
-      <ol>
+      ([ano, lista]) => `      <section class="grupo-ano" data-busca-grupo>
+        <h3>${ano}</h3>
+        <ol>
 ${lista
   .map(
-    (p) => `        <li data-busca-item="${p.slug}"><a href="/irene/${p.slug}">
-          <span>${escapeHtml(p.title)}</span>
-          <time datetime="${p.date}">${p.date.slice(8, 10)}/${p.date.slice(5, 7)}</time>
-        </a></li>`,
+    (p) =>
+      `          <li data-busca-item="${p.slug}"><a href="/irene/${p.slug}"${
+        p.slug === currentSlug ? ' aria-current="page"' : ""
+      }>${escapeHtml(p.title)}</a></li>`,
   )
   .join("\n")}
-      </ol>
-    </section>`,
+        </ol>
+      </section>`,
     )
     .join("\n");
 
-  const body = `<div class="pagina">
-  <header class="capa">
-    <h1>Poesia da Irene</h1>
-    <p class="autora">Irene Diaz Rodrigues</p>
-    <p class="nota">${poems.length} poesias · ${poems[poems.length - 1].date.slice(0, 4)}–${poems[0].date.slice(0, 4)}</p>
-  </header>
-
-  <div class="ferramentas">
-    <input class="busca" type="search" data-busca placeholder="Buscar um verso, um título…" aria-label="Buscar poesias">
-    <p class="contagem" data-busca-count aria-live="polite"></p>
-  </div>
-
-  <main>
-    <section data-busca-hide>
-${recentes.map((p) => poemArticle(p, "h2")).join("\n")}
-      <p class="divisor" aria-hidden="true">✳ ✳ ✳</p>
-    </section>
-
-    <section class="indice" aria-label="Todas as poesias">
-      <h2 data-busca-hide>Todas as poesias</h2>
+  return `  <details class="sumario" open>
+    <summary>Sumário</summary>
+    <nav class="sumario-inner" aria-label="Todas as poesias">
+      <div class="busca-area">
+        <input class="busca" type="search" data-busca placeholder="Buscar um verso, um título…" aria-label="Buscar poesias">
+        <p class="contagem" data-busca-count aria-live="polite"></p>
+      </div>
 ${grupos}
-      <p class="vazio" data-busca-vazio hidden>Nenhuma poesia encontrada por aqui…</p>
-    </section>
-  </main>
-
-  <footer>♥ Poesias de Irene Diaz Rodrigues</footer>
-</div>
-<script>${searchScript("/irene/busca.json")}</script>`;
-
-  return pageShell(
-    {
-      title: "Poesia da Irene",
-      description: `${poems.length} poesias de Irene Diaz Rodrigues.`,
-      url: `${BASE_URL}/irene`,
-      fonts: FONTS,
-    },
-    `    <style>${CSS}</style>`,
-    body,
-  );
+      <p class="vazio" data-busca-vazio hidden>Nenhuma poesia encontrada…</p>
+    </nav>
+  </details>`;
 }
 
-function poemHtml(
-  p: IrenePoem,
-  anterior: IrenePoem | null,
-  proximo: IrenePoem | null,
+const SCRIPT_EXTRA = `
+(function () {
+  var sumario = document.querySelector(".sumario");
+  var desktop = window.matchMedia("(min-width: 58rem)");
+  // mobile: começa fechado (sem JS fica aberto, navegável por âncoras)
+  if (!desktop.matches) sumario.open = false;
+  // destaque atual visível ao abrir a página
+  var atual = sumario.querySelector('[aria-current="page"]');
+  if (atual && desktop.matches) atual.scrollIntoView({ block: "center" });
+  document.addEventListener("keydown", function (e) {
+    if (e.target && e.target.tagName === "INPUT") return;
+    if (e.key === "ArrowLeft") { var a = document.querySelector('[rel="prev"]'); if (a) location.href = a.href; }
+    if (e.key === "ArrowRight") { var b = document.querySelector('[rel="next"]'); if (b) location.href = b.href; }
+  });
+})();
+`;
+
+function poemPage(
+  poems: IrenePoem[],
+  i: number,
+  opts: { canonicalRoot: boolean },
 ): string {
+  const p = poems[i];
+  const anterior = poems[i - 1] ?? null; // mais recente
+  const proximo = poems[i + 1] ?? null; // mais antiga
   const firstVerses = p.content
     .split("\n")
     .map((l) => l.trim())
@@ -275,37 +268,53 @@ function poemHtml(
     .slice(0, 2)
     .join(" / ");
 
-  const body = `<div class="pagina">
-  <header class="capa">
-    <h1 style="font-size:1.4rem"><a href="/irene">Poesia da Irene</a></h1>
-  </header>
-  <main>
-${poemArticle(p, "h1")}
+  const body = `<header class="capa">
+  <h1><a href="/irene">Poesia da Irene</a></h1>
+  <p class="autora">Irene Diaz Rodrigues</p>
+</header>
+
+<div class="layout">
+${sumarioHtml(poems, p.slug)}
+
+  <main class="leitura">
+    <article class="poema">
+      <header>
+        <h2>${escapeHtml(p.title)}</h2>
+        <time datetime="${p.date}">${formatDatePt(p.date)}</time>
+      </header>
+      <div class="texto">
+${poemBodyHtml(p.content)}
+      </div>
+    </article>
     <nav class="navegacao" aria-label="Outras poesias">
-      <a href="${anterior ? `/irene/${anterior.slug}` : "/irene"}" rel="prev">${
-        anterior ? `← ${escapeHtml(anterior.title)}` : "← Todas as poesias"
-      }</a>
-      <a href="${proximo ? `/irene/${proximo.slug}` : "/irene"}" rel="next">${
-        proximo ? `${escapeHtml(proximo.title)} →` : "Todas as poesias →"
-      }</a>
+      ${
+        anterior
+          ? `<a href="/irene/${anterior.slug}" rel="prev">← ${escapeHtml(anterior.title)}</a>`
+          : "<span></span>"
+      }
+      ${
+        proximo
+          ? `<a href="/irene/${proximo.slug}" rel="next">${escapeHtml(proximo.title)} →</a>`
+          : "<span></span>"
+      }
     </nav>
-    <a class="voltar" href="/irene">↑ Todas as poesias</a>
+    <footer>♥ ${poems.length} poesias de Irene Diaz Rodrigues</footer>
   </main>
-  <footer>♥ Poesias de Irene Diaz Rodrigues</footer>
 </div>
-<script>
-document.addEventListener("keydown", function (e) {
-  if (e.key === "ArrowLeft") { var a = document.querySelector('[rel="prev"]'); if (a) location.href = a.href; }
-  if (e.key === "ArrowRight") { var a2 = document.querySelector('[rel="next"]'); if (a2) location.href = a2.href; }
-});
-</script>`;
+<script>${searchScript("/irene/busca.json")}${SCRIPT_EXTRA}</script>`;
 
   return pageShell(
     {
-      title: `${p.title} — Poesia da Irene`,
-      description: firstVerses,
-      url: `${BASE_URL}/irene/${p.slug}`,
-      ogType: "article",
+      title: opts.canonicalRoot
+        ? "Poesia da Irene"
+        : `${p.title} — Poesia da Irene`,
+      description: opts.canonicalRoot
+        ? `${poems.length} poesias de Irene Diaz Rodrigues.`
+        : firstVerses,
+      url: opts.canonicalRoot
+        ? `${BASE_URL}/irene`
+        : `${BASE_URL}/irene/${p.slug}`,
+      ogType: opts.canonicalRoot ? "website" : "article",
       fonts: FONTS,
     },
     `    <style>${CSS}</style>`,
@@ -328,7 +337,11 @@ export function generateIrene(contentDir: string, buildDir: string): number {
   const outDir = join(buildDir, "irene");
   mkdirSync(outDir, { recursive: true });
 
-  writeFileSync(join(outDir, "index.html"), landingHtml(poems));
+  // /irene = a poesia mais recente, com sumário do lado
+  writeFileSync(
+    join(outDir, "index.html"),
+    poemPage(poems, 0, { canonicalRoot: true }),
+  );
 
   writeFileSync(
     join(outDir, "busca.json"),
@@ -345,7 +358,7 @@ export function generateIrene(contentDir: string, buildDir: string): number {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, "index.html"),
-      poemHtml(poems[i], poems[i - 1] ?? null, poems[i + 1] ?? null),
+      poemPage(poems, i, { canonicalRoot: false }),
     );
   }
 

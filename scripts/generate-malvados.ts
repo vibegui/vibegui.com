@@ -40,6 +40,7 @@ const CSS = `
     --sangue: #c0392b;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
+  [hidden] { display: none !important; }
   body {
     background: var(--fundo);
     color: var(--tinta);
