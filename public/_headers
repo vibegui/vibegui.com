@@ -12,6 +12,16 @@
 /context/*
   Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
 
+/irene/*
+  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
+
+/malvados/*
+  Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800
+
+# Strip images never change - long cache
+/malvados/tirinhas/*
+  Cache-Control: public, max-age=31536000, immutable
+
 # Static assets - immutable (content-hash in filename)
 /assets/*
   Cache-Control: public, max-age=31536000, immutable

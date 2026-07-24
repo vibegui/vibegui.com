@@ -139,6 +139,20 @@ async function main() {
   );
   console.log(`  ✅ ${articleCount} articles, ${contextCount} context pages`);
 
+  // Standalone static mini-sites (/irene, /malvados): pages in .build/ are
+  // complete self-contained HTML — copy verbatim, no asset-tag swapping.
+  // Merge-copy (never wipe): in prod mode Vite already copied the strip
+  // images from public/malvados/ into dist/malvados/.
+  console.log("\n📁 Copying static mini-sites...");
+  copyDir(resolve(BUILD, "irene"), resolve(DIST, "irene"));
+  copyDir(resolve(BUILD, "malvados"), resolve(DIST, "malvados"));
+  // In pages mode (no Vite) the strip images must come straight from public/
+  const mediaDest = resolve(DIST, "malvados", "tirinhas");
+  if (!existsSync(mediaDest)) {
+    copyDir(resolve(PUBLIC, "malvados", "tirinhas"), mediaDest);
+  }
+  console.log("  ✅ /irene, /malvados");
+
   // Read manifest for embedding
   const manifestPath = resolve(DIST, "content", "manifest.json");
   const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));

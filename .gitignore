@@ -37,6 +37,8 @@ dist/content/
 dist/context/
 dist/bookmarks/
 dist/article/
+dist/irene/
+dist/malvados/
 dist/.vite/
 
 # Generated at build time (regenerated at dev/build time)
