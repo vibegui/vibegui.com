@@ -1,4 +1,10 @@
-import { metricsQuery, sitesOverview, type MetricsGroup } from "./analytics.ts";
+import {
+  DIMENSOES,
+  metricsQuery,
+  sitesOverview,
+  type Dim,
+  type MetricsGroup,
+} from "./analytics.ts";
 import type { AccessLevel, Env } from "./env.ts";
 import { refreshGitHub } from "./github.ts";
 import {
@@ -56,41 +62,55 @@ const objectSchema = (
   additionalProperties: false,
 });
 
+// Dimensões filtráveis do dashboard: cada uma vira um filtro opcional aqui e
+// uma lista clicável na UI.
+const DIM_DESC: Record<Dim, string> = {
+  site: "site (vibegui.com | poesiadairene.com | buscamalvados.com)",
+  path: "caminho da página (ex.: /1712)",
+  country: "país, código ISO de 2 letras (ex.: FR)",
+  ref: "fonte: hostname do referrer (ex.: google.com) ou '(direto)'",
+  status: "status HTTP da resposta (ex.: 200)",
+  cache: "cf-cache-status quando disponível",
+  browser: "navegador derivado do user agent (Chrome, Safari, Bot…)",
+  os: "sistema operacional (macOS, iOS, Windows…)",
+  device: "aparelho (desktop | mobile | tablet | bot)",
+  asn: "rede do visitante, ASN + organização (ex.: 'AS15169 GOOGLE')",
+  ip: "faixa de IP do visitante (/24 no v4, /48 no v6)",
+  colo: "datacenter da Cloudflare que atendeu (ex.: GRU)",
+};
+const DIM_SCHEMA = Object.fromEntries(
+  DIMENSOES.map((dim) => [
+    dim,
+    { type: "string", description: `Filtrar por ${DIM_DESC[dim]}` },
+  ]),
+);
+
 export const tools: ToolDefinition[] = [
   {
     name: "SITES_OVERVIEW",
     description:
-      "Resumo de analytics dos três sites (vibegui.com, poesiadairene.com, buscamalvados.com): pageviews e visitantes únicos por site, top páginas e top referrers na janela pedida. Fonte: eventos first-party gravados pelo middleware do Pages.",
+      "Dashboard de analytics dos três sites (vibegui.com, poesiadairene.com, buscamalvados.com): pageviews e visitantes únicos por site, série diária e rankings por página, fonte, país, status, cache, navegador, sistema, aparelho, ASN, faixa de IP e colo. Qualquer dimensão também serve de filtro (cross-filter: cada lista ignora o próprio filtro). Fonte: eventos first-party gravados pelo middleware do Pages.",
     access: "private",
     inputSchema: objectSchema({
       days: {
         type: "number",
         description: "Janela em dias (1–90, padrão 7)",
       },
-      site: {
+      name: {
         type: "string",
         description:
-          "Filtrar tudo por um site (vibegui.com | poesiadairene.com | buscamalvados.com)",
+          "Nome do evento (padrão pageview; 'blocked' = varredura barrada pelo middleware)",
       },
-      path: { type: "string", description: "Filtrar por caminho (ex.: /1712)" },
-      country: {
-        type: "string",
-        description: "Filtrar por país (código ISO de 2 letras, ex.: FR)",
-      },
-      ref: {
-        type: "string",
-        description:
-          "Filtrar pela fonte: hostname do referrer (ex.: google.com) ou '(direto)'",
-      },
+      ...DIM_SCHEMA,
     }),
     _meta: { ui: { resourceUri: ANALYTICS_RESOURCE } },
     execute: async (env, input) =>
       sitesOverview(env, {
         days: optionalNumber(input, "days"),
-        site: optionalString(input, "site"),
-        path: optionalString(input, "path"),
-        country: optionalString(input, "country"),
-        ref: optionalString(input, "ref"),
+        name: optionalString(input, "name"),
+        ...Object.fromEntries(
+          DIMENSOES.map((dim) => [dim, optionalString(input, dim)]),
+        ),
       }),
   },
   {

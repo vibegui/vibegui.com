@@ -395,9 +395,8 @@ export function AnalyticsView({
   const siteFilter = filtro("site") || text(result.site) || null;
   const sites = asRecords(result.sites);
   const series = asRecords(result.series);
-  const topPages = asRecords(result.topPages);
-  const topReferrers = asRecords(result.topReferrers);
-  const countries = asRecords(result.countries);
+  const dimensions = (result.dimensions ?? {}) as JsonRecord;
+  const evento = text(result.name) || "pageview";
   const [metric, setMetric] = useState<"visitors" | "pageviews">("visitors");
 
   const somaSites = (row: JsonRecord, key: "pageviews" | "visitors") =>
@@ -423,7 +422,12 @@ export function AnalyticsView({
   }
 
   const reload = (args: Record<string, unknown>) => {
-    const merged: Record<string, unknown> = { days, ...ativos, ...args };
+    const merged: Record<string, unknown> = {
+      days,
+      name: evento,
+      ...ativos,
+      ...args,
+    };
     for (const [k, v] of Object.entries(merged)) {
       if (v === undefined || v === null || v === "") delete merged[k];
     }
@@ -463,6 +467,24 @@ export function AnalyticsView({
           ))}
         </div>
         <div className="analytics-range">
+          {[
+            { valor: "pageview", rotulo: "pageviews" },
+            { valor: "blocked", rotulo: "barrados" },
+          ].map(({ valor, rotulo }) => (
+            <button
+              type="button"
+              key={valor}
+              className={evento === valor ? "active" : ""}
+              onClick={() => reload({ name: valor })}
+              title={
+                valor === "blocked"
+                  ? "Rotas inexistentes barradas com 404 (varredura de scanner)"
+                  : "Páginas servidas de verdade"
+              }
+            >
+              {rotulo}
+            </button>
+          ))}
           {[7, 30, 90].map((option) => (
             <button
               type="button"
@@ -523,51 +545,67 @@ export function AnalyticsView({
       <TimelineChart series={series} metric={metric} />
 
       <div className="analytics-panels">
-        <AnalyticsPanel
-          title="Páginas"
-          rows={topPages.map((page) => ({
-            key: `${text(page.site)}${text(page.path)}`,
-            label: text(page.path) || "/",
-            hint: siteFilter ? undefined : text(page.site),
-            value: number(page.pageviews),
-            active:
-              ativos.path === text(page.path) &&
-              (!ativos.site || ativos.site === text(page.site)),
-            onSelect: () =>
-              toggle({ site: text(page.site), path: text(page.path) }),
-          }))}
-        />
-        <AnalyticsPanel
-          title="Fontes"
-          rows={topReferrers.map((referrer) => ({
-            key: text(referrer.ref),
-            label: text(referrer.ref),
-            value: number(referrer.pageviews),
-            active: ativos.ref === text(referrer.ref),
-            onSelect: () => toggle({ ref: text(referrer.ref) }),
-          }))}
-        />
-        <AnalyticsPanel
-          title="Países"
-          rows={countries.map((row) => ({
-            key: text(row.country),
-            label: countryLabel(text(row.country)),
-            value: number(row.pageviews),
-            active: ativos.country === text(row.country),
-            onSelect: () => toggle({ country: text(row.country) }),
-          }))}
-        />
+        {PANEIS.map(({ dim, titulo }) => {
+          const linhas = asRecords(dimensions[dim]);
+          if (linhas.length === 0) return null;
+          return (
+            <AnalyticsPanel
+              key={dim}
+              title={titulo}
+              rows={linhas.map((linha) => {
+                const chave = text(linha.key);
+                const site = text(linha.site);
+                const patch =
+                  dim === "path" && site
+                    ? { site, path: chave }
+                    : { [dim]: chave };
+                return {
+                  key: `${site}${chave}`,
+                  label: dim === "country" ? countryLabel(chave) : chave || "—",
+                  hint: dim === "path" && !siteFilter ? site : undefined,
+                  value: number(linha.pageviews),
+                  active: Object.entries(patch).every(
+                    ([k, v]) => ativos[k] === v,
+                  ),
+                  onSelect: () => toggle(patch),
+                };
+              })}
+            />
+          );
+        })}
       </div>
     </div>
   );
 }
 
-const FILTER_DIMS = ["site", "path", "country", "ref"] as const;
+// mesma ordem dos painéis; espelha DIMENSOES no worker (mcp/src/analytics.ts)
+const PANEIS = [
+  { dim: "path", titulo: "Páginas" },
+  { dim: "ref", titulo: "Fontes" },
+  { dim: "country", titulo: "Países" },
+  { dim: "browser", titulo: "Navegador" },
+  { dim: "os", titulo: "Sistema" },
+  { dim: "device", titulo: "Aparelho" },
+  { dim: "status", titulo: "Status HTTP" },
+  { dim: "cache", titulo: "Cache" },
+  { dim: "asn", titulo: "Rede (ASN)" },
+  { dim: "ip", titulo: "Faixa de IP" },
+  { dim: "colo", titulo: "Colo" },
+] as const;
+const FILTER_DIMS = ["site", ...PANEIS.map((p) => p.dim)] as const;
 const FILTER_LABEL: Record<string, string> = {
   site: "site",
   path: "página",
   country: "país",
   ref: "fonte",
+  status: "status",
+  cache: "cache",
+  browser: "navegador",
+  os: "sistema",
+  device: "aparelho",
+  asn: "rede",
+  ip: "IP",
+  colo: "colo",
 };
 
 const METRIC_LABEL = {
