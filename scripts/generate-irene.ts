@@ -52,7 +52,7 @@ const CSS = `
     -webkit-font-smoothing: antialiased;
   }
   a { color: var(--verde-escuro); }
-  .capa { text-align: center; padding: clamp(2rem, 6vh, 3.5rem) 1.5rem 1.5rem; }
+  .capa { text-align: center; padding: clamp(1.5rem, 5vh, 3rem) 0 2rem; }
   .capa h1 {
     font-size: clamp(1.9rem, 5vw, 2.6rem);
     font-weight: 500;
@@ -61,8 +61,10 @@ const CSS = `
   }
   .capa h1 a { color: inherit; text-decoration: none; }
   .capa .autora { margin-top: .4rem; font-style: italic; font-size: 1.1rem; color: var(--verde); }
-  .layout {
-    max-width: 66rem;
+  .layout { min-height: 100dvh; }
+  .leitura {
+    min-width: 0;
+    max-width: 46rem;
     margin: 0 auto;
     padding: 0 1.5rem 4rem;
   }
@@ -72,50 +74,50 @@ const CSS = `
     cursor: pointer;
     list-style: none;
     display: inline-block;
-    font-size: .9rem;
+    font-size: 1rem;
     color: var(--verde-escuro);
     border: 1px solid var(--linha);
     border-radius: 999px;
-    padding: .35rem .9rem;
+    padding: .5rem 1.1rem;
     user-select: none;
   }
   .sumario summary::before { content: "☰ "; }
   .sumario summary::-webkit-details-marker { display: none; }
   .sumario summary:hover { background: var(--papel-2); }
-  .sumario-inner { padding-top: 1rem; }
+  .sumario-inner { padding: 1.5rem .25rem 0; }
   .no-js .busca-area { display: none; }
   .busca {
     width: 100%;
     font: inherit;
-    font-size: .95rem;
+    font-size: 1rem;
     color: var(--tinta);
     background: #fff;
     border: 1px solid var(--linha);
     border-radius: 999px;
-    padding: .45rem 1rem;
+    padding: .6rem 1.1rem;
   }
   .busca::placeholder { color: var(--tinta-suave); }
   .busca:focus { outline: 2px solid var(--verde); outline-offset: 1px; border-color: transparent; }
   .contagem { padding-top: .4rem; font-size: .8rem; color: var(--tinta-suave); min-height: 1.4em; }
-  .grupo-ano { margin-top: 1.1rem; }
+  .grupo-ano { margin-top: 1.9rem; }
   .grupo-ano > h3 {
-    font-size: .8rem;
+    font-size: .85rem;
     font-weight: 500;
     color: var(--tinta-suave);
     border-bottom: 1px solid var(--linha);
-    padding-bottom: .3rem;
+    padding-bottom: .4rem;
     font-variant-numeric: tabular-nums;
   }
-  .grupo-ano ol { list-style: none; margin-top: .35rem; }
+  .grupo-ano ol { list-style: none; margin-top: .6rem; }
   .grupo-ano a {
     display: block;
-    padding: .26rem .5rem;
-    margin-inline: -.5rem;
-    border-radius: .35rem;
+    padding: .5rem .65rem;
+    margin-inline: -.65rem;
+    border-radius: .4rem;
     color: var(--tinta);
     text-decoration: none;
-    font-size: .92rem;
-    line-height: 1.35;
+    font-size: 1rem;
+    line-height: 1.4;
   }
   .grupo-ano a:hover { background: var(--papel-2); color: var(--verde-escuro); }
   .grupo-ano a[aria-current="page"] {
@@ -124,7 +126,6 @@ const CSS = `
   }
   .vazio { padding: 1.5rem 0; font-style: italic; color: var(--tinta-suave); font-size: .9rem; }
   /* ---------- poema ---------- */
-  .leitura { min-width: 0; }
   .poema h2 {
     font-size: clamp(1.6rem, 4vw, 2.1rem);
     font-weight: 500;
@@ -166,27 +167,25 @@ const CSS = `
     font-size: .85rem;
     color: var(--tinta-suave);
   }
-  /* ---------- mobile: sumário empilhado acima do poema ---------- */
-  .sumario { margin-bottom: 2rem; }
-  .leitura .poema { margin-top: .5rem; }
-  /* ---------- desktop: lado a lado ---------- */
+  /* ---------- mobile: sumário empilhado acima do conteúdo ---------- */
+  .sumario { padding: 1.25rem 1.5rem 0; }
+  .sumario[open] { padding-bottom: 2rem; border-bottom: 1px solid var(--linha); }
+  /* ---------- desktop: split real — sidebar à esquerda, conteúdo à direita ---------- */
   @media (min-width: 58rem) {
     .layout {
       display: grid;
-      grid-template-columns: 15.5rem minmax(0, 1fr);
-      gap: clamp(2rem, 5vw, 4rem);
-      align-items: start;
+      grid-template-columns: minmax(19rem, 23rem) minmax(0, 1fr);
     }
     .sumario {
-      margin-bottom: 0;
-      position: sticky;
-      top: 1.25rem;
-      max-height: calc(100dvh - 2.5rem);
-      overflow-y: auto;
-      scrollbar-width: thin;
-      padding-right: .25rem;
+      background: var(--papel-2);
+      border-right: 1px solid var(--linha);
+      padding: 1.75rem 1.75rem 3rem;
     }
-    /* sumário fechado: coluna estreita, poema ganha o espaço */
+    .sumario[open] { padding-bottom: 3rem; border-bottom: none; }
+    .grupo-ano a { padding-block: .32rem; font-size: .95rem; }
+    .grupo-ano { margin-top: 1.4rem; }
+    .grupo-ano a:hover { background: var(--papel); }
+    /* índice fechado: só a alça, conteúdo ganha a tela */
     .layout:has(.sumario:not([open])) { grid-template-columns: auto minmax(0, 1fr); }
   }
 `;
@@ -224,7 +223,7 @@ ${lista
     .join("\n");
 
   return `  <details class="sumario" open>
-    <summary>Sumário</summary>
+    <summary>Índice</summary>
     <nav class="sumario-inner" aria-label="Todas as poesias">
       <div class="busca-area">
         <input class="busca" type="search" data-busca placeholder="Buscar um verso, um título…" aria-label="Buscar poesias">
@@ -242,9 +241,6 @@ const SCRIPT_EXTRA = `
   var desktop = window.matchMedia("(min-width: 58rem)");
   // mobile: começa fechado (sem JS fica aberto, navegável por âncoras)
   if (!desktop.matches) sumario.open = false;
-  // destaque atual visível ao abrir a página
-  var atual = sumario.querySelector('[aria-current="page"]');
-  if (atual && desktop.matches) atual.scrollIntoView({ block: "center" });
   document.addEventListener("keydown", function (e) {
     if (e.target && e.target.tagName === "INPUT") return;
     if (e.key === "ArrowLeft") { var a = document.querySelector('[rel="prev"]'); if (a) location.href = a.href; }
@@ -268,15 +264,14 @@ function poemPage(
     .slice(0, 2)
     .join(" / ");
 
-  const body = `<header class="capa">
-  <h1><a href="/irene">Poesia da Irene</a></h1>
-  <p class="autora">Irene Diaz Rodrigues</p>
-</header>
-
-<div class="layout">
+  const body = `<div class="layout">
 ${sumarioHtml(poems, p.slug)}
 
   <main class="leitura">
+    <header class="capa">
+      <h1><a href="/irene">Poesia da Irene</a></h1>
+      <p class="autora">Irene Diaz Rodrigues</p>
+    </header>
     <article class="poema">
       <header>
         <h2>${escapeHtml(p.title)}</h2>
@@ -317,7 +312,7 @@ ${poemBodyHtml(p.content)}
       ogType: opts.canonicalRoot ? "website" : "article",
       fonts: FONTS,
     },
-    `    <style>${CSS}</style>`,
+    `    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23faf7f0%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2250%22%20font-family%3D%22Georgia%2C%27Times%20New%20Roman%27%2Cserif%22%20font-size%3D%2254%22%20text-anchor%3D%22middle%22%20fill%3D%22%232b2822%22%3Ei%3C%2Ftext%3E%3C%2Fsvg%3E">\n    <style>${CSS}</style>`,
     body,
   );
 }
