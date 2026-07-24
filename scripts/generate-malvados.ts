@@ -1,14 +1,15 @@
 /**
- * Generate the /malvados mini-site — called from generate.ts.
+ * Generate the Malvados strip-browser mini-site — called from generate.ts.
  *
  * A fan-made browser for André Dahmer's Malvados strips, built from a local
  * scrape (content/malvados/strips.json + public/malvados/tirinhas/*). All
  * content belongs to André Dahmer — the pages carry a homage disclaimer.
  *
- * Writes fully static, self-contained pages:
- *   .build/malvados/index.html       grid of all strips (lazy images) + OCR full-text search
- *   .build/malvados/<n>/index.html   one page per strip (prev/next, original link)
- *   .build/malvados/busca.json       search index fetched on demand
+ * The site is built TWICE (see SITES): under /malvados for vibegui.com, and
+ * under /_dominio-malvados with root-relative links, buscamalvados.com
+ * canonicals, sitemap.xml and robots.txt — served on that domain by the
+ * host-based rewrite in functions/_middleware.ts. Strip images always live at
+ * /malvados/tirinhas/* (excluded from the rewrite via public/_routes.json).
  *
  * Zero-dependency and Node-compatible (Cloudflare Pages build).
  * Look & feel: gray, stark, malvados-like — independent from the blog.
@@ -23,7 +24,32 @@ import {
   searchScript,
 } from "../lib/static-site.ts";
 
-const BASE_URL = "https://vibegui.com";
+interface Site {
+  base: string; // prefixo dos links internos: "/malvados" ou ""
+  origin: string; // origem canônica das URLs
+  out: string; // diretório dentro de .build/
+  dominio: boolean; // build de domínio dedicado: gera sitemap + robots
+}
+
+const SITES: Site[] = [
+  {
+    base: "/malvados",
+    origin: "https://vibegui.com",
+    out: "malvados",
+    dominio: false,
+  },
+  {
+    base: "",
+    origin: "https://buscamalvados.com",
+    out: "_dominio-malvados",
+    dominio: true,
+  },
+];
+
+const OG_IMAGE = "https://vibegui.com/images/og-buscamalvados.png";
+const ICONE = "https://vibegui.com/images/icone-buscamalvados.png";
+const FAVICON =
+  "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c1c1e%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CArial%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2246%22%20text-anchor%3D%22middle%22%20fill%3D%22%23d9d9d6%22%3Em%3C%2Ftext%3E%3C%2Fsvg%3E";
 const FONTS = "family=Archivo+Black";
 
 const DISCLAIMER =
@@ -177,21 +203,32 @@ interface Strip {
   text: string;
 }
 
-const TITULO = `<h1><a href="/malvados">MALVADOS<span class="virgula">.</span></a></h1>`;
+function titulo(site: Site): string {
+  return `<h1><a href="${site.base || "/"}">MALVADOS<span class="virgula">.</span></a></h1>`;
+}
 
 const RODAPE = `<footer>
   ${DISCLAIMER}<br>
   Visite o site oficial: <a href="https://www.malvados.com.br" rel="external">malvados.com.br</a>
 </footer>`;
 
-function landingHtml(strips: Strip[]): string {
+function headExtra(jsonLd: string): string {
+  return `    <link rel="icon" href="${FAVICON}">
+    <link rel="apple-touch-icon" href="${ICONE}">
+    <meta name="theme-color" content="#1c1c1e">
+    <meta property="og:locale" content="pt_BR">
+    <script type="application/ld+json">${jsonLd}</script>
+    <style>${CSS}</style>`;
+}
+
+function landingHtml(strips: Strip[], site: Site): string {
   // newest (highest number) first
   const cards = [...strips]
     .reverse()
     .map(
       (
         s,
-      ) => `    <a class="tirinha-card" href="/malvados/${s.n}" data-busca-item="${s.n}">
+      ) => `    <a class="tirinha-card" href="${site.base}/${s.n}" data-busca-item="${s.n}">
       <img src="/malvados/tirinhas/${s.file}" loading="lazy" decoding="async" alt="Tirinha #${s.n} dos Malvados" width="240" height="180">
       <span class="num">#${s.n}</span>
     </a>`,
@@ -200,7 +237,7 @@ function landingHtml(strips: Strip[]): string {
 
   const body = `<div class="pagina">
   <header class="topo">
-    ${TITULO}
+    ${titulo(site)}
     <p class="disclaimer">${DISCLAIMER} Visite (e apoie) o site oficial: <a href="https://www.malvados.com.br" rel="external">malvados.com.br</a>.</p>
   </header>
 
@@ -217,16 +254,25 @@ ${cards}
 
   ${RODAPE}
 </div>
-<script>${searchScript("/malvados/busca.json")}</script>`;
+<script>${searchScript(`${site.base}/busca.json`)}</script>`;
+
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Busca Malvados",
+    description: `Buscador de tirinhas dos Malvados, de André Dahmer, com busca pelo texto de ${strips.length} tirinhas.`,
+    inLanguage: "pt-BR",
+  });
 
   return pageShell(
     {
-      title: "Malvados — buscador de tirinhas",
-      description: `${DISCLAIMER} ${strips.length} tirinhas com busca por texto.`,
-      url: `${BASE_URL}/malvados`,
+      title: "Busca Malvados — buscador de tirinhas do André Dahmer",
+      description: `Busque pelo texto de ${strips.length} tirinhas dos Malvados. ${DISCLAIMER}`,
+      url: `${site.origin}${site.base || "/"}`,
+      image: OG_IMAGE,
       fonts: FONTS,
     },
-    `    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c1c1e%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CArial%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2246%22%20text-anchor%3D%22middle%22%20fill%3D%22%23d9d9d6%22%3Em%3C%2Ftext%3E%3C%2Fsvg%3E">\n    <style>${CSS}</style>`,
+    headExtra(jsonLd),
     body,
   );
 }
@@ -235,6 +281,7 @@ function stripHtml(
   s: Strip,
   anterior: Strip | null,
   proximo: Strip | null,
+  site: Site,
 ): string {
   const original = s.url
     ? `<a href="${escapeHtml(s.url)}" rel="external">ver no site original</a>`
@@ -248,7 +295,7 @@ function stripHtml(
 
   const body = `<div class="pagina detalhe">
   <header class="topo">
-    ${TITULO}
+    ${titulo(site)}
   </header>
   <main>
     <figure class="quadro">
@@ -259,9 +306,9 @@ function stripHtml(
       ${original}
     </div>
     <nav class="navegacao" aria-label="Navegar entre tirinhas">
-      ${anterior ? `<a href="/malvados/${anterior.n}" rel="prev">← #${anterior.n}</a>` : "<span>←</span>"}
-      <a class="indice-link" href="/malvados">todas</a>
-      ${proximo ? `<a href="/malvados/${proximo.n}" rel="next">#${proximo.n} →</a>` : "<span>→</span>"}
+      ${anterior ? `<a href="${site.base}/${anterior.n}" rel="prev">← #${anterior.n}</a>` : "<span>←</span>"}
+      <a class="indice-link" href="${site.base || "/"}">todas</a>
+      ${proximo ? `<a href="${site.base}/${proximo.n}" rel="next">#${proximo.n} →</a>` : "<span>→</span>"}
     </nav>
 ${transcricao}
   </main>
@@ -274,31 +321,33 @@ document.addEventListener("keydown", function (e) {
 });
 </script>`;
 
+  const jsonLd = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "ComicStory",
+    name: `Malvados #${s.n}`,
+    author: { "@type": "Person", name: "André Dahmer" },
+    inLanguage: "pt-BR",
+  });
+
   return pageShell(
     {
-      title: `Malvados #${s.n}`,
+      title: `Malvados #${s.n} — Busca Malvados`,
       description: `Tirinha #${s.n} dos Malvados, de André Dahmer. ${DISCLAIMER}`,
-      url: `${BASE_URL}/malvados/${s.n}`,
-      image: `${BASE_URL}/malvados/tirinhas/${s.file}`,
+      url: `${site.origin}${site.base}/${s.n}`,
+      image: `https://vibegui.com/malvados/tirinhas/${s.file}`,
       ogType: "article",
       fonts: FONTS,
     },
-    `    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%231c1c1e%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2248%22%20font-family%3D%22Arial%20Black%2CArial%2Csans-serif%22%20font-weight%3D%22900%22%20font-size%3D%2246%22%20text-anchor%3D%22middle%22%20fill%3D%22%23d9d9d6%22%3Em%3C%2Ftext%3E%3C%2Fsvg%3E">\n    <style>${CSS}</style>`,
+    headExtra(jsonLd),
     body,
   );
 }
 
-export function generateMalvados(contentDir: string, buildDir: string): number {
-  const dataPath = join(contentDir, "malvados", "strips.json");
-  if (!existsSync(dataPath)) return 0;
-  const strips: Strip[] = JSON.parse(readFileSync(dataPath, "utf-8"));
-  if (strips.length === 0) return 0;
-  strips.sort((a, b) => a.n - b.n);
-
-  const outDir = join(buildDir, "malvados");
+function buildSite(strips: Strip[], buildDir: string, site: Site): void {
+  const outDir = join(buildDir, site.out);
   mkdirSync(outDir, { recursive: true });
 
-  writeFileSync(join(outDir, "index.html"), landingHtml(strips));
+  writeFileSync(join(outDir, "index.html"), landingHtml(strips, site));
 
   writeFileSync(
     join(outDir, "busca.json"),
@@ -312,9 +361,35 @@ export function generateMalvados(contentDir: string, buildDir: string): number {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, "index.html"),
-      stripHtml(strips[i], strips[i - 1] ?? null, strips[i + 1] ?? null),
+      stripHtml(strips[i], strips[i - 1] ?? null, strips[i + 1] ?? null, site),
     );
   }
 
+  if (site.dominio) {
+    const urls = [
+      `${site.origin}/`,
+      ...strips.map((s) => `${site.origin}/${s.n}`),
+    ];
+    writeFileSync(
+      join(outDir, "sitemap.xml"),
+      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+        .map((u) => `  <url><loc>${u}</loc></url>`)
+        .join("\n")}\n</urlset>\n`,
+    );
+    writeFileSync(
+      join(outDir, "robots.txt"),
+      `User-agent: *\nAllow: /\nSitemap: ${site.origin}/sitemap.xml\n`,
+    );
+  }
+}
+
+export function generateMalvados(contentDir: string, buildDir: string): number {
+  const dataPath = join(contentDir, "malvados", "strips.json");
+  if (!existsSync(dataPath)) return 0;
+  const strips: Strip[] = JSON.parse(readFileSync(dataPath, "utf-8"));
+  if (strips.length === 0) return 0;
+  strips.sort((a, b) => a.n - b.n);
+
+  for (const site of SITES) buildSite(strips, buildDir, site);
   return strips.length;
 }

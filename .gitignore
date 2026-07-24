@@ -39,6 +39,8 @@ dist/bookmarks/
 dist/article/
 dist/irene/
 dist/malvados/
+dist/_dominio-irene/
+dist/_dominio-malvados/
 dist/.vite/
 
 # Generated at build time (regenerated at dev/build time)

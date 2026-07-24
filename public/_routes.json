@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Routes the domain middleware (functions/_middleware.ts). Heavy static paths are excluded so they never invoke the function — including the strip images, which are canonical shared assets on every host.",
+  "include": ["/*"],
+  "exclude": [
+    "/assets/*",
+    "/images/*",
+    "/fonts/*",
+    "/article/*",
+    "/context/*",
+    "/content/*",
+    "/bookmarks/*",
+    "/malvados/tirinhas/*"
+  ]
+}

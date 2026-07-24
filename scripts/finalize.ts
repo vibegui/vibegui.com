@@ -146,6 +146,12 @@ async function main() {
   console.log("\n📁 Copying static mini-sites...");
   copyDir(resolve(BUILD, "irene"), resolve(DIST, "irene"));
   copyDir(resolve(BUILD, "malvados"), resolve(DIST, "malvados"));
+  // builds dos domínios dedicados (servidos por functions/_middleware.ts)
+  copyDir(resolve(BUILD, "_dominio-irene"), resolve(DIST, "_dominio-irene"));
+  copyDir(
+    resolve(BUILD, "_dominio-malvados"),
+    resolve(DIST, "_dominio-malvados"),
+  );
   // In pages mode (no Vite) the strip images must come straight from public/
   const mediaDest = resolve(DIST, "malvados", "tirinhas");
   if (!existsSync(mediaDest)) {

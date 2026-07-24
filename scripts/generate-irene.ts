@@ -1,14 +1,15 @@
 /**
- * Generate the /irene mini-site (Poesia da Irene) — called from generate.ts.
+ * Generate the Poesia da Irene mini-site — called from generate.ts.
  *
  * Reads content/irene/*.md and writes fully static, self-contained pages.
- * Layout: collapsible index sidebar + ONE poem open at a time, side by side
- * on desktop; on mobile the index starts closed above the poem. /irene shows
- * the most recent poem; every poem also has its own URL:
+ * Layout: index sidebar + ONE poem open at a time, side by side on desktop
+ * (sidebar pinned to the viewport, scrolling within itself); on mobile the
+ * index starts closed above the poem. The root shows the most recent poem.
  *
- *   .build/irene/index.html         latest poem (canonical /irene)
- *   .build/irene/<slug>/index.html  one page per poem (prev/next navigation)
- *   .build/irene/busca.json         search index fetched on demand
+ * The site is built TWICE (see SITES): under /irene for vibegui.com, and
+ * under /_dominio-irene with root-relative links, poesiadairene.com
+ * canonicals, sitemap.xml and robots.txt — served on that domain by the
+ * host-based rewrite in functions/_middleware.ts.
  *
  * Zero-dependency and Node-compatible (runs on Cloudflare Pages without
  * installed deps). Look & feel: "caderno" — warm paper, Alegreya, sage accent.
@@ -28,7 +29,32 @@ import {
   searchScript,
 } from "../lib/static-site.ts";
 
-const BASE_URL = "https://vibegui.com";
+interface Site {
+  base: string; // prefixo dos links internos: "/irene" ou ""
+  origin: string; // origem canônica das URLs
+  out: string; // diretório dentro de .build/
+  dominio: boolean; // build de domínio dedicado: gera sitemap + robots
+}
+
+const SITES: Site[] = [
+  {
+    base: "/irene",
+    origin: "https://vibegui.com",
+    out: "irene",
+    dominio: false,
+  },
+  {
+    base: "",
+    origin: "https://poesiadairene.com",
+    out: "_dominio-irene",
+    dominio: true,
+  },
+];
+
+const OG_IMAGE = "https://vibegui.com/images/og-poesiadairene.png";
+const ICONE = "https://vibegui.com/images/icone-poesiadairene.png";
+const FAVICON =
+  "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23faf7f0%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2250%22%20font-family%3D%22Georgia%2C%27Times%20New%20Roman%27%2Cserif%22%20font-size%3D%2254%22%20text-anchor%3D%22middle%22%20fill%3D%22%232b2822%22%3Ei%3C%2Ftext%3E%3C%2Fsvg%3E";
 const FONTS =
   "family=Alegreya:ital,wght@0,400;0,500;1,400&family=Alegreya+Sans:wght@400;500";
 
@@ -68,7 +94,7 @@ const CSS = `
     margin: 0 auto;
     padding: 0 1.5rem 4rem;
   }
-  /* ---------- sumário ---------- */
+  /* ---------- índice ---------- */
   .sumario { font-family: "Alegreya Sans", system-ui, sans-serif; }
   .sumario summary {
     cursor: pointer;
@@ -167,7 +193,7 @@ const CSS = `
     font-size: .85rem;
     color: var(--tinta-suave);
   }
-  /* ---------- mobile: sumário empilhado acima do conteúdo ---------- */
+  /* ---------- mobile: índice empilhado acima do conteúdo ---------- */
   .sumario { padding: 1.25rem 1.5rem 0; }
   .sumario[open] { padding-bottom: 2rem; border-bottom: 1px solid var(--linha); }
   /* ---------- desktop: split real — sidebar à esquerda, conteúdo à direita ---------- */
@@ -203,7 +229,11 @@ interface IrenePoem {
   content: string;
 }
 
-function sumarioHtml(poems: IrenePoem[], currentSlug: string): string {
+function sumarioHtml(
+  poems: IrenePoem[],
+  currentSlug: string,
+  base: string,
+): string {
   const anos = new Map<string, IrenePoem[]>();
   for (const p of poems) {
     const ano = p.date.slice(0, 4);
@@ -218,7 +248,7 @@ function sumarioHtml(poems: IrenePoem[], currentSlug: string): string {
 ${lista
   .map(
     (p) =>
-      `          <li data-busca-item="${p.slug}"><a href="/irene/${p.slug}"${
+      `          <li data-busca-item="${p.slug}"><a href="${base}/${p.slug}"${
         p.slug === currentSlug ? ' aria-current="page"' : ""
       }>${escapeHtml(p.title)}</a></li>`,
   )
@@ -261,10 +291,14 @@ function poemPage(
   poems: IrenePoem[],
   i: number,
   opts: { canonicalRoot: boolean },
+  site: Site,
 ): string {
   const p = poems[i];
   const anterior = poems[i - 1] ?? null; // mais recente
   const proximo = poems[i + 1] ?? null; // mais antiga
+  const home = site.base || "/";
+  const anoMin = poems[poems.length - 1].date.slice(0, 4);
+  const anoMax = poems[0].date.slice(0, 4);
   const firstVerses = p.content
     .split("\n")
     .map((l) => l.trim())
@@ -273,11 +307,11 @@ function poemPage(
     .join(" / ");
 
   const body = `<div class="layout">
-${sumarioHtml(poems, p.slug)}
+${sumarioHtml(poems, p.slug, site.base)}
 
   <main class="leitura">
     <header class="capa">
-      <h1><a href="/irene">Poesia da Irene</a></h1>
+      <h1><a href="${home}">Poesia da Irene</a></h1>
       <p class="autora">Irene Diaz Rodrigues</p>
     </header>
     <article class="poema">
@@ -292,58 +326,72 @@ ${poemBodyHtml(p.content)}
     <nav class="navegacao" aria-label="Outras poesias">
       ${
         anterior
-          ? `<a href="/irene/${anterior.slug}" rel="prev">← ${escapeHtml(anterior.title)}</a>`
+          ? `<a href="${site.base}/${anterior.slug}" rel="prev">← ${escapeHtml(anterior.title)}</a>`
           : "<span></span>"
       }
       ${
         proximo
-          ? `<a href="/irene/${proximo.slug}" rel="next">${escapeHtml(proximo.title)} →</a>`
+          ? `<a href="${site.base}/${proximo.slug}" rel="next">${escapeHtml(proximo.title)} →</a>`
           : "<span></span>"
       }
     </nav>
     <footer>♥ ${poems.length} poesias de Irene Diaz Rodrigues</footer>
   </main>
 </div>
-<script>${searchScript("/irene/busca.json")}${SCRIPT_EXTRA}</script>`;
+<script>${searchScript(`${site.base}/busca.json`)}${SCRIPT_EXTRA}</script>`;
+
+  const jsonLd = JSON.stringify(
+    opts.canonicalRoot
+      ? {
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          name: "Poesia da Irene",
+          inLanguage: "pt-BR",
+          author: { "@type": "Person", name: "Irene Diaz Rodrigues" },
+        }
+      : {
+          "@context": "https://schema.org",
+          "@type": "CreativeWork",
+          name: p.title,
+          datePublished: p.date,
+          inLanguage: "pt-BR",
+          author: { "@type": "Person", name: "Irene Diaz Rodrigues" },
+        },
+  );
 
   return pageShell(
     {
       title: opts.canonicalRoot
-        ? "Poesia da Irene"
+        ? "Poesia da Irene — poemas de Irene Diaz Rodrigues"
         : `${p.title} — Poesia da Irene`,
       description: opts.canonicalRoot
-        ? `${poems.length} poesias de Irene Diaz Rodrigues.`
-        : firstVerses,
+        ? `Todas as poesias de Irene Diaz Rodrigues: ${poems.length} poemas escritos entre ${anoMin} e ${anoMax}, com busca por verso e título.`
+        : `${firstVerses} — poema de Irene Diaz Rodrigues, ${formatDatePt(p.date)}.`,
       url: opts.canonicalRoot
-        ? `${BASE_URL}/irene`
-        : `${BASE_URL}/irene/${p.slug}`,
+        ? `${site.origin}${site.base || "/"}`
+        : `${site.origin}${site.base}/${p.slug}`,
+      image: OG_IMAGE,
       ogType: opts.canonicalRoot ? "website" : "article",
       fonts: FONTS,
     },
-    `    <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20fill%3D%22%23faf7f0%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2250%22%20font-family%3D%22Georgia%2C%27Times%20New%20Roman%27%2Cserif%22%20font-size%3D%2254%22%20text-anchor%3D%22middle%22%20fill%3D%22%232b2822%22%3Ei%3C%2Ftext%3E%3C%2Fsvg%3E">\n    <style>${CSS}</style>`,
+    `    <link rel="icon" href="${FAVICON}">
+    <link rel="apple-touch-icon" href="${ICONE}">
+    <meta name="theme-color" content="#faf7f0">
+    <meta property="og:locale" content="pt_BR">
+    <script type="application/ld+json">${jsonLd}</script>
+    <style>${CSS}</style>`,
     body,
   );
 }
 
-export function generateIrene(contentDir: string, buildDir: string): number {
-  const poems: IrenePoem[] = getAllContent(join(contentDir, "irene"))
-    .filter((p) => p.slug && p.title && p.content)
-    .map((p) => ({
-      slug: p.slug,
-      title: p.title,
-      date: p.date,
-      content: p.content,
-    }));
-  if (poems.length === 0) return 0;
-  // getAllContent already sorts by date desc (newest first)
-
-  const outDir = join(buildDir, "irene");
+function buildSite(poems: IrenePoem[], buildDir: string, site: Site): void {
+  const outDir = join(buildDir, site.out);
   mkdirSync(outDir, { recursive: true });
 
-  // /irene = a poesia mais recente, com sumário do lado
+  // raiz = a poesia mais recente, com o índice do lado
   writeFileSync(
     join(outDir, "index.html"),
-    poemPage(poems, 0, { canonicalRoot: true }),
+    poemPage(poems, 0, { canonicalRoot: true }, site),
   );
 
   writeFileSync(
@@ -361,9 +409,40 @@ export function generateIrene(contentDir: string, buildDir: string): number {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, "index.html"),
-      poemPage(poems, i, { canonicalRoot: false }),
+      poemPage(poems, i, { canonicalRoot: false }, site),
     );
   }
 
+  if (site.dominio) {
+    const urls = [
+      `${site.origin}/`,
+      ...poems.map((p) => `${site.origin}/${p.slug}`),
+    ];
+    writeFileSync(
+      join(outDir, "sitemap.xml"),
+      `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls
+        .map((u) => `  <url><loc>${u}</loc></url>`)
+        .join("\n")}\n</urlset>\n`,
+    );
+    writeFileSync(
+      join(outDir, "robots.txt"),
+      `User-agent: *\nAllow: /\nSitemap: ${site.origin}/sitemap.xml\n`,
+    );
+  }
+}
+
+export function generateIrene(contentDir: string, buildDir: string): number {
+  const poems: IrenePoem[] = getAllContent(join(contentDir, "irene"))
+    .filter((p) => p.slug && p.title && p.content)
+    .map((p) => ({
+      slug: p.slug,
+      title: p.title,
+      date: p.date,
+      content: p.content,
+    }));
+  if (poems.length === 0) return 0;
+  // getAllContent already sorts by date desc (newest first)
+
+  for (const site of SITES) buildSite(poems, buildDir, site);
   return poems.length;
 }
