@@ -9,7 +9,16 @@ export function extractPrivateToken(request: Request): string | null {
   }
 
   const custom = request.headers.get("x-mcp-auth");
-  return custom?.trim() || null;
+  if (custom?.trim()) return custom.trim();
+
+  // fallback para hosts MCP que só guardam uma URL (ex.: deco studio):
+  // https://.../mcp?token=<MCP_PRIVATE_TOKEN>
+  try {
+    const token = new URL(request.url).searchParams.get("token");
+    return token?.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 export function timingSafeEqual(left: string, right: string): boolean {

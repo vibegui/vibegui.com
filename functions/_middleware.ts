@@ -16,6 +16,8 @@
 
 interface Env {
   ASSETS: { fetch: (req: Request) => Promise<Response> };
+  /** override do endpoint do beacon (ex.: quando o worker migrar de conta) */
+  ANALYTICS_BEACON_URL?: string;
 }
 
 const SITES = [
@@ -27,11 +29,50 @@ const SITES = [
   },
 ];
 
-export const onRequest = async (context: {
+// Beacon de analytics first-party: o worker do Personal AI OS grava o evento
+// em D1 e expõe as tools SITES_OVERVIEW / SITE_METRICS no MCP privado.
+const BEACON = "https://vibegui-personal-ai-os.deco-ceo.workers.dev/e";
+
+interface Contexto {
   request: Request;
   env: Env;
   next: () => Promise<Response>;
-}): Promise<Response> => {
+  waitUntil: (p: Promise<unknown>) => void;
+}
+
+function registrarPageview(
+  context: Contexto,
+  site: string,
+  caminho: string,
+): void {
+  const { request } = context;
+  try {
+    context.waitUntil(
+      fetch(context.env.ANALYTICS_BEACON_URL || BEACON, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "pageview",
+          site,
+          path: caminho,
+          ref: request.headers.get("referer") || "",
+          country: request.headers.get("cf-ipcountry") || "",
+          ip: request.headers.get("cf-connecting-ip") || "",
+          ua: request.headers.get("user-agent") || "",
+        }),
+      }).catch(() => {}),
+    );
+  } catch {
+    // analytics nunca pode derrubar a página
+  }
+}
+
+/** Só GETs de página HTML contam como pageview (nada de .json/.gif/etc). */
+function ehPageview(request: Request, pathname: string): boolean {
+  return request.method === "GET" && !/\.[a-zA-Z0-9]+$/.test(pathname);
+}
+
+export const onRequest = async (context: Contexto): Promise<Response> => {
   const { request, env, next } = context;
   const url = new URL(request.url);
   // header Host permite testar com `wrangler pages dev` + curl -H "Host: ..."
@@ -65,6 +106,9 @@ export const onRequest = async (context: {
       if (!inicio.includes('lang="pt-BR"')) {
         return Response.redirect(`https://${host}/`, 302);
       }
+      if (ehPageview(request, url.pathname)) {
+        registrarPageview(context, host, url.pathname);
+      }
     }
     if (resposta.status === 404) {
       return Response.redirect(`https://${host}/`, 302);
@@ -89,5 +133,9 @@ export const onRequest = async (context: {
     }
   }
 
-  return next();
+  const resposta = await next();
+  if (resposta.ok && ehPageview(request, url.pathname)) {
+    registrarPageview(context, host, url.pathname);
+  }
+  return resposta;
 };

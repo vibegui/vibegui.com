@@ -1,61 +1,106 @@
 var __defProp = Object.defineProperty;
-var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
+var __name = (target, value) =>
+  __defProp(target, "name", { value, configurable: true });
 
 // .wrangler/tmp/pages-L2HfKU/functionsWorker-0.2318763072255534.mjs
 var __defProp2 = Object.defineProperty;
-var __name2 = /* @__PURE__ */ __name((target, value) => __defProp2(target, "name", { value, configurable: true }), "__name");
+var __name2 = /* @__PURE__ */ __name(
+  (target, value) => __defProp2(target, "name", { value, configurable: true }),
+  "__name",
+);
 var SITES = [
   { dominio: "poesiadairene.com", caminho: "/irene", build: "/_dominio-irene" },
   {
     dominio: "buscamalvados.com",
     caminho: "/malvados",
-    build: "/_dominio-malvados"
-  }
+    build: "/_dominio-malvados",
+  },
 ];
+var BEACON = "https://vibegui-personal-ai-os.deco-ceo.workers.dev/e";
+function registrarPageview(context, site, caminho) {
+  const { request } = context;
+  try {
+    context.waitUntil(
+      fetch(context.env.ANALYTICS_BEACON_URL || BEACON, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "pageview",
+          site,
+          path: caminho,
+          ref: request.headers.get("referer") || "",
+          country: request.headers.get("cf-ipcountry") || "",
+          ip: request.headers.get("cf-connecting-ip") || "",
+          ua: request.headers.get("user-agent") || "",
+        }),
+      }).catch(() => {}),
+    );
+  } catch {}
+}
+__name(registrarPageview, "registrarPageview");
+__name2(registrarPageview, "registrarPageview");
+function ehPageview(request, pathname) {
+  return request.method === "GET" && !/\.[a-zA-Z0-9]+$/.test(pathname);
+}
+__name(ehPageview, "ehPageview");
+__name2(ehPageview, "ehPageview");
 var onRequest = /* @__PURE__ */ __name2(async (context) => {
   const { request, env, next } = context;
   const url = new URL(request.url);
-  const rawHost = (request.headers.get("host") || url.hostname).toLowerCase().split(":")[0];
+  const rawHost = (request.headers.get("host") || url.hostname)
+    .toLowerCase()
+    .split(":")[0];
   const host = rawHost.replace(/^www\./, "");
   const site = SITES.find((s) => s.dominio === host);
   if (site) {
     if (rawHost.startsWith("www.")) {
       return Response.redirect(
         `https://${host}${url.pathname}${url.search}`,
-        301
+        301,
       );
     }
     const destino = new URL(url);
     destino.pathname = site.build + (url.pathname === "/" ? "/" : url.pathname);
     const ehPagina = !/\.[a-zA-Z0-9]+$/.test(destino.pathname);
     if (ehPagina && !destino.pathname.endsWith("/")) destino.pathname += "/";
-    const resposta = await env.ASSETS.fetch(
-      new Request(destino.toString(), request)
+    const resposta2 = await env.ASSETS.fetch(
+      new Request(destino.toString(), request),
     );
-    if (ehPagina && resposta.ok) {
-      const copia = resposta.clone();
+    if (ehPagina && resposta2.ok) {
+      const copia = resposta2.clone();
       const inicio = (await copia.text()).slice(0, 300);
       if (!inicio.includes('lang="pt-BR"')) {
         return Response.redirect(`https://${host}/`, 302);
       }
+      if (ehPageview(request, url.pathname)) {
+        registrarPageview(context, host, url.pathname);
+      }
     }
-    if (resposta.status === 404) {
+    if (resposta2.status === 404) {
       return Response.redirect(`https://${host}/`, 302);
     }
-    return resposta;
+    return resposta2;
   }
   if (host === "vibegui.com") {
     for (const s of SITES) {
-      if (url.pathname === s.caminho || url.pathname === `${s.caminho}/` || url.pathname.startsWith(`${s.caminho}/`)) {
+      if (
+        url.pathname === s.caminho ||
+        url.pathname === `${s.caminho}/` ||
+        url.pathname.startsWith(`${s.caminho}/`)
+      ) {
         const resto = url.pathname.slice(s.caminho.length) || "/";
         return Response.redirect(
           `https://${s.dominio}${resto}${url.search}`,
-          301
+          301,
         );
       }
     }
   }
-  return next();
+  const resposta = await next();
+  if (resposta.ok && ehPageview(request, url.pathname)) {
+    registrarPageview(context, host, url.pathname);
+  }
+  return resposta;
 }, "onRequest");
 var routes = [
   {
@@ -63,8 +108,8 @@ var routes = [
     mountPath: "/",
     method: "",
     middlewares: [onRequest],
-    modules: []
-  }
+    modules: [],
+  },
 ];
 function lexer(str) {
   var tokens = [];
@@ -94,9 +139,9 @@ function lexer(str) {
         var code = str.charCodeAt(j);
         if (
           // `0-9`
-          code >= 48 && code <= 57 || // `A-Z`
-          code >= 65 && code <= 90 || // `a-z`
-          code >= 97 && code <= 122 || // `_`
+          (code >= 48 && code <= 57) || // `A-Z`
+          (code >= 65 && code <= 90) || // `a-z`
+          (code >= 97 && code <= 122) || // `_`
           code === 95
         ) {
           name += str[j++];
@@ -131,7 +176,7 @@ function lexer(str) {
           count++;
           if (str[j + 1] !== "?") {
             throw new TypeError(
-              "Capturing groups are not allowed at ".concat(j)
+              "Capturing groups are not allowed at ".concat(j),
             );
           }
         }
@@ -155,51 +200,61 @@ function parse(str, options) {
     options = {};
   }
   var tokens = lexer(str);
-  var _a = options.prefixes, prefixes = _a === void 0 ? "./" : _a, _b = options.delimiter, delimiter = _b === void 0 ? "/#?" : _b;
+  var _a = options.prefixes,
+    prefixes = _a === void 0 ? "./" : _a,
+    _b = options.delimiter,
+    delimiter = _b === void 0 ? "/#?" : _b;
   var result = [];
   var key = 0;
   var i = 0;
   var path = "";
-  var tryConsume = /* @__PURE__ */ __name2(function(type) {
+  var tryConsume = /* @__PURE__ */ __name2(function (type) {
     if (i < tokens.length && tokens[i].type === type) return tokens[i++].value;
   }, "tryConsume");
-  var mustConsume = /* @__PURE__ */ __name2(function(type) {
+  var mustConsume = /* @__PURE__ */ __name2(function (type) {
     var value2 = tryConsume(type);
     if (value2 !== void 0) return value2;
-    var _a2 = tokens[i], nextType = _a2.type, index = _a2.index;
+    var _a2 = tokens[i],
+      nextType = _a2.type,
+      index = _a2.index;
     throw new TypeError(
-      "Unexpected ".concat(nextType, " at ").concat(index, ", expected ").concat(type)
+      "Unexpected "
+        .concat(nextType, " at ")
+        .concat(index, ", expected ")
+        .concat(type),
     );
   }, "mustConsume");
-  var consumeText = /* @__PURE__ */ __name2(function() {
+  var consumeText = /* @__PURE__ */ __name2(function () {
     var result2 = "";
     var value2;
-    while (value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR")) {
+    while ((value2 = tryConsume("CHAR") || tryConsume("ESCAPED_CHAR"))) {
       result2 += value2;
     }
     return result2;
   }, "consumeText");
-  var isSafe = /* @__PURE__ */ __name2(function(value2) {
+  var isSafe = /* @__PURE__ */ __name2(function (value2) {
     for (var _i = 0, delimiter_1 = delimiter; _i < delimiter_1.length; _i++) {
       var char2 = delimiter_1[_i];
       if (value2.indexOf(char2) > -1) return true;
     }
     return false;
   }, "isSafe");
-  var safePattern = /* @__PURE__ */ __name2(function(prefix2) {
+  var safePattern = /* @__PURE__ */ __name2(function (prefix2) {
     var prev = result[result.length - 1];
     var prevText = prefix2 || (prev && typeof prev === "string" ? prev : "");
     if (prev && !prevText) {
       throw new TypeError(
         'Must have text between two parameters, missing text after "'.concat(
           prev.name,
-          '"'
-        )
+          '"',
+        ),
       );
     }
     if (!prevText || isSafe(prevText))
       return "[^".concat(escapeString(delimiter), "]+?");
-    return "(?:(?!".concat(escapeString(prevText), ")[^").concat(escapeString(delimiter), "])+?");
+    return "(?:(?!"
+      .concat(escapeString(prevText), ")[^")
+      .concat(escapeString(delimiter), "])+?");
   }, "safePattern");
   while (i < tokens.length) {
     var char = tryConsume("CHAR");
@@ -220,7 +275,7 @@ function parse(str, options) {
         prefix,
         suffix: "",
         pattern: pattern || safePattern(prefix),
-        modifier: tryConsume("MODIFIER") || ""
+        modifier: tryConsume("MODIFIER") || "",
       });
       continue;
     }
@@ -245,7 +300,7 @@ function parse(str, options) {
         pattern: name_1 && !pattern_1 ? safePattern(prefix) : pattern_1,
         prefix,
         suffix,
-        modifier: tryConsume("MODIFIER") || ""
+        modifier: tryConsume("MODIFIER") || "",
       });
       continue;
     }
@@ -266,21 +321,28 @@ function regexpToFunction(re, keys, options) {
   if (options === void 0) {
     options = {};
   }
-  var _a = options.decode, decode = _a === void 0 ? function(x) {
-    return x;
-  } : _a;
-  return function(pathname) {
+  var _a = options.decode,
+    decode =
+      _a === void 0
+        ? function (x) {
+            return x;
+          }
+        : _a;
+  return function (pathname) {
     var m = re.exec(pathname);
     if (!m) return false;
-    var path = m[0], index = m.index;
+    var path = m[0],
+      index = m.index;
     var params = /* @__PURE__ */ Object.create(null);
-    var _loop_1 = /* @__PURE__ */ __name2(function(i2) {
+    var _loop_1 = /* @__PURE__ */ __name2(function (i2) {
       if (m[i2] === void 0) return "continue";
       var key = keys[i2 - 1];
       if (key.modifier === "*" || key.modifier === "+") {
-        params[key.name] = m[i2].split(key.prefix + key.suffix).map(function(value) {
-          return decode(value, key);
-        });
+        params[key.name] = m[i2]
+          .split(key.prefix + key.suffix)
+          .map(function (value) {
+            return decode(value, key);
+          });
       } else {
         params[key.name] = decode(m[i2], key);
       }
@@ -315,7 +377,7 @@ function regexpToRegexp(path, keys) {
       prefix: "",
       suffix: "",
       modifier: "",
-      pattern: ""
+      pattern: "",
     });
     execResult = groupsRegex.exec(path.source);
   }
@@ -324,7 +386,7 @@ function regexpToRegexp(path, keys) {
 __name(regexpToRegexp, "regexpToRegexp");
 __name2(regexpToRegexp, "regexpToRegexp");
 function arrayToRegexp(paths, keys, options) {
-  var parts = paths.map(function(path) {
+  var parts = paths.map(function (path) {
     return pathToRegexp(path, keys, options).source;
   });
   return new RegExp("(?:".concat(parts.join("|"), ")"), flags(options));
@@ -340,9 +402,23 @@ function tokensToRegexp(tokens, keys, options) {
   if (options === void 0) {
     options = {};
   }
-  var _a = options.strict, strict = _a === void 0 ? false : _a, _b = options.start, start = _b === void 0 ? true : _b, _c = options.end, end = _c === void 0 ? true : _c, _d = options.encode, encode = _d === void 0 ? function(x) {
-    return x;
-  } : _d, _e = options.delimiter, delimiter = _e === void 0 ? "/#?" : _e, _f = options.endsWith, endsWith = _f === void 0 ? "" : _f;
+  var _a = options.strict,
+    strict = _a === void 0 ? false : _a,
+    _b = options.start,
+    start = _b === void 0 ? true : _b,
+    _c = options.end,
+    end = _c === void 0 ? true : _c,
+    _d = options.encode,
+    encode =
+      _d === void 0
+        ? function (x) {
+            return x;
+          }
+        : _d,
+    _e = options.delimiter,
+    delimiter = _e === void 0 ? "/#?" : _e,
+    _f = options.endsWith,
+    endsWith = _f === void 0 ? "" : _f;
   var endsWithRe = "[".concat(escapeString(endsWith), "]|$");
   var delimiterRe = "[".concat(escapeString(delimiter), "]");
   var route = start ? "^" : "";
@@ -358,23 +434,37 @@ function tokensToRegexp(tokens, keys, options) {
         if (prefix || suffix) {
           if (token.modifier === "+" || token.modifier === "*") {
             var mod = token.modifier === "*" ? "?" : "";
-            route += "(?:".concat(prefix, "((?:").concat(token.pattern, ")(?:").concat(suffix).concat(prefix, "(?:").concat(token.pattern, "))*)").concat(suffix, ")").concat(mod);
+            route += "(?:"
+              .concat(prefix, "((?:")
+              .concat(token.pattern, ")(?:")
+              .concat(suffix)
+              .concat(prefix, "(?:")
+              .concat(token.pattern, "))*)")
+              .concat(suffix, ")")
+              .concat(mod);
           } else {
-            route += "(?:".concat(prefix, "(").concat(token.pattern, ")").concat(suffix, ")").concat(token.modifier);
+            route += "(?:"
+              .concat(prefix, "(")
+              .concat(token.pattern, ")")
+              .concat(suffix, ")")
+              .concat(token.modifier);
           }
         } else {
           if (token.modifier === "+" || token.modifier === "*") {
             throw new TypeError(
               'Can not repeat "'.concat(
                 token.name,
-                '" without a prefix and suffix'
-              )
+                '" without a prefix and suffix',
+              ),
             );
           }
           route += "(".concat(token.pattern, ")").concat(token.modifier);
         }
       } else {
-        route += "(?:".concat(prefix).concat(suffix, ")").concat(token.modifier);
+        route += "(?:"
+          .concat(prefix)
+          .concat(suffix, ")")
+          .concat(token.modifier);
       }
     }
   }
@@ -383,7 +473,10 @@ function tokensToRegexp(tokens, keys, options) {
     route += !options.endsWith ? "$" : "(?=".concat(endsWithRe, ")");
   } else {
     var endToken = tokens[tokens.length - 1];
-    var isEndDelimited = typeof endToken === "string" ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1 : endToken === void 0;
+    var isEndDelimited =
+      typeof endToken === "string"
+        ? delimiterRe.indexOf(endToken[endToken.length - 1]) > -1
+        : endToken === void 0;
     if (!strict) {
       route += "(?:".concat(delimiterRe, "(?=").concat(endsWithRe, "))?");
     }
@@ -410,10 +503,10 @@ function* executeRequest(request) {
       continue;
     }
     const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const matchResult = routeMatcher(requestPath);
     const mountMatchResult = mountMatcher(requestPath);
@@ -422,7 +515,7 @@ function* executeRequest(request) {
         yield {
           handler,
           params: matchResult.params,
-          path: mountMatchResult.path
+          path: mountMatchResult.path,
         };
       }
     }
@@ -432,10 +525,10 @@ function* executeRequest(request) {
       continue;
     }
     const routeMatcher = match(route.routePath.replace(escapeRegex, "\\$&"), {
-      end: true
+      end: true,
     });
     const mountMatcher = match(route.mountPath.replace(escapeRegex, "\\$&"), {
-      end: false
+      end: false,
     });
     const matchResult = routeMatcher(requestPath);
     const mountMatchResult = mountMatcher(requestPath);
@@ -444,7 +537,7 @@ function* executeRequest(request) {
         yield {
           handler,
           params: matchResult.params,
-          path: matchResult.path
+          path: matchResult.path,
         };
       }
       break;
@@ -488,7 +581,7 @@ var pages_template_worker_default = {
           waitUntil: workerContext.waitUntil.bind(workerContext),
           passThroughOnException: /* @__PURE__ */ __name2(() => {
             isFailOpen = true;
-          }, "passThroughOnException")
+          }, "passThroughOnException"),
         };
         const response = await handler(context);
         if (!(response instanceof Response)) {
@@ -512,17 +605,16 @@ var pages_template_worker_default = {
       }
       throw error;
     }
-  }
+  },
 };
 var cloneResponse = /* @__PURE__ */ __name2(
-  (response) => (
+  (response) =>
     // https://fetch.spec.whatwg.org/#null-body-status
     new Response(
       [101, 204, 205, 304].includes(response.status) ? null : response.body,
-      response
-    )
-  ),
-  "cloneResponse"
+      response,
+    ),
+  "cloneResponse",
 );
 var drainBody = /* @__PURE__ */ __name2(
   async (request, env, _ctx, middlewareCtx) => {
@@ -532,15 +624,14 @@ var drainBody = /* @__PURE__ */ __name2(
       try {
         if (request.body !== null && !request.bodyUsed) {
           const reader = request.body.getReader();
-          while (!(await reader.read()).done) {
-          }
+          while (!(await reader.read()).done) {}
         }
       } catch (e) {
         console.error("Failed to drain the unused request body.", e);
       }
     }
   },
-  "drainBody"
+  "drainBody",
 );
 var middleware_ensure_req_body_drained_default = drainBody;
 function reduceError(e) {
@@ -548,7 +639,7 @@ function reduceError(e) {
     name: e?.name,
     message: e?.message ?? String(e),
     stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause)
+    cause: e?.cause === void 0 ? void 0 : reduceError(e.cause),
   };
 }
 __name(reduceError, "reduceError");
@@ -561,16 +652,16 @@ var jsonError = /* @__PURE__ */ __name2(
       const error = reduceError(e);
       return Response.json(error, {
         status: 500,
-        headers: { "MF-Experimental-Error-Stack": "true" }
+        headers: { "MF-Experimental-Error-Stack": "true" },
       });
     }
   },
-  "jsonError"
+  "jsonError",
 );
 var middleware_miniflare3_json_error_default = jsonError;
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
-  middleware_miniflare3_json_error_default
+  middleware_miniflare3_json_error_default,
 ];
 var middleware_insertion_facade_default = pages_template_worker_default;
 var __facade_middleware__ = [];
@@ -585,7 +676,7 @@ function __facade_invokeChain__(request, env, ctx, dispatch, middlewareChain) {
     dispatch,
     next(newRequest, newEnv) {
       return __facade_invokeChain__(newRequest, newEnv, ctx, dispatch, tail);
-    }
+    },
   };
   return head(request, env, ctx, middlewareCtx);
 }
@@ -594,7 +685,7 @@ __name2(__facade_invokeChain__, "__facade_invokeChain__");
 function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
   return __facade_invokeChain__(request, env, ctx, dispatch, [
     ...__facade_middleware__,
-    finalMiddleware
+    finalMiddleware,
   ]);
 }
 __name(__facade_invoke__, "__facade_invoke__");
@@ -620,13 +711,16 @@ var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   }
 };
 function wrapExportedHandler(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
+  ) {
     return worker;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
     __facade_register__(middleware);
   }
-  const fetchDispatcher = /* @__PURE__ */ __name2(function(request, env, ctx) {
+  const fetchDispatcher = /* @__PURE__ */ __name2(function (request, env, ctx) {
     if (worker.fetch === void 0) {
       throw new Error("Handler does not export a fetch() function.");
     }
@@ -635,25 +729,27 @@ function wrapExportedHandler(worker) {
   return {
     ...worker,
     fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name2(function(type, init) {
+      const dispatcher = /* @__PURE__ */ __name2(function (type, init) {
         if (type === "scheduled" && worker.scheduled !== void 0) {
           const controller = new __Facade_ScheduledController__(
             Date.now(),
             init.cron ?? "",
-            () => {
-            }
+            () => {},
           );
           return worker.scheduled(controller, env, ctx);
         }
       }, "dispatcher");
       return __facade_invoke__(request, env, ctx, dispatcher, fetchDispatcher);
-    }
+    },
   };
 }
 __name(wrapExportedHandler, "wrapExportedHandler");
 __name2(wrapExportedHandler, "wrapExportedHandler");
 function wrapWorkerEntrypoint(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__ === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__.length === 0
+  ) {
     return klass;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__) {
@@ -673,8 +769,7 @@ function wrapWorkerEntrypoint(klass) {
         const controller = new __Facade_ScheduledController__(
           Date.now(),
           init.cron ?? "",
-          () => {
-          }
+          () => {},
         );
         return super.scheduled(controller);
       }
@@ -685,7 +780,7 @@ function wrapWorkerEntrypoint(klass) {
         this.env,
         this.ctx,
         this.#dispatcher,
-        this.#fetchDispatcher
+        this.#fetchDispatcher,
       );
     }
   };
@@ -733,18 +828,17 @@ __name(transformRoutingRuleToRegExp, "transformRoutingRuleToRegExp");
 // .wrangler/tmp/pages-L2HfKU/hes1i8sphqo.js
 var define_ROUTES_default = {
   version: 1,
-  description: "Routes the domain middleware (functions/_middleware.ts). Heavy static paths are excluded so they never invoke the function \u2014 including the strip images, which are canonical shared assets on every host.",
+  description:
+    "Routes the domain middleware (functions/_middleware.ts), which also records first-party pageviews. Only non-page static paths are excluded (article/context pages stay included so their views are counted).",
   include: ["/*"],
   exclude: [
     "/assets/*",
     "/images/*",
     "/fonts/*",
-    "/article/*",
-    "/context/*",
     "/content/*",
     "/bookmarks/*",
-    "/malvados/tirinhas/*"
-  ]
+    "/malvados/tirinhas/*",
+  ],
 };
 var routes2 = define_ROUTES_default;
 var pages_dev_pipeline_default = {
@@ -765,25 +859,27 @@ var pages_dev_pipeline_default = {
       }
     }
     return env.ASSETS.fetch(request);
-  }
+  },
 };
 
 // ../../../../../.bun/install/global/node_modules/wrangler/templates/middleware/middleware-ensure-req-body-drained.ts
-var drainBody2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } finally {
+var drainBody2 = /* @__PURE__ */ __name(
+  async (request, env, _ctx, middlewareCtx) => {
     try {
-      if (request.body !== null && !request.bodyUsed) {
-        const reader = request.body.getReader();
-        while (!(await reader.read()).done) {
+      return await middlewareCtx.next(request, env);
+    } finally {
+      try {
+        if (request.body !== null && !request.bodyUsed) {
+          const reader = request.body.getReader();
+          while (!(await reader.read()).done) {}
         }
+      } catch (e) {
+        console.error("Failed to drain the unused request body.", e);
       }
-    } catch (e) {
-      console.error("Failed to drain the unused request body.", e);
     }
-  }
-}, "drainBody");
+  },
+  "drainBody",
+);
 var middleware_ensure_req_body_drained_default2 = drainBody2;
 
 // ../../../../../.bun/install/global/node_modules/wrangler/templates/middleware/middleware-miniflare3-json-error.ts
@@ -792,27 +888,30 @@ function reduceError2(e) {
     name: e?.name,
     message: e?.message ?? String(e),
     stack: e?.stack,
-    cause: e?.cause === void 0 ? void 0 : reduceError2(e.cause)
+    cause: e?.cause === void 0 ? void 0 : reduceError2(e.cause),
   };
 }
 __name(reduceError2, "reduceError");
-var jsonError2 = /* @__PURE__ */ __name(async (request, env, _ctx, middlewareCtx) => {
-  try {
-    return await middlewareCtx.next(request, env);
-  } catch (e) {
-    const error = reduceError2(e);
-    return Response.json(error, {
-      status: 500,
-      headers: { "MF-Experimental-Error-Stack": "true" }
-    });
-  }
-}, "jsonError");
+var jsonError2 = /* @__PURE__ */ __name(
+  async (request, env, _ctx, middlewareCtx) => {
+    try {
+      return await middlewareCtx.next(request, env);
+    } catch (e) {
+      const error = reduceError2(e);
+      return Response.json(error, {
+        status: 500,
+        headers: { "MF-Experimental-Error-Stack": "true" },
+      });
+    }
+  },
+  "jsonError",
+);
 var middleware_miniflare3_json_error_default2 = jsonError2;
 
 // .wrangler/tmp/bundle-xpuV5v/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__2 = [
   middleware_ensure_req_body_drained_default2,
-  middleware_miniflare3_json_error_default2
+  middleware_miniflare3_json_error_default2,
 ];
 var middleware_insertion_facade_default2 = pages_dev_pipeline_default;
 
@@ -828,7 +927,7 @@ function __facade_invokeChain__2(request, env, ctx, dispatch, middlewareChain) {
     dispatch,
     next(newRequest, newEnv) {
       return __facade_invokeChain__2(newRequest, newEnv, ctx, dispatch, tail);
-    }
+    },
   };
   return head(request, env, ctx, middlewareCtx);
 }
@@ -836,7 +935,7 @@ __name(__facade_invokeChain__2, "__facade_invokeChain__");
 function __facade_invoke__2(request, env, ctx, dispatch, finalMiddleware) {
   return __facade_invokeChain__2(request, env, ctx, dispatch, [
     ...__facade_middleware__2,
-    finalMiddleware
+    finalMiddleware,
   ]);
 }
 __name(__facade_invoke__2, "__facade_invoke__");
@@ -860,13 +959,16 @@ var __Facade_ScheduledController__2 = class ___Facade_ScheduledController__2 {
   }
 };
 function wrapExportedHandler2(worker) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0
+  ) {
     return worker;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
     __facade_register__2(middleware);
   }
-  const fetchDispatcher = /* @__PURE__ */ __name(function(request, env, ctx) {
+  const fetchDispatcher = /* @__PURE__ */ __name(function (request, env, ctx) {
     if (worker.fetch === void 0) {
       throw new Error("Handler does not export a fetch() function.");
     }
@@ -875,24 +977,26 @@ function wrapExportedHandler2(worker) {
   return {
     ...worker,
     fetch(request, env, ctx) {
-      const dispatcher = /* @__PURE__ */ __name(function(type, init) {
+      const dispatcher = /* @__PURE__ */ __name(function (type, init) {
         if (type === "scheduled" && worker.scheduled !== void 0) {
           const controller = new __Facade_ScheduledController__2(
             Date.now(),
             init.cron ?? "",
-            () => {
-            }
+            () => {},
           );
           return worker.scheduled(controller, env, ctx);
         }
       }, "dispatcher");
       return __facade_invoke__2(request, env, ctx, dispatcher, fetchDispatcher);
-    }
+    },
   };
 }
 __name(wrapExportedHandler2, "wrapExportedHandler");
 function wrapWorkerEntrypoint2(klass) {
-  if (__INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 || __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0) {
+  if (
+    __INTERNAL_WRANGLER_MIDDLEWARE__2 === void 0 ||
+    __INTERNAL_WRANGLER_MIDDLEWARE__2.length === 0
+  ) {
     return klass;
   }
   for (const middleware of __INTERNAL_WRANGLER_MIDDLEWARE__2) {
@@ -912,8 +1016,7 @@ function wrapWorkerEntrypoint2(klass) {
         const controller = new __Facade_ScheduledController__2(
           Date.now(),
           init.cron ?? "",
-          () => {
-          }
+          () => {},
         );
         return super.scheduled(controller);
       }
@@ -924,7 +1027,7 @@ function wrapWorkerEntrypoint2(klass) {
         this.env,
         this.ctx,
         this.#dispatcher,
-        this.#fetchDispatcher
+        this.#fetchDispatcher,
       );
     }
   };
@@ -939,6 +1042,6 @@ if (typeof middleware_insertion_facade_default2 === "object") {
 var middleware_loader_entry_default2 = WRAPPED_ENTRY2;
 export {
   __INTERNAL_WRANGLER_MIDDLEWARE__2 as __INTERNAL_WRANGLER_MIDDLEWARE__,
-  middleware_loader_entry_default2 as default
+  middleware_loader_entry_default2 as default,
 };
 //# sourceMappingURL=hes1i8sphqo.js.map

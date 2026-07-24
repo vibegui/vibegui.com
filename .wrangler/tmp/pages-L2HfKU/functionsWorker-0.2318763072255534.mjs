@@ -11,6 +11,32 @@ var SITES = [
     build: "/_dominio-malvados",
   },
 ];
+var BEACON = "https://vibegui-personal-ai-os.deco-ceo.workers.dev/e";
+function registrarPageview(context, site, caminho) {
+  const { request } = context;
+  try {
+    context.waitUntil(
+      fetch(context.env.ANALYTICS_BEACON_URL || BEACON, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "pageview",
+          site,
+          path: caminho,
+          ref: request.headers.get("referer") || "",
+          country: request.headers.get("cf-ipcountry") || "",
+          ip: request.headers.get("cf-connecting-ip") || "",
+          ua: request.headers.get("user-agent") || "",
+        }),
+      }).catch(() => {}),
+    );
+  } catch {}
+}
+__name(registrarPageview, "registrarPageview");
+function ehPageview(request, pathname) {
+  return request.method === "GET" && !/\.[a-zA-Z0-9]+$/.test(pathname);
+}
+__name(ehPageview, "ehPageview");
 var onRequest = /* @__PURE__ */ __name(async (context) => {
   const { request, env, next } = context;
   const url = new URL(request.url);
@@ -30,20 +56,23 @@ var onRequest = /* @__PURE__ */ __name(async (context) => {
     destino.pathname = site.build + (url.pathname === "/" ? "/" : url.pathname);
     const ehPagina = !/\.[a-zA-Z0-9]+$/.test(destino.pathname);
     if (ehPagina && !destino.pathname.endsWith("/")) destino.pathname += "/";
-    const resposta = await env.ASSETS.fetch(
+    const resposta2 = await env.ASSETS.fetch(
       new Request(destino.toString(), request),
     );
-    if (ehPagina && resposta.ok) {
-      const copia = resposta.clone();
+    if (ehPagina && resposta2.ok) {
+      const copia = resposta2.clone();
       const inicio = (await copia.text()).slice(0, 300);
       if (!inicio.includes('lang="pt-BR"')) {
         return Response.redirect(`https://${host}/`, 302);
       }
+      if (ehPageview(request, url.pathname)) {
+        registrarPageview(context, host, url.pathname);
+      }
     }
-    if (resposta.status === 404) {
+    if (resposta2.status === 404) {
       return Response.redirect(`https://${host}/`, 302);
     }
-    return resposta;
+    return resposta2;
   }
   if (host === "vibegui.com") {
     for (const s of SITES) {
@@ -60,7 +89,11 @@ var onRequest = /* @__PURE__ */ __name(async (context) => {
       }
     }
   }
-  return next();
+  const resposta = await next();
+  if (resposta.ok && ehPageview(request, url.pathname)) {
+    registrarPageview(context, host, url.pathname);
+  }
+  return resposta;
 }, "onRequest");
 
 // ../.wrangler/tmp/pages-L2HfKU/functionsRoutes-0.8793803466039094.mjs
@@ -617,7 +650,7 @@ var jsonError = /* @__PURE__ */ __name(
 );
 var middleware_miniflare3_json_error_default = jsonError;
 
-// ../.wrangler/tmp/bundle-PQkSxu/middleware-insertion-facade.js
+// ../.wrangler/tmp/bundle-R2QtTW/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default,
@@ -649,7 +682,7 @@ function __facade_invoke__(request, env, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// ../.wrangler/tmp/bundle-PQkSxu/middleware-loader.entry.ts
+// ../.wrangler/tmp/bundle-R2QtTW/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;
