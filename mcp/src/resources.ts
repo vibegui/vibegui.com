@@ -1,6 +1,6 @@
 import bundledHtml from "../dist/web/index.html";
 import type { AccessLevel } from "./env.ts";
-import { PERSONAL_AI_OS_RESOURCE } from "./tools.ts";
+import { ANALYTICS_RESOURCE, PERSONAL_AI_OS_RESOURCE } from "./tools.ts";
 
 export const MCP_APP_MIME = "text/html;profile=mcp-app";
 
@@ -19,6 +19,13 @@ const resources: ResourceDefinition[] = [
       "Private project map, goals, memory, daily brief, attention evidence, and inbox.",
     access: "private",
   },
+  {
+    uri: ANALYTICS_RESOURCE,
+    name: "Site Analytics",
+    description:
+      "Pageviews and unique visitors for vibegui.com, poesiadairene.com and buscamalvados.com — opens straight on the Analytics tab.",
+    access: "private",
+  },
 ];
 
 export function resourcesForAccess(access: AccessLevel): ResourceDefinition[] {
@@ -35,8 +42,13 @@ export function readResource(
     (candidate) => candidate.uri === uri,
   );
   if (!resource) return null;
+  const html = bundledHtml as unknown as string;
   return {
     resource,
-    body: bundledHtml as unknown as string,
+    // the same single-file app, told which view to boot into
+    body:
+      uri === ANALYTICS_RESOURCE
+        ? `${html}<script>window.__BOOT_TOOL__="SITES_OVERVIEW";</script>`
+        : html,
   };
 }

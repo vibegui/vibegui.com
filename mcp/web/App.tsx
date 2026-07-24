@@ -20,8 +20,9 @@ export function App() {
   useEffect(() => {
     if (!connected || initialized.current) return;
     initialized.current = true;
-    void callTool("GET_DECLARATION");
-  }, [callTool, connected]);
+    const bootFlag = (window as { __BOOT_TOOL__?: string }).__BOOT_TOOL__;
+    void callTool(bootFlag ?? toolName ?? "GET_DECLARATION");
+  }, [callTool, connected, toolName]);
 
   return (
     <main className="shell">
