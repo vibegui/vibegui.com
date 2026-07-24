@@ -5,6 +5,7 @@ type JsonRecord = Record<string, unknown>;
 
 const NAV_ITEMS = [
   { label: "Declaration", tool: "GET_DECLARATION" },
+  { label: "Analytics", tool: "SITES_OVERVIEW" },
   { label: "Projects", tool: "GET_PORTFOLIO" },
   { label: "Goals", tool: "LIST_GOALS" },
   { label: "Inbox", tool: "GET_INBOX" },
@@ -68,6 +69,9 @@ function ResultView({
   result: JsonRecord;
   callTool: <T>(name: string, args?: Record<string, unknown>) => Promise<T>;
 }) {
+  if (toolName === "SITES_OVERVIEW" || Array.isArray(result.sites)) {
+    return <AnalyticsView result={result} callTool={callTool} />;
+  }
   if (toolName === "GET_PORTFOLIO" || Array.isArray(result.projects)) {
     return (
       <PortfolioView
@@ -373,6 +377,92 @@ function WorkItemsView({ items }: { items: JsonRecord[] }) {
           </span>
         </a>
       ))}
+    </div>
+  );
+}
+
+function AnalyticsView({
+  result,
+  callTool,
+}: {
+  result: JsonRecord;
+  callTool: (name: string, args?: Record<string, unknown>) => Promise<unknown>;
+}) {
+  const days = number(result.days) || 7;
+  const sites = asRecords(result.sites);
+  const topPages = asRecords(result.topPages);
+  const topReferrers = asRecords(result.topReferrers);
+
+  return (
+    <div className="analytics">
+      <div className="analytics-head">
+        <h2>Sites</h2>
+        <div className="analytics-range">
+          {[7, 30, 90].map((option) => (
+            <button
+              type="button"
+              key={option}
+              className={days === option ? "active" : ""}
+              onClick={() => void callTool("SITES_OVERVIEW", { days: option })}
+            >
+              {option}d
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {sites.length === 0 && (
+        <p className="empty">Nenhum pageview registrado na janela.</p>
+      )}
+
+      <div className="analytics-sites">
+        {sites.map((site) => (
+          <article className="analytics-site" key={text(site.site)}>
+            <h3>{text(site.site)}</h3>
+            <div className="analytics-numbers">
+              <div>
+                <strong>{number(site.pageviews).toLocaleString()}</strong>
+                <span>pageviews</span>
+              </div>
+              <div>
+                <strong>{number(site.visitors).toLocaleString()}</strong>
+                <span>visitantes</span>
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      {topPages.length > 0 && (
+        <section className="analytics-list">
+          <h3>Top páginas</h3>
+          <ul>
+            {topPages.slice(0, 15).map((page, index) => (
+              <li key={`${text(page.site)}${text(page.path)}-${index}`}>
+                <span className="analytics-path">
+                  <em>{text(page.site)}</em>
+                  {text(page.path)}
+                </span>
+                <strong>{number(page.pageviews).toLocaleString()}</strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {topReferrers.length > 0 && (
+        <section className="analytics-list">
+          <h3>Referrers</h3>
+          <ul>
+            {topReferrers.slice(0, 10).map((referrer, index) => (
+              <li key={`${text(referrer.ref)}-${index}`}>
+                <span className="analytics-path">{text(referrer.ref)}</span>
+                <strong>{number(referrer.pageviews).toLocaleString()}</strong>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

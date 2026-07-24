@@ -34,7 +34,7 @@ import {
   updateGoal,
 } from "./state.ts";
 
-export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v8";
+export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v9";
 
 export interface ToolDefinition {
   name: string;
@@ -67,6 +67,7 @@ export const tools: ToolDefinition[] = [
         description: "Janela em dias (1–90, padrão 7)",
       },
     }),
+    _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
     execute: async (env, input) =>
       sitesOverview(env, optionalNumber(input, "days") ?? 7),
   },
