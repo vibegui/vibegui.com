@@ -19,6 +19,8 @@ import {
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getAllContent, type Article } from "../lib/articles-reader.ts";
+import { generateIrene } from "./generate-irene.ts";
+import { generateMalvados } from "./generate-malvados.ts";
 
 const startTime = performance.now();
 
@@ -304,6 +306,11 @@ function processContextDir(srcDir: string, basePath = ""): number {
 
 const contextCount = processContextDir(CONTEXT_SRC_DIR);
 
+// Standalone static mini-sites (self-contained HTML, no SPA hydration)
+const CONTENT_SRC_DIR = join(PROJECT_ROOT, "content");
+const ireneCount = generateIrene(CONTENT_SRC_DIR, BUILD_DIR);
+const malvadosCount = generateMalvados(CONTENT_SRC_DIR, BUILD_DIR);
+
 const draftCount = allArticles.filter((c) => c.status === "draft").length;
 const publishedCount = allArticles.filter(
   (c) => c.status === "published",
@@ -314,5 +321,6 @@ const exportInfo = isProduction
 
 const elapsed = (performance.now() - startTime).toFixed(0);
 console.log(
-  `📚 Built: ${exportInfo}, ${contextCount} context pages (${elapsed}ms)`,
+  `📚 Built: ${exportInfo}, ${contextCount} context pages, ` +
+    `${ireneCount} poesias (/irene), ${malvadosCount} tirinhas (/malvados) (${elapsed}ms)`,
 );

@@ -1,3 +1,4 @@
+import { metricsQuery, sitesOverview, type MetricsGroup } from "./analytics.ts";
 import type { AccessLevel, Env } from "./env.ts";
 import { refreshGitHub } from "./github.ts";
 import {
@@ -55,6 +56,59 @@ const objectSchema = (
 });
 
 export const tools: ToolDefinition[] = [
+  {
+    name: "SITES_OVERVIEW",
+    description:
+      "Resumo de analytics dos três sites (vibegui.com, poesiadairene.com, buscamalvados.com): pageviews e visitantes únicos por site, top páginas e top referrers na janela pedida. Fonte: eventos first-party gravados pelo middleware do Pages.",
+    access: "private",
+    inputSchema: objectSchema({
+      days: {
+        type: "number",
+        description: "Janela em dias (1–90, padrão 7)",
+      },
+    }),
+    execute: async (env, input) =>
+      sitesOverview(env, optionalNumber(input, "days") ?? 7),
+  },
+  {
+    name: "SITE_METRICS",
+    description:
+      "Consulta flexível dos eventos de analytics: agrupa por day, site, path, country, ref ou name, com filtros opcionais de site e nome do evento. Retorna events, value e visitantes únicos por grupo.",
+    access: "private",
+    inputSchema: objectSchema({
+      days: { type: "number", description: "Janela em dias (1–90, padrão 7)" },
+      group_by: {
+        type: "string",
+        enum: ["day", "site", "path", "country", "ref", "name"],
+        description: "Dimensão de agrupamento (padrão: day)",
+      },
+      site: {
+        type: "string",
+        description:
+          "Filtrar por site (vibegui.com | poesiadairene.com | buscamalvados.com)",
+      },
+      name: {
+        type: "string",
+        description: "Filtrar por nome do evento (ex.: pageview)",
+      },
+      limit: { type: "number", description: "Máximo de linhas (padrão 20)" },
+    }),
+    execute: async (env, input) =>
+      metricsQuery(env, {
+        days: optionalNumber(input, "days"),
+        groupBy: optionalEnum(input, "group_by", [
+          "day",
+          "site",
+          "path",
+          "country",
+          "ref",
+          "name",
+        ] as const) as MetricsGroup | undefined,
+        site: optionalString(input, "site"),
+        name: optionalString(input, "name"),
+        limit: optionalNumber(input, "limit"),
+      }),
+  },
   {
     name: "LIST_PUBLIC_WRITING",
     description:

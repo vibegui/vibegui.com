@@ -1,7 +1,7 @@
 import { defineConfig, type Connect, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { resolve } from "node:path";
+import { resolve, join } from "node:path";
 import { watch, existsSync, readFileSync } from "node:fs";
 import { exec } from "node:child_process";
 
@@ -757,6 +757,26 @@ function ssgDevPlugin() {
           next: Connect.NextFunction,
         ) => {
           const url = req.url || "";
+
+          // Standalone static mini-sites (/irene, /malvados): serve the
+          // complete HTML/JSON from .build/ verbatim (no SPA injection).
+          const staticSite = url.match(/^\/(irene|malvados)(\/[^?]*)?(\?.*)?$/);
+          if (staticSite) {
+            const rest = (staticSite[2] || "").replace(/\/$/, "");
+            const base = resolve(__dirname, ".build", staticSite[1] + rest);
+            const filePath = rest.endsWith(".json")
+              ? base
+              : join(base, "index.html");
+            if (existsSync(filePath)) {
+              res.setHeader(
+                "Content-Type",
+                filePath.endsWith(".json") ? "application/json" : "text/html",
+              );
+              res.end(readFileSync(filePath));
+              return;
+            }
+            return next(); // e.g. /malvados/tirinhas/*.gif → Vite public/
+          }
 
           // Determine route type
           let buildDir: string;
