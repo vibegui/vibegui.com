@@ -19,7 +19,7 @@ A bearer token proves possession, not Studio identity. Store the token only in t
 
 The private agent is read-only toward GitHub and project repositories. It writes only to its own state:
 
-- projects and investment modes
+- projects with a draft, active, or archived lifecycle
 - portfolio and project goals
 - source-backed, correctable memory
 - immutable decisions
@@ -75,13 +75,14 @@ Never commit `.dev.vars`.
 
 ## Initial private tools
 
-- `GET_PORTFOLIO`, `SAVE_PROJECT`, `GET_PROJECT`
+- `GET_PORTFOLIO`, `SAVE_PROJECT`, `GET_PROJECT`, `SET_PROJECT_PROGRESS`
 - `GET_ATTENTION_MAP`, `GET_STALE_PROJECTS`, `REFRESH_GITHUB`
 - `LIST_GOALS`, `CREATE_GOAL`, `UPDATE_GOAL`, `COMPLETE_GOAL`
 - `RECALL_MEMORY`, `REMEMBER`, `SUPERSEDE_MEMORY`, `FORGET_MEMORY`
 - `LIST_DECISIONS`, `RECORD_DECISION`
 - `CAPTURE`, `GET_INBOX`
 - `GET_DAILY_BRIEF_INPUT`, `SAVE_DAILY_BRIEF`, `GET_DAILY_BRIEF`
+- `GET_DECLARATION`, `SET_STRATEGIC_RESULT_PROGRESS`, `UPDATE_SCORECARD_ITEM`
 - `GET_STATUS`
 - `GET_CORPUS_STATUS`
 

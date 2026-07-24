@@ -65,7 +65,7 @@ export async function refreshGitHub(
 }> {
   if (!env.GITHUB_TOKEN) {
     throw new Error(
-      "GITHUB_TOKEN is not configured. Set a fine-grained read-only token as a Worker secret.",
+      "GITHUB_TOKEN is not configured. Set the GitHub token as a Worker secret.",
     );
   }
 
@@ -78,8 +78,8 @@ export async function refreshGitHub(
         .all<ProjectRepo>()
     : await env.DB.prepare(
         `SELECT id, name, repository FROM projects
-         WHERE repository IS NOT NULL AND status = 'active'
-         ORDER BY investment_mode, name
+         WHERE repository IS NOT NULL AND lifecycle != 'archived'
+         ORDER BY CASE lifecycle WHEN 'active' THEN 0 ELSE 1 END, name
          LIMIT 25`,
       ).all<ProjectRepo>();
 

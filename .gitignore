@@ -64,3 +64,4 @@ supabase/.temp/
 mcp/.dev.vars
 mcp/.wrangler/
 mcp/dist/
+.claude/worktrees/

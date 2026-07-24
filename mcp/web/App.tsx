@@ -1,12 +1,12 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMcp } from "./mcp";
 
 type JsonRecord = Record<string, unknown>;
 
 const NAV_ITEMS = [
+  { label: "Declaration", tool: "GET_DECLARATION" },
   { label: "Projects", tool: "GET_PORTFOLIO" },
   { label: "Goals", tool: "LIST_GOALS" },
-  { label: "Daily brief", tool: "GET_DAILY_BRIEF" },
   { label: "Inbox", tool: "GET_INBOX" },
   { label: "Memory", tool: "RECALL_MEMORY" },
 ] as const;
@@ -15,53 +15,21 @@ export function App() {
   const { connected, loading, toolName, toolResult, error, callTool } =
     useMcp();
   const initialized = useRef(false);
-  const [captureText, setCaptureText] = useState("");
-  const [capturing, setCapturing] = useState(false);
 
   useEffect(() => {
-    if (!connected || toolResult || initialized.current) return;
+    if (!connected || initialized.current) return;
     initialized.current = true;
-    void callTool("GET_PORTFOLIO");
-  }, [callTool, connected, toolResult]);
-
-  async function submitCapture(event: FormEvent) {
-    event.preventDefault();
-    const content = captureText.trim();
-    if (!content || capturing) return;
-
-    setCapturing(true);
-    try {
-      await callTool("CAPTURE", { content, kind: "idea" });
-      setCaptureText("");
-      await callTool("GET_INBOX");
-    } finally {
-      setCapturing(false);
-    }
-  }
+    void callTool("GET_DECLARATION");
+  }, [callTool, connected]);
 
   return (
     <main className="shell">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">VibeGui</p>
-          <h1>Personal AI OS</h1>
-        </div>
+        <p className="os-label">VibeGui OS</p>
         <span className={`connection ${connected ? "online" : ""}`}>
           {connected ? "Private Studio" : "Connecting"}
         </span>
       </header>
-
-      <form className="capture" onSubmit={submitCapture}>
-        <input
-          aria-label="Capture an idea"
-          value={captureText}
-          onChange={(event) => setCaptureText(event.target.value)}
-          placeholder="Capture something before it disappears…"
-        />
-        <button type="submit" disabled={!captureText.trim() || capturing}>
-          {capturing ? "Saving" : "Capture"}
-        </button>
-      </form>
 
       <nav className="nav" aria-label="Personal AI OS views">
         {NAV_ITEMS.map((item) => (
@@ -105,6 +73,15 @@ function ResultView({
       <PortfolioView
         result={result}
         openProject={(id) => void callTool("GET_PROJECT", { id })}
+        prepareBrief={() => void callTool("GET_DAILY_BRIEF_INPUT")}
+      />
+    );
+  }
+  if ("project" in result) {
+    return (
+      <ProjectView
+        result={result}
+        back={() => void callTool("GET_PORTFOLIO")}
       />
     );
   }
@@ -128,11 +105,13 @@ function ResultView({
   if (toolName === "GET_DAILY_BRIEF_INPUT") {
     return <BriefInputView result={result} />;
   }
-  if ("project" in result) {
+  if (toolName === "GET_DECLARATION" || "markdown" in result) {
     return (
-      <ProjectView
-        result={result}
-        back={() => void callTool("GET_PORTFOLIO")}
+      <DeclarationView
+        markdown={text(result.markdown)}
+        source={text(result.source)}
+        strategicResults={asRecords(result.strategic_results)}
+        scorecard={asRecords(result.scorecard)}
       />
     );
   }
@@ -145,23 +124,18 @@ function ResultView({
 function PortfolioView({
   result,
   openProject,
+  prepareBrief,
 }: {
   result: JsonRecord;
   openProject: (id: string) => void;
+  prepareBrief: () => void;
 }) {
   const projects = asRecords(result.projects);
-  const focus = asNullableRecord(result.focus);
+  const dailyBrief = asNullableRecord(result.daily_brief);
 
   return (
     <>
-      <section className="hero-card">
-        <p className="eyebrow">Declared focus</p>
-        <h2>{text(focus?.project_name) || "No focus declared yet"}</h2>
-        <p>
-          {text(focus?.statement) ||
-            "Map every project, then choose what deserves concentrated investment."}
-        </p>
-      </section>
+      <DailyBriefHomeCard brief={dailyBrief} prepare={prepareBrief} />
 
       <div className="section-heading">
         <div>
@@ -173,7 +147,7 @@ function PortfolioView({
       {projects.length === 0 ? (
         <Empty message="Your map is empty. Ask the agent to add your first project." />
       ) : (
-        <div className="project-grid">
+        <div className="project-list">
           {projects.map((project) => (
             <button
               type="button"
@@ -181,25 +155,95 @@ function PortfolioView({
               key={text(project.id)}
               onClick={() => openProject(text(project.id))}
             >
-              <span className={`mode ${text(project.investment_mode)}`}>
-                {text(project.investment_mode)}
+              <div className="project-identity">
+                <div className="project-title">
+                  <span className={`lifecycle ${text(project.lifecycle)}`}>
+                    {text(project.lifecycle)}
+                  </span>
+                  <h3>{text(project.name)}</h3>
+                </div>
+                <p className="spirit">
+                  {text(project.spirit) || text(project.description)}
+                </p>
+                <footer>
+                  <span>{number(project.active_goal_count)} active goals</span>
+                  <span>{number(project.open_work_item_count)} open items</span>
+                  <span>{relativeTime(project.last_activity_at)}</span>
+                </footer>
+              </div>
+              <div className="project-outcome">
+                <span className="project-label">Current outcome</span>
+                <p>{text(project.current_outcome) || "Outcome not declared"}</p>
+              </div>
+              <ProjectProgress project={project} />
+              <span className="project-arrow" aria-hidden="true">
+                →
               </span>
-              <h3>{text(project.name)}</h3>
-              <p className="spirit">
-                {text(project.spirit) || text(project.description)}
-              </p>
-              <p className="outcome">
-                {text(project.current_outcome) || "Outcome not declared"}
-              </p>
-              <footer>
-                <span>{number(project.active_goal_count)} active goals</span>
-                <span>{relativeTime(project.last_activity_at)}</span>
-              </footer>
             </button>
           ))}
         </div>
       )}
     </>
+  );
+}
+
+function DailyBriefHomeCard({
+  brief,
+  prepare,
+}: {
+  brief: JsonRecord | null;
+  prepare: () => void;
+}) {
+  return (
+    <section className="daily-brief-card">
+      <header>
+        <div>
+          <p className="eyebrow">Daily brief</p>
+          <h2>{brief ? text(brief.brief_date) : "Start the day oriented"}</h2>
+        </div>
+        <button type="button" onClick={prepare}>
+          {brief ? "Refresh evidence" : "Prepare brief"}
+        </button>
+      </header>
+      {brief ? (
+        <p className="daily-brief-copy">{text(brief.content)}</p>
+      ) : (
+        <p className="daily-brief-empty">
+          No brief has been saved yet. Prepare the current evidence, then ask
+          your Studio agent to synthesize and save today’s brief.
+        </p>
+      )}
+    </section>
+  );
+}
+
+function ProjectProgress({ project }: { project: JsonRecord }) {
+  const rawProgress = project.progress_percent;
+  const assessed =
+    typeof rawProgress === "number" ||
+    (typeof rawProgress === "string" && rawProgress !== "");
+  const progress = assessed
+    ? Math.min(100, Math.max(0, number(rawProgress)))
+    : 0;
+
+  return (
+    <div className="project-progress">
+      <div className="progress-heading">
+        <span className="project-label">Progress</span>
+        <strong>{assessed ? `${progress}%` : "Unscored"}</strong>
+      </div>
+      <div
+        className="progress-track"
+        role="progressbar"
+        aria-label={`${text(project.name)} progress`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={assessed ? progress : undefined}
+      >
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p>{text(project.progress_note) || "Set an honest assessment"}</p>
+    </div>
   );
 }
 
@@ -214,6 +258,8 @@ function ProjectView({
   const goals = asRecords(result.goals);
   const memories = asRecords(result.memories);
   const decisions = asRecords(result.decisions);
+  const workItems = asRecords(result.work_items);
+  const activity = asRecords(result.activity);
 
   return (
     <>
@@ -221,8 +267,8 @@ function ProjectView({
         ← All projects
       </button>
       <section className="hero-card">
-        <span className={`mode ${text(project.investment_mode)}`}>
-          {text(project.investment_mode)}
+        <span className={`lifecycle ${text(project.lifecycle)}`}>
+          {text(project.lifecycle)}
         </span>
         <h2>{text(project.name)}</h2>
         <p>{text(project.spirit) || text(project.description)}</p>
@@ -230,14 +276,61 @@ function ProjectView({
           <strong>Current outcome</strong>
           <span>{text(project.current_outcome) || "Not declared"}</span>
         </div>
+        <ProjectProgress project={project} />
       </section>
-      <div className="columns">
-        <ListPanel
-          title="Goals"
-          items={goals}
-          primary="title"
-          secondary="desired_outcome"
-        />
+      <section className="project-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Where you are</p>
+            <h2>Current state</h2>
+          </div>
+        </div>
+        <div className="current-state-grid">
+          <article className="panel">
+            <p className="project-label">Current outcome</p>
+            <strong>{text(project.current_outcome) || "Not declared"}</strong>
+          </article>
+          <article className="panel">
+            <p className="project-label">Latest activity</p>
+            <strong>
+              {activity.length > 0
+                ? relativeTime(activity[0]?.occurred_at)
+                : "No activity yet"}
+            </strong>
+          </article>
+          <article className="panel">
+            <p className="project-label">Next review</p>
+            <strong>{text(project.next_review) || "Not scheduled"}</strong>
+          </article>
+        </div>
+      </section>
+
+      <section className="project-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Overall project plan</p>
+            <h2>Next steps</h2>
+          </div>
+        </div>
+        {goals.length > 0 ? (
+          <GoalsView goals={goals} />
+        ) : (
+          <Empty message="No project goals yet. Ask the agent to define the next concrete outcome." />
+        )}
+      </section>
+
+      <section className="project-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">GitHub</p>
+            <h2>Open issues and pull requests</h2>
+          </div>
+          <span className="muted">{workItems.length} open</span>
+        </div>
+        <WorkItemsView items={workItems} />
+      </section>
+
+      <div className="columns project-context">
         <ListPanel
           title="Memory"
           items={memories}
@@ -252,6 +345,35 @@ function ProjectView({
         />
       </div>
     </>
+  );
+}
+
+function WorkItemsView({ items }: { items: JsonRecord[] }) {
+  if (items.length === 0) {
+    return <Empty message="No open GitHub issues or pull requests." />;
+  }
+
+  return (
+    <div className="work-items">
+      {items.map((item) => (
+        <a
+          href={text(item.url)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="work-item"
+          key={text(item.id)}
+        >
+          <span className="mode maintain">
+            {text(item.kind) === "pull_request" ? "PR" : "Issue"} #
+            {number(item.number)}
+          </span>
+          <strong>{text(item.title)}</strong>
+          <span className="work-item-author">
+            {text(item.author) || "GitHub"} ↗
+          </span>
+        </a>
+      ))}
+    </div>
   );
 }
 
@@ -361,6 +483,220 @@ function BriefInputView({ result }: { result: JsonRecord }) {
   );
 }
 
+function DeclarationView({
+  markdown,
+  source,
+  strategicResults,
+  scorecard,
+}: {
+  markdown: string;
+  source: string;
+  strategicResults: JsonRecord[];
+  scorecard: JsonRecord[];
+}) {
+  const [charterExpanded, setCharterExpanded] = useState(false);
+  if (!markdown) {
+    return <Empty message="The declaration could not be loaded." />;
+  }
+  const charter = extractDeclarationSection(
+    markdown,
+    "## Charter",
+    "## Strategic Outcomes",
+  );
+  const conditions = extractDeclarationSection(
+    markdown,
+    "## Conditions of Satisfaction",
+    "## December 2026 Scorecard",
+  );
+  const charterStatement =
+    charter.paragraphs[0] ?? "VibeGui is my Personal AI OS.";
+
+  return (
+    <article className="declaration">
+      <section className="charter-card">
+        <p className="eyebrow">The future we are building</p>
+        <p className="charter-statement">{cleanMarkdown(charterStatement)}</p>
+        <button
+          type="button"
+          className="charter-toggle"
+          aria-expanded={charterExpanded}
+          onClick={() => setCharterExpanded((expanded) => !expanded)}
+        >
+          {charterExpanded ? "Hide the full charter" : "Read the full charter"}
+          <span aria-hidden="true">{charterExpanded ? "↑" : "↓"}</span>
+        </button>
+        {charterExpanded && (
+          <ul className="charter-details">
+            {charter.bullets.map((item) => (
+              <li key={item}>{cleanMarkdown(item)}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="declaration-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">December 2026</p>
+            <h2>Strategic results</h2>
+          </div>
+        </div>
+        <div className="strategic-results">
+          {strategicResults.map((result) => (
+            <StrategicResultCard key={text(result.id)} result={result} />
+          ))}
+        </div>
+      </section>
+
+      <section className="declaration-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">What proves it</p>
+            <h2>Scorecard</h2>
+          </div>
+        </div>
+        <div className="scorecard-grid">
+          {scorecard.map((item) => (
+            <ScorecardItem key={text(item.id)} item={item} />
+          ))}
+        </div>
+      </section>
+
+      <section className="declaration-block conditions">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Regardless of circumstances</p>
+            <h2>Conditions of satisfaction</h2>
+          </div>
+        </div>
+        <ul>
+          {conditions.bullets.map((item) => (
+            <li key={item}>{cleanMarkdown(item)}</li>
+          ))}
+        </ul>
+      </section>
+
+      {source && (
+        <footer>
+          <a href={source} target="_blank" rel="noopener noreferrer">
+            View canonical declaration on GitHub ↗
+          </a>
+        </footer>
+      )}
+    </article>
+  );
+}
+
+function StrategicResultCard({ result }: { result: JsonRecord }) {
+  const progress = Math.min(100, Math.max(0, number(result.progress_percent)));
+  const criteria = asStrings(result.acceptance_criteria);
+  const metrics = asRecords(result.metrics);
+
+  return (
+    <article className="strategic-result">
+      <header>
+        <div>
+          <p className="eyebrow">
+            Result {String(number(result.position)).padStart(2, "0")}
+          </p>
+          <h3>{text(result.title)}</h3>
+        </div>
+        <strong className="result-progress">{progress}%</strong>
+      </header>
+      <p className="result-narrative">{text(result.narrative)}</p>
+      <div className="result-progress-track">
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p className="result-progress-note">{text(result.progress_note)}</p>
+      <div className="result-details">
+        <div>
+          <p className="project-label">Acceptance criteria</p>
+          <ul>
+            {criteria.map((criterion) => (
+              <li key={criterion}>{criterion}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="project-label">Metrics</p>
+          <div className="result-metrics">
+            {metrics.map((metric) => (
+              <div key={text(metric.label)}>
+                <strong>
+                  {number(metric.current)} / {number(metric.target)}
+                </strong>
+                <span>
+                  {text(metric.label)} · {text(metric.unit)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ScorecardItem({ item }: { item: JsonRecord }) {
+  const isBoolean = text(item.kind) === "boolean";
+  const current = number(item.current_value);
+  const target = number(item.target_value);
+  const ratio =
+    !isBoolean && target > 0
+      ? Math.min(100, Math.max(0, (current / target) * 100))
+      : 0;
+  const yes = number(item.boolean_value) === 1;
+
+  return (
+    <article className={`scorecard-item ${isBoolean ? "boolean" : ""}`}>
+      <p>{text(item.label)}</p>
+      {isBoolean ? (
+        <strong className={yes ? "yes" : "not-yet"}>
+          {yes ? "Yes" : "Not yet"}
+        </strong>
+      ) : (
+        <>
+          <strong>
+            {current} <span>/ {target}</span>
+          </strong>
+          <div className="scorecard-track">
+            <span style={{ width: `${ratio}%` }} />
+          </div>
+          <small>{text(item.unit)}</small>
+        </>
+      )}
+      {text(item.note) && <small>{text(item.note)}</small>}
+    </article>
+  );
+}
+
+function extractDeclarationSection(
+  markdown: string,
+  startHeading: string,
+  endHeading: string,
+): { paragraphs: string[]; bullets: string[] } {
+  const start = markdown.indexOf(startHeading);
+  const end = markdown.indexOf(endHeading, start + startHeading.length);
+  if (start < 0) return { paragraphs: [], bullets: [] };
+  const body = markdown.slice(
+    start + startHeading.length,
+    end < 0 ? undefined : end,
+  );
+  const paragraphs: string[] = [];
+  const bullets: string[] = [];
+  for (const sourceLine of body.split("\n")) {
+    const line = sourceLine.trim();
+    if (!line) continue;
+    if (line.startsWith("- ")) bullets.push(line.slice(2));
+    else if (!line.startsWith("#")) paragraphs.push(line);
+  }
+  return { paragraphs, bullets };
+}
+
+function cleanMarkdown(value: string): string {
+  return value.replace(/\*\*/g, "").replace(/`/g, "");
+}
+
 function ListPanel({
   title,
   items,
@@ -437,6 +773,12 @@ function asNullableRecord(value: unknown): JsonRecord | null {
 
 function asRecords(value: unknown): JsonRecord[] {
   return Array.isArray(value) ? value.map(asRecord) : [];
+}
+
+function asStrings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function text(value: unknown): string {

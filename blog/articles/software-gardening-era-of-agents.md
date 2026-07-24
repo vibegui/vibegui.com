@@ -16,7 +16,7 @@ For most of my career, I thought I was doing software wrong.
 
 The senior engineers I respected showed up with architecture documents, system diagrams, months of planning before a single line was written. Conferences ran entire tracks on methodology. I absorbed the message: serious builders plan first.
 
-I never could do that. I'd ship something small, learn from it, redirect.
+I hated doing that. I'd ship something small, learn from it, redirect.
 
 I thought I was being undisciplined.
 
