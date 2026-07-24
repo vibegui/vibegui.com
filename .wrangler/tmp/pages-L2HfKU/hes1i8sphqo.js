@@ -2,14 +2,12 @@
 var define_ROUTES_default = {
   version: 1,
   description:
-    "Routes the domain middleware (functions/_middleware.ts). Heavy static paths are excluded so they never invoke the function \u2014 including the strip images, which are canonical shared assets on every host.",
+    "Routes the domain middleware (functions/_middleware.ts), which also records first-party pageviews. Only non-page static paths are excluded (article/context pages stay included so their views are counted).",
   include: ["/*"],
   exclude: [
     "/assets/*",
     "/images/*",
     "/fonts/*",
-    "/article/*",
-    "/context/*",
     "/content/*",
     "/bookmarks/*",
     "/malvados/tirinhas/*",

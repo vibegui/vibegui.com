@@ -8,6 +8,7 @@ export interface Env {
   AUTORAG_INSTANCE: string;
   MCP_PRIVATE_TOKEN?: string;
   GITHUB_TOKEN?: string;
+  ANALYTICS_SALT?: string;
 }
 
 export type AccessLevel = "public" | "private";
