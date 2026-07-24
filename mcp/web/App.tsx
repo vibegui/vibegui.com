@@ -1,14 +1,14 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useMcp } from "./mcp";
 
 type JsonRecord = Record<string, unknown>;
 
 const NAV_ITEMS = [
+  { label: "Declaration", tool: "GET_DECLARATION" },
   { label: "Projects", tool: "GET_PORTFOLIO" },
   { label: "Goals", tool: "LIST_GOALS" },
   { label: "Inbox", tool: "GET_INBOX" },
   { label: "Memory", tool: "RECALL_MEMORY" },
-  { label: "Declaration", tool: "GET_DECLARATION" },
 ] as const;
 
 export function App() {
@@ -17,18 +17,15 @@ export function App() {
   const initialized = useRef(false);
 
   useEffect(() => {
-    if (!connected || toolResult || initialized.current) return;
+    if (!connected || initialized.current) return;
     initialized.current = true;
-    void callTool("GET_PORTFOLIO");
-  }, [callTool, connected, toolResult]);
+    void callTool("GET_DECLARATION");
+  }, [callTool, connected]);
 
   return (
     <main className="shell">
       <header className="topbar">
-        <div>
-          <p className="eyebrow">VibeGui</p>
-          <h1>Personal AI OS</h1>
-        </div>
+        <p className="os-label">VibeGui OS</p>
         <span className={`connection ${connected ? "online" : ""}`}>
           {connected ? "Private Studio" : "Connecting"}
         </span>
@@ -113,6 +110,8 @@ function ResultView({
       <DeclarationView
         markdown={text(result.markdown)}
         source={text(result.source)}
+        strategicResults={asRecords(result.strategic_results)}
+        scorecard={asRecords(result.scorecard)}
       />
     );
   }
@@ -487,17 +486,96 @@ function BriefInputView({ result }: { result: JsonRecord }) {
 function DeclarationView({
   markdown,
   source,
+  strategicResults,
+  scorecard,
 }: {
   markdown: string;
   source: string;
+  strategicResults: JsonRecord[];
+  scorecard: JsonRecord[];
 }) {
+  const [charterExpanded, setCharterExpanded] = useState(false);
   if (!markdown) {
     return <Empty message="The declaration could not be loaded." />;
   }
+  const charter = extractDeclarationSection(
+    markdown,
+    "## Charter",
+    "## Strategic Outcomes",
+  );
+  const conditions = extractDeclarationSection(
+    markdown,
+    "## Conditions of Satisfaction",
+    "## December 2026 Scorecard",
+  );
+  const charterStatement =
+    charter.paragraphs[0] ?? "VibeGui is my Personal AI OS.";
 
   return (
     <article className="declaration">
-      {renderDeclaration(markdown)}
+      <section className="charter-card">
+        <p className="eyebrow">The future we are building</p>
+        <p className="charter-statement">{cleanMarkdown(charterStatement)}</p>
+        <button
+          type="button"
+          className="charter-toggle"
+          aria-expanded={charterExpanded}
+          onClick={() => setCharterExpanded((expanded) => !expanded)}
+        >
+          {charterExpanded ? "Hide the full charter" : "Read the full charter"}
+          <span aria-hidden="true">{charterExpanded ? "↑" : "↓"}</span>
+        </button>
+        {charterExpanded && (
+          <ul className="charter-details">
+            {charter.bullets.map((item) => (
+              <li key={item}>{cleanMarkdown(item)}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="declaration-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">December 2026</p>
+            <h2>Strategic results</h2>
+          </div>
+        </div>
+        <div className="strategic-results">
+          {strategicResults.map((result) => (
+            <StrategicResultCard key={text(result.id)} result={result} />
+          ))}
+        </div>
+      </section>
+
+      <section className="declaration-block">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">What proves it</p>
+            <h2>Scorecard</h2>
+          </div>
+        </div>
+        <div className="scorecard-grid">
+          {scorecard.map((item) => (
+            <ScorecardItem key={text(item.id)} item={item} />
+          ))}
+        </div>
+      </section>
+
+      <section className="declaration-block conditions">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Regardless of circumstances</p>
+            <h2>Conditions of satisfaction</h2>
+          </div>
+        </div>
+        <ul>
+          {conditions.bullets.map((item) => (
+            <li key={item}>{cleanMarkdown(item)}</li>
+          ))}
+        </ul>
+      </section>
+
       {source && (
         <footer>
           <a href={source} target="_blank" rel="noopener noreferrer">
@@ -509,66 +587,110 @@ function DeclarationView({
   );
 }
 
-function renderDeclaration(markdown: string): ReactNode[] {
-  const nodes: ReactNode[] = [];
-  let listItems: string[] = [];
-  let key = 0;
+function StrategicResultCard({ result }: { result: JsonRecord }) {
+  const progress = Math.min(100, Math.max(0, number(result.progress_percent)));
+  const criteria = asStrings(result.acceptance_criteria);
+  const metrics = asRecords(result.metrics);
 
-  const flushList = () => {
-    if (listItems.length === 0) return;
-    nodes.push(
-      <ul key={`list-${key++}`}>
-        {listItems.map((item) => (
-          <li key={item}>{cleanMarkdown(item)}</li>
-        ))}
-      </ul>,
-    );
-    listItems = [];
-  };
+  return (
+    <article className="strategic-result">
+      <header>
+        <div>
+          <p className="eyebrow">
+            Result {String(number(result.position)).padStart(2, "0")}
+          </p>
+          <h3>{text(result.title)}</h3>
+        </div>
+        <strong className="result-progress">{progress}%</strong>
+      </header>
+      <p className="result-narrative">{text(result.narrative)}</p>
+      <div className="result-progress-track">
+        <span style={{ width: `${progress}%` }} />
+      </div>
+      <p className="result-progress-note">{text(result.progress_note)}</p>
+      <div className="result-details">
+        <div>
+          <p className="project-label">Acceptance criteria</p>
+          <ul>
+            {criteria.map((criterion) => (
+              <li key={criterion}>{criterion}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="project-label">Metrics</p>
+          <div className="result-metrics">
+            {metrics.map((metric) => (
+              <div key={text(metric.label)}>
+                <strong>
+                  {number(metric.current)} / {number(metric.target)}
+                </strong>
+                <span>
+                  {text(metric.label)} · {text(metric.unit)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
-  for (const sourceLine of markdown.split("\n")) {
+function ScorecardItem({ item }: { item: JsonRecord }) {
+  const isBoolean = text(item.kind) === "boolean";
+  const current = number(item.current_value);
+  const target = number(item.target_value);
+  const ratio =
+    !isBoolean && target > 0
+      ? Math.min(100, Math.max(0, (current / target) * 100))
+      : 0;
+  const yes = number(item.boolean_value) === 1;
+
+  return (
+    <article className={`scorecard-item ${isBoolean ? "boolean" : ""}`}>
+      <p>{text(item.label)}</p>
+      {isBoolean ? (
+        <strong className={yes ? "yes" : "not-yet"}>
+          {yes ? "Yes" : "Not yet"}
+        </strong>
+      ) : (
+        <>
+          <strong>
+            {current} <span>/ {target}</span>
+          </strong>
+          <div className="scorecard-track">
+            <span style={{ width: `${ratio}%` }} />
+          </div>
+          <small>{text(item.unit)}</small>
+        </>
+      )}
+      {text(item.note) && <small>{text(item.note)}</small>}
+    </article>
+  );
+}
+
+function extractDeclarationSection(
+  markdown: string,
+  startHeading: string,
+  endHeading: string,
+): { paragraphs: string[]; bullets: string[] } {
+  const start = markdown.indexOf(startHeading);
+  const end = markdown.indexOf(endHeading, start + startHeading.length);
+  if (start < 0) return { paragraphs: [], bullets: [] };
+  const body = markdown.slice(
+    start + startHeading.length,
+    end < 0 ? undefined : end,
+  );
+  const paragraphs: string[] = [];
+  const bullets: string[] = [];
+  for (const sourceLine of body.split("\n")) {
     const line = sourceLine.trim();
-    if (!line) {
-      flushList();
-      continue;
-    }
-    if (line.startsWith("- ")) {
-      listItems.push(line.slice(2));
-      continue;
-    }
-
-    flushList();
-    if (line.startsWith("# ")) {
-      nodes.push(
-        <header className="declaration-header" key={`title-${key++}`}>
-          <p className="eyebrow">The future we are building</p>
-          <h2>{cleanMarkdown(line.slice(2))}</h2>
-        </header>,
-      );
-    } else if (line.startsWith("## ")) {
-      nodes.push(
-        <h2 className="declaration-section" key={`section-${key++}`}>
-          {cleanMarkdown(line.slice(3))}
-        </h2>,
-      );
-    } else if (line.startsWith("### ")) {
-      nodes.push(
-        <h3 className="declaration-outcome" key={`outcome-${key++}`}>
-          {cleanMarkdown(line.slice(4))}
-        </h3>,
-      );
-    } else if (line.startsWith("**") && line.endsWith("**")) {
-      nodes.push(
-        <p className="charter-statement" key={`statement-${key++}`}>
-          {cleanMarkdown(line)}
-        </p>,
-      );
-    } else {
-      nodes.push(<p key={`paragraph-${key++}`}>{cleanMarkdown(line)}</p>);
-    }
+    if (!line) continue;
+    if (line.startsWith("- ")) bullets.push(line.slice(2));
+    else if (!line.startsWith("#")) paragraphs.push(line);
   }
-  flushList();
-  return nodes;
+  return { paragraphs, bullets };
 }
 
 function cleanMarkdown(value: string): string {
@@ -651,6 +773,12 @@ function asNullableRecord(value: unknown): JsonRecord | null {
 
 function asRecords(value: unknown): JsonRecord[] {
   return Array.isArray(value) ? value.map(asRecord) : [];
+}
+
+function asStrings(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is string => typeof item === "string")
+    : [];
 }
 
 function text(value: unknown): string {

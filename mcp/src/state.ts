@@ -55,6 +55,88 @@ export interface RememberInput {
   supersedes_id?: string | null;
 }
 
+export async function getDeclarationDashboard(env: Env) {
+  const [results, scorecard] = await Promise.all([
+    env.DB.prepare("SELECT * FROM strategic_results ORDER BY position").all<
+      Record<string, unknown>
+    >(),
+    env.DB.prepare("SELECT * FROM scorecard_items ORDER BY position").all(),
+  ]);
+
+  return {
+    strategic_results: results.results.map((result) => ({
+      ...result,
+      acceptance_criteria: parseJsonArray(result.acceptance_criteria),
+      metrics: parseJsonArray(result.metrics),
+    })),
+    scorecard: scorecard.results,
+  };
+}
+
+export async function setStrategicResultProgress(
+  env: Env,
+  id: string,
+  progressPercent: number,
+  progressNote = "",
+) {
+  const progress = Math.min(100, Math.max(0, Math.round(progressPercent)));
+  const result = await env.DB.prepare(
+    `UPDATE strategic_results
+     SET progress_percent = ?, progress_note = ?, updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+  )
+    .bind(progress, progressNote.trim(), id)
+    .run();
+  if (!result.meta.changes) {
+    throw new Error(`Strategic result not found: ${id}`);
+  }
+  return env.DB.prepare("SELECT * FROM strategic_results WHERE id = ?")
+    .bind(id)
+    .first();
+}
+
+export async function updateScorecardItem(
+  env: Env,
+  input: {
+    id: string;
+    current_value?: number | null;
+    boolean_value?: boolean | null;
+    note?: string;
+  },
+) {
+  const existing = await env.DB.prepare(
+    "SELECT * FROM scorecard_items WHERE id = ?",
+  )
+    .bind(input.id)
+    .first<Record<string, unknown>>();
+  if (!existing) throw new Error(`Scorecard item not found: ${input.id}`);
+
+  await env.DB.prepare(
+    `UPDATE scorecard_items
+     SET current_value = ?, boolean_value = ?, note = ?,
+         updated_at = CURRENT_TIMESTAMP
+     WHERE id = ?`,
+  )
+    .bind(
+      input.current_value === undefined
+        ? existing.current_value
+        : input.current_value,
+      input.boolean_value === undefined
+        ? existing.boolean_value
+        : input.boolean_value === null
+          ? null
+          : input.boolean_value
+            ? 1
+            : 0,
+      input.note === undefined ? existing.note : input.note.trim(),
+      input.id,
+    )
+    .run();
+  return env.DB.prepare("SELECT * FROM scorecard_items WHERE id = ?")
+    .bind(input.id)
+    .first();
+}
+
 export async function getPortfolio(env: Env) {
   const projects = await env.DB.prepare(
     `SELECT
@@ -626,4 +708,14 @@ function slugify(value: string): string {
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
+}
+
+function parseJsonArray(value: unknown): unknown[] {
+  if (typeof value !== "string") return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 }

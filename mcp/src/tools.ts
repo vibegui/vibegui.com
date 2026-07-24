@@ -14,6 +14,7 @@ import {
   getAttentionMap,
   getDailyBrief,
   getDailyBriefInput,
+  getDeclarationDashboard,
   getInbox,
   getPortfolio,
   getProject,
@@ -27,10 +28,12 @@ import {
   saveDailyBrief,
   saveProject,
   setProjectProgress,
+  setStrategicResultProgress,
+  updateScorecardItem,
   updateGoal,
 } from "./state.ts";
 
-export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v5";
+export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v8";
 
 export interface ToolDefinition {
   name: string;
@@ -108,7 +111,62 @@ export const tools: ToolDefinition[] = [
     access: "private",
     inputSchema: objectSchema({}),
     _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
-    execute: async (env) => getDeclaration(env),
+    execute: async (env) => {
+      const [declaration, dashboard] = await Promise.all([
+        getDeclaration(env),
+        getDeclarationDashboard(env),
+      ]);
+      return { ...declaration, ...dashboard };
+    },
+  },
+  {
+    name: "SET_STRATEGIC_RESULT_PROGRESS",
+    description:
+      "Update a declaration-level strategic result progress percentage and evidence-based note.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        id: { type: "string" },
+        progress_percent: {
+          type: "number",
+          minimum: 0,
+          maximum: 100,
+        },
+        progress_note: { type: "string" },
+      },
+      ["id", "progress_percent"],
+    ),
+    _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
+    execute: async (env, input) =>
+      setStrategicResultProgress(
+        env,
+        requiredString(input, "id"),
+        requiredNumber(input, "progress_percent"),
+        optionalString(input, "progress_note") ?? "",
+      ),
+  },
+  {
+    name: "UPDATE_SCORECARD_ITEM",
+    description:
+      "Update the current numeric value or yes/no state of a declaration scorecard item.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        id: { type: "string" },
+        current_value: { type: ["number", "null"] },
+        boolean_value: { type: ["boolean", "null"] },
+        note: { type: "string" },
+      },
+      ["id"],
+    ),
+    _meta: { ui: { resourceUri: PERSONAL_AI_OS_RESOURCE } },
+    execute: async (env, input) =>
+      updateScorecardItem(env, {
+        id: requiredString(input, "id"),
+        current_value: optionalNullableNumber(input, "current_value"),
+        boolean_value: optionalNullableBoolean(input, "boolean_value"),
+        note: optionalString(input, "note"),
+      }),
   },
   {
     name: "GET_PORTFOLIO",
@@ -696,6 +754,18 @@ function optionalNullableNumber(
   if (value === undefined || value === null) return value;
   if (typeof value !== "number" || !Number.isFinite(value)) {
     throw new Error(`${key} must be a number or null`);
+  }
+  return value;
+}
+
+function optionalNullableBoolean(
+  input: Record<string, unknown>,
+  key: string,
+): boolean | null | undefined {
+  const value = input[key];
+  if (value === undefined || value === null) return value;
+  if (typeof value !== "boolean") {
+    throw new Error(`${key} must be a boolean or null`);
   }
   return value;
 }
