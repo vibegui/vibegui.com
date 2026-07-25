@@ -4,7 +4,8 @@ Guidelines for AI agents working on this repository.
 
 ## Git Operations
 
-- **Never auto-push**, with one exception: `/article:publish` is authorized to push directly to origin — that skill *is* the publish action. For any other change, commit locally and wait for the user to push.
+- **Ship finished work**: Once the user is satisfied and all checks pass, do not leave commits only local. Default to a feature branch → push → PR → merge into `main`. If the work is already committed on `main` and the user explicitly approves shipping it, push `main` directly. `/article:publish` remains authorized to commit and push as part of the publish action.
+- **Never force-push `main`**.
 - **Commit often**: Small, focused commits with clear messages are preferred.
 - **Use conventional commits**: `type(scope): message` format.
 
