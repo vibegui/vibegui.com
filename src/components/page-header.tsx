@@ -83,7 +83,6 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
             >
               GitHub
             </a>
-            <a href="/bookmarks">Bookmarks</a>
           </nav>
         </div>
         <img

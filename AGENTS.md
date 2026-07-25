@@ -54,7 +54,8 @@ Markdown files in `blog/articles/` are the source of truth. Committing the file 
 
 ### Bookmarks
 
-Bookmarks live in Supabase (separate from articles). Use the MCP tools for bookmark CRUD operations.
+The public site reads bookmarks from `https://mcp.vibegui.com`. Use the MCP App
+for bookmark CRUD operations; the website is read-only.
 
 ## Code Style
 

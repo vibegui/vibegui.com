@@ -7,6 +7,8 @@ export interface Env {
   GITHUB_USERNAME: string;
   AUTORAG_INSTANCE: string;
   MCP_PRIVATE_TOKEN?: string;
+  MESH_GATEWAY_URL?: string;
+  MESH_API_KEY?: string;
   GITHUB_TOKEN?: string;
   ANALYTICS_SALT?: string;
 }

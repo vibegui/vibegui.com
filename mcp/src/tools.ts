@@ -5,6 +5,19 @@ import {
   type Dim,
   type MetricsGroup,
 } from "./analytics.ts";
+import { enrichBookmark } from "./bookmark-enrichment.ts";
+import {
+  batchUpsertBookmarks,
+  createBookmark,
+  deleteBookmark,
+  getBookmark,
+  getBookmarkStats,
+  getPublicBookmark,
+  listBookmarks,
+  parseBookmarkInput,
+  searchBookmarks,
+  updateBookmark,
+} from "./bookmarks.ts";
 import type { AccessLevel, Env } from "./env.ts";
 import { refreshGitHub } from "./github.ts";
 import {
@@ -42,6 +55,7 @@ import {
 
 export const PERSONAL_AI_OS_RESOURCE = "ui://vibegui/personal-ai-os/v9";
 export const ANALYTICS_RESOURCE = "ui://vibegui/site-analytics/v1";
+export const BOOKMARKS_RESOURCE = "ui://vibegui/bookmarks/v1";
 
 export interface ToolDefinition {
   name: string;
@@ -61,6 +75,28 @@ const objectSchema = (
   ...(required.length > 0 ? { required } : {}),
   additionalProperties: false,
 });
+
+const BOOKMARK_PROPERTIES: Record<string, unknown> = {
+  url: { type: "string", format: "uri" },
+  title: { type: ["string", "null"] },
+  description: { type: ["string", "null"] },
+  icon: { type: ["string", "null"] },
+  stars: { type: ["integer", "null"], minimum: 1, maximum: 5 },
+  language: { type: ["string", "null"] },
+  reading_time_min: { type: ["integer", "null"], minimum: 0 },
+  perplexity_research: { type: ["string", "null"] },
+  insight_dev: { type: ["string", "null"] },
+  insight_founder: { type: ["string", "null"] },
+  insight_investor: { type: ["string", "null"] },
+  notes: { type: ["string", "null"] },
+  researched_at: { type: ["string", "null"] },
+  classified_at: { type: ["string", "null"] },
+  published_at: { type: ["string", "null"] },
+  created_at: { type: "string" },
+  updated_at: { type: "string" },
+  tags: { type: "array", items: { type: "string" } },
+  firecrawl_content: { type: ["string", "null"] },
+};
 
 // Dimensões filtráveis do dashboard: cada uma vira um filtro opcional aqui e
 // uma lista clicável na UI.
@@ -86,6 +122,226 @@ const DIM_SCHEMA = Object.fromEntries(
 );
 
 export const tools: ToolDefinition[] = [
+  {
+    name: "LIST_BOOKMARKS",
+    description:
+      "List enriched public VibeGUI bookmarks without loading large Firecrawl content.",
+    access: "public",
+    inputSchema: objectSchema({
+      limit: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+      offset: { type: "integer", minimum: 0, default: 0 },
+      tag: { type: "string" },
+      min_stars: { type: "integer", minimum: 1, maximum: 5 },
+      sort: {
+        type: "string",
+        enum: ["recent", "rating", "title"],
+        default: "recent",
+      },
+    }),
+    execute: async (env, input) =>
+      listBookmarks(env, {
+        limit: optionalNumber(input, "limit"),
+        offset: optionalNumber(input, "offset"),
+        tags: [optionalString(input, "tag")].filter((tag): tag is string =>
+          Boolean(tag),
+        ),
+        minStars: optionalNumber(input, "min_stars"),
+        sort: optionalEnum(input, "sort", ["recent", "rating", "title"]),
+        publicOnly: true,
+      }),
+  },
+  {
+    name: "SEARCH_BOOKMARKS",
+    description:
+      "Full-text search enriched public bookmarks across metadata, tags, research, insights, and a bounded page-content excerpt. Returns per-area match flags.",
+    access: "public",
+    inputSchema: objectSchema(
+      {
+        query: { type: "string", minLength: 1 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 10 },
+      },
+      ["query"],
+    ),
+    execute: async (env, input) =>
+      searchBookmarks(env, requiredString(input, "query"), {
+        limit: optionalNumber(input, "limit"),
+        publicOnly: true,
+      }),
+  },
+  {
+    name: "GET_BOOKMARK",
+    description:
+      "Get one enriched public bookmark by URL, including research, insights, and Firecrawl Markdown.",
+    access: "public",
+    inputSchema: objectSchema({ url: { type: "string", format: "uri" } }, [
+      "url",
+    ]),
+    execute: async (env, input) => {
+      const bookmark = await getPublicBookmark(
+        env,
+        requiredString(input, "url"),
+      );
+      if (!bookmark) throw new Error("Bookmark not found");
+      return { bookmark };
+    },
+  },
+  {
+    name: "LIST_ALL_BOOKMARKS",
+    description:
+      "Open the private bookmark workspace and list all bookmarks, including pending enrichment.",
+    access: "private",
+    inputSchema: objectSchema({
+      limit: { type: "integer", minimum: 1, maximum: 100, default: 100 },
+      offset: { type: "integer", minimum: 0, default: 0 },
+      tag: { type: "string" },
+      min_stars: { type: "integer", minimum: 1, maximum: 5 },
+      sort: {
+        type: "string",
+        enum: ["recent", "rating", "title"],
+        default: "recent",
+      },
+    }),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) =>
+      listBookmarks(env, {
+        limit: optionalNumber(input, "limit") ?? 100,
+        offset: optionalNumber(input, "offset"),
+        tags: [optionalString(input, "tag")].filter((tag): tag is string =>
+          Boolean(tag),
+        ),
+        minStars: optionalNumber(input, "min_stars"),
+        sort: optionalEnum(input, "sort", ["recent", "rating", "title"]),
+        publicOnly: false,
+      }),
+  },
+  {
+    name: "SEARCH_ALL_BOOKMARKS",
+    description:
+      "Search all private bookmarks, including items that have not been enriched yet.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        query: { type: "string", minLength: 1 },
+        limit: { type: "integer", minimum: 1, maximum: 100, default: 50 },
+      },
+      ["query"],
+    ),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) =>
+      searchBookmarks(env, requiredString(input, "query"), {
+        limit: optionalNumber(input, "limit") ?? 50,
+        publicOnly: false,
+      }),
+  },
+  {
+    name: "GET_BOOKMARK_ADMIN",
+    description:
+      "Get the complete private bookmark record for editing and enrichment.",
+    access: "private",
+    inputSchema: objectSchema({ url: { type: "string", format: "uri" } }, [
+      "url",
+    ]),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) => {
+      const bookmark = await getBookmark(
+        env,
+        requiredString(input, "url"),
+        true,
+      );
+      if (!bookmark) throw new Error("Bookmark not found");
+      return { bookmark };
+    },
+  },
+  {
+    name: "CREATE_BOOKMARK",
+    description:
+      "Create a private bookmark. URL is the unique natural key; Firecrawl Markdown is stored in R2.",
+    access: "private",
+    inputSchema: objectSchema(BOOKMARK_PROPERTIES, ["url"]),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) => ({
+      bookmark: await createBookmark(env, parseBookmarkInput(input)),
+    }),
+  },
+  {
+    name: "UPDATE_BOOKMARK",
+    description:
+      "Partially update an existing private bookmark identified by its URL.",
+    access: "private",
+    inputSchema: objectSchema(BOOKMARK_PROPERTIES, ["url"]),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) => ({
+      bookmark: await updateBookmark(env, parseBookmarkInput(input)),
+    }),
+  },
+  {
+    name: "DELETE_BOOKMARK",
+    description:
+      "Delete a private bookmark, its tags, FTS entry, and stored R2 content.",
+    access: "private",
+    inputSchema: objectSchema({ url: { type: "string", format: "uri" } }, [
+      "url",
+    ]),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) =>
+      deleteBookmark(env, requiredString(input, "url")),
+  },
+  {
+    name: "IMPORT_BOOKMARKS",
+    description:
+      "Upsert a migration batch of up to 100 bookmarks, preserving timestamps, tags, research, insights, and Firecrawl content.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        bookmarks: {
+          type: "array",
+          minItems: 1,
+          maxItems: 100,
+          items: objectSchema(BOOKMARK_PROPERTIES, ["url"]),
+        },
+        source_sha256: { type: "string" },
+      },
+      ["bookmarks"],
+    ),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) => {
+      if (!Array.isArray(input.bookmarks)) {
+        throw new Error("bookmarks must be an array");
+      }
+      const result = await batchUpsertBookmarks(
+        env,
+        input.bookmarks.map((bookmark) => parseBookmarkInput(bookmark)),
+      );
+      return {
+        ...result,
+        source_sha256: optionalString(input, "source_sha256") ?? null,
+        destination: await getBookmarkStats(env, false),
+      };
+    },
+  },
+  {
+    name: "ENRICH_BOOKMARK",
+    description:
+      "Server-side bookmark enrichment using Mesh Perplexity research, Firecrawl Markdown, and OpenRouter Gemini 2.5 Flash classification. Secrets never reach the browser.",
+    access: "private",
+    inputSchema: objectSchema(
+      {
+        url: { type: "string", format: "uri" },
+        run_research: { type: "boolean", default: true },
+        run_content: { type: "boolean", default: true },
+        run_analysis: { type: "boolean", default: true },
+      },
+      ["url"],
+    ),
+    _meta: { ui: { resourceUri: BOOKMARKS_RESOURCE } },
+    execute: async (env, input) => ({
+      bookmark: await enrichBookmark(env, requiredString(input, "url"), {
+        runResearch: optionalBoolean(input, "run_research"),
+        runContent: optionalBoolean(input, "run_content"),
+        runAnalysis: optionalBoolean(input, "run_analysis"),
+      }),
+    }),
+  },
   {
     name: "SITES_OVERVIEW",
     description:
@@ -788,10 +1044,10 @@ export function mergeSemanticWriting<
     }
   }
 
-  return [...bestBySlug.values()].slice(0, limit).map((citation) => ({
-    ...bySlug.get(citation.slug)!,
-    ...citation,
-  }));
+  return [...bestBySlug.values()].slice(0, limit).flatMap((citation) => {
+    const article = bySlug.get(citation.slug);
+    return article ? [{ ...article, ...citation }] : [];
+  });
 }
 
 function requiredString(input: Record<string, unknown>, key: string): string {
@@ -863,6 +1119,18 @@ function optionalNullableBoolean(
   if (value === undefined || value === null) return value;
   if (typeof value !== "boolean") {
     throw new Error(`${key} must be a boolean or null`);
+  }
+  return value;
+}
+
+function optionalBoolean(
+  input: Record<string, unknown>,
+  key: string,
+): boolean | undefined {
+  const value = input[key];
+  if (value === undefined) return undefined;
+  if (typeof value !== "boolean") {
+    throw new Error(`${key} must be a boolean`);
   }
   return value;
 }

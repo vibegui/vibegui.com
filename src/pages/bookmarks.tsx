@@ -1,936 +1,679 @@
-/**
- * Bookmarks - Public Read-Only View
- *
- * Lightweight table-based viewer for curated links.
- * Enrichment workflow is at /bookmarks/edit
- *
- * Data source: Supabase (read-only via anon key)
- */
-
-import React, { useState, useRef } from "react";
-import { PageHeader } from "../components/page-header";
+import React, { useState } from "react";
 import {
-  BookmarkModal,
-  clearBookmarkCache,
-  type ModalType,
-} from "../components/bookmark-modal";
-import {
-  getAllBookmarksLight,
-  searchBookmarks,
+  getBookmarkFacets,
+  getBookmarksPage,
+  searchBookmarksPage,
+  type BookmarkFacets,
   type BookmarkLight,
   type SearchResult,
-} from "../../lib/supabase";
+} from "../../lib/bookmarks-api";
+import { BookmarkModal, type ModalType } from "../components/bookmark-modal";
 
-type Bookmark = BookmarkLight;
+type SortOption = "analyzed" | "published" | "rating" | "alpha";
+type Audience = "mcp" | "founder" | "investor";
 
-// Tag type helpers
-function hasTag(tags: string[] | undefined, tag: string): boolean {
-  return tags?.includes(tag) ?? false;
-}
+const PAGE_SIZE = 10;
 
-// Extract platform from URL for filtering
-const PLATFORM_PATTERNS: Record<string, RegExp> = {
-  github: /github\.com/i,
-  linkedin: /linkedin\.com/i,
-  twitter: /twitter\.com|x\.com/i,
-  youtube: /youtube\.com|youtu\.be/i,
-  instagram: /instagram\.com/i,
-  medium: /medium\.com/i,
-  substack: /substack\.com/i,
-  reddit: /reddit\.com/i,
-  hackernews: /news\.ycombinator\.com/i,
-  discord: /discord\.com|discord\.gg/i,
+const AUDIENCES: Record<Audience, { label: string; tag: string }> = {
+  mcp: { label: "MCP developers", tag: "persona:mcp_developer" },
+  founder: { label: "Founders", tag: "persona:startup_founder" },
+  investor: { label: "Investors", tag: "persona:vc_investor" },
 };
 
-function getPlatform(url: string): string | null {
-  for (const [platform, pattern] of Object.entries(PLATFORM_PATTERNS)) {
-    if (pattern.test(url)) return platform;
+function getHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
   }
-  return null;
 }
 
-const TRACK_CONFIG = {
-  mcp: { label: "MCP Developer", color: "#8b5cf6", icon: "🔌" },
-  founder: { label: "Startup Founder", color: "#f59300", icon: "🚀" },
-  investor: { label: "VC Investor", color: "#10b981", icon: "💰" },
-};
+function formatDate(value: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    year: "numeric",
+  }).format(date);
+}
 
-// Check if running in development mode (localhost)
-const isDev =
-  typeof window !== "undefined" &&
-  (window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1");
+function displayTag(tag: string): string {
+  return tag
+    .replace(/^(tech:|type:|category:|persona:)/, "")
+    .replaceAll("_", " ");
+}
 
-function StarRating({ stars }: { stars?: number | null }) {
-  if (!stars) return <span className="text-gray-400">—</span>;
+function Rating({ value }: { value: number | null }) {
+  if (!value) return <span className="bookmark-rating-empty">Not rated</span>;
   return (
-    <span title={`${stars}/5`}>
-      {"⭐".repeat(stars)}
-      <span className="opacity-30">{"☆".repeat(5 - stars)}</span>
+    <span className="bookmark-rating" aria-label={`${value} out of 5 stars`}>
+      <span aria-hidden="true">{"★".repeat(value)}</span>
+      <span className="bookmark-rating-max" aria-hidden="true">
+        {"★".repeat(5 - value)}
+      </span>
     </span>
   );
 }
 
+function FilterGroup({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: string[];
+  value: string | null;
+  onChange: (value: string | null) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? options : options.slice(0, 8);
+
+  if (options.length === 0) return null;
+
+  return (
+    <fieldset className="bookmark-filter-group">
+      <legend>{label}</legend>
+      <div className="bookmark-filter-options">
+        {visible.map((option) => {
+          const active = option === value;
+          return (
+            <button
+              key={option}
+              type="button"
+              className="bookmark-filter-option"
+              aria-pressed={active}
+              onClick={() => onChange(active ? null : option)}
+            >
+              {displayTag(option)}
+            </button>
+          );
+        })}
+        {options.length > 8 && (
+          <button
+            type="button"
+            className="bookmark-filter-more"
+            onClick={() => setExpanded((current) => !current)}
+          >
+            {expanded ? "Show fewer" : `Show ${options.length - 8} more`}
+          </button>
+        )}
+      </div>
+    </fieldset>
+  );
+}
+
 export function Bookmarks() {
-  const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkLight[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(0);
+  const [facets, setFacets] = useState<BookmarkFacets>({
+    total: 0,
+    average_rating: 0,
+    tags: [],
+    platforms: [],
+  });
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [trackFilter, setTrackFilter] = useState<
-    "mcp" | "founder" | "investor" | null
-  >(null);
-  const [techFilter, setTechFilter] = useState<string | null>(null);
-  const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<
-    "none" | "rating" | "alpha" | "published" | "analyzed"
-  >("analyzed");
-  const [starsFilter, setStarsFilter] = useState<number | null>(null);
-  const [platformFilter, setPlatformFilter] = useState<string | null>(null);
-  // Tag expansion states
-  const [showAllTechTags, setShowAllTechTags] = useState(false);
-  const [showAllTypeTags, setShowAllTypeTags] = useState(false);
-  const [showAllPlatforms, setShowAllPlatforms] = useState(false);
-  // Full-text search match type filter
-  const [matchTypeFilter, setMatchTypeFilter] = useState<
-    "all" | "content" | "research" | "insight"
-  >("all");
-  // Modal state
-  const [modalState, setModalState] = useState<{
-    url: string;
-    tab: ModalType;
-  } | null>(null);
-  // Selected row for keyboard navigation
-  const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
-  const filteredRef = useRef<Bookmark[]>([]);
-  // Search results from server-side search
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadAttempt, setLoadAttempt] = useState(0);
+  const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[] | null>(
     null,
   );
   const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [audience, setAudience] = useState<Audience | null>(null);
+  const [tech, setTech] = useState<string | null>(null);
+  const [contentType, setContentType] = useState<string | null>(null);
+  const [platform, setPlatform] = useState<string | null>(null);
+  const [minimumRating, setMinimumRating] = useState<number | null>(null);
+  const [sort, setSort] = useState<SortOption>("analyzed");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [modalState, setModalState] = useState<{
+    url: string;
+    tab: ModalType;
+  } | null>(null);
 
-  const openModal = (url: string, tab: ModalType = "dev") => {
-    setModalState({ url, tab });
-  };
+  const selectedTags = [
+    audience ? AUDIENCES[audience].tag : null,
+    tech,
+    contentType,
+  ].filter((tag): tag is string => Boolean(tag));
+  const selectedTagsKey = selectedTags.join("\u0000");
+  const technologyFacets = facets.tags.filter((tag) => tag.startsWith("tech:"));
+  const typeFacets = facets.tags.filter((tag) => tag.startsWith("type:"));
+  const apiSort = {
+    analyzed: "recent",
+    published: "published",
+    rating: "rating",
+    alpha: "title",
+  }[sort] as "recent" | "published" | "rating" | "title";
 
-  // Load bookmarks on mount
   React.useEffect(() => {
-    async function loadBookmarks() {
-      try {
-        // Load from Supabase (lightweight query)
-        const data = await getAllBookmarksLight();
-        setBookmarks(data);
-      } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    loadBookmarks();
-  }, []);
+    void loadAttempt;
+    const controller = new AbortController();
+    getBookmarkFacets({ signal: controller.signal })
+      .then(setFacets)
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("Bookmark facets failed", error);
+        }
+      });
+    return () => controller.abort();
+  }, [loadAttempt]);
 
-  // Full-text search with debounce
   React.useEffect(() => {
-    if (search.length < 3) {
-      setSearchResults(null);
-      return;
-    }
+    setPage(0);
+  }, [audience, contentType, minimumRating, platform, query, sort, tech]);
 
-    const debounce = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const results = await searchBookmarks(search);
-        setSearchResults(results);
-      } catch (err) {
-        console.error("Search failed:", err);
-        setSearchResults(null);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-
-    return () => clearTimeout(debounce);
-  }, [search]);
-
-  // Keyboard navigation
-  // biome-ignore lint/correctness/useExhaustiveDependencies: openModal is a stable function reference
   React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (modalState) return;
+    const trimmedQuery = query.trim();
+    const controller = new AbortController();
+    const delay = trimmedQuery.length >= 3 ? 250 : 0;
+    setLoading(page === 0);
+    setSearching(trimmedQuery.length >= 3);
+    setLoadError(null);
+    setSearchError(null);
 
-      const filtered = filteredRef.current;
-      if (filtered.length === 0) return;
+    const timeout = window.setTimeout(() => {
+      const options = {
+        signal: controller.signal,
+        limit: PAGE_SIZE,
+        offset: page * PAGE_SIZE,
+        tags: selectedTagsKey ? selectedTagsKey.split("\u0000") : [],
+        platform,
+        minStars: minimumRating,
+        sort: apiSort,
+      };
+      const request =
+        trimmedQuery.length >= 3
+          ? searchBookmarksPage(trimmedQuery, options)
+          : getBookmarksPage(options);
 
-      if (e.key === "ArrowDown" || e.key === "j") {
-        e.preventDefault();
-        setSelectedRowIndex((prev) => {
-          if (prev === null) return 0;
-          return Math.min(prev + 1, filtered.length - 1);
+      request
+        .then((result) => {
+          if ("results" in result) {
+            setSearchResults(result.results);
+            setBookmarks(result.results.map((entry) => entry.bookmark));
+          } else {
+            setSearchResults(null);
+            setBookmarks(result.bookmarks);
+          }
+          setTotal(result.total);
+          setSelectedIndex(null);
+        })
+        .catch((error: unknown) => {
+          if (error instanceof DOMException && error.name === "AbortError")
+            return;
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Bookmarks could not be loaded.";
+          if (trimmedQuery.length >= 3) setSearchError(message);
+          else setLoadError(message);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setLoading(false);
+            setSearching(false);
+          }
         });
-      } else if (e.key === "ArrowUp" || e.key === "k") {
-        e.preventDefault();
-        setSelectedRowIndex((prev) => {
-          if (prev === null) return 0;
-          return Math.max(prev - 1, 0);
-        });
-      } else if (e.key === "Enter" && selectedRowIndex !== null) {
-        const bookmark = filtered[selectedRowIndex];
-        if (bookmark) openModal(bookmark.url);
-      } else if (e.key === "Escape") {
-        setSelectedRowIndex(null);
-      }
+    }, delay);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
     };
+  }, [
+    apiSort,
+    loadAttempt,
+    minimumRating,
+    page,
+    platform,
+    query,
+    selectedTagsKey,
+  ]);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [modalState, selectedRowIndex]);
+  const filtered = bookmarks;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const firstVisible = total === 0 ? 0 : page * PAGE_SIZE + 1;
+  const lastVisible = Math.min(total, page * PAGE_SIZE + filtered.length);
 
-  // Close modal
-  const closeModal = () => {
-    setModalState(null);
+  React.useEffect(() => {
+    setSelectedIndex((current) => {
+      if (filtered.length === 0) return null;
+      if (current === null) return null;
+      return Math.min(current, filtered.length - 1);
+    });
+  }, [filtered.length]);
+
+  const activeFilterCount = [
+    audience,
+    tech,
+    contentType,
+    platform,
+    minimumRating,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setAudience(null);
+    setTech(null);
+    setContentType(null);
+    setPlatform(null);
+    setMinimumRating(null);
   };
 
-  // Get modal bookmark
+  const removeFilter = (filter: string) => {
+    if (filter === "audience") setAudience(null);
+    if (filter === "tech") setTech(null);
+    if (filter === "contentType") setContentType(null);
+    if (filter === "platform") setPlatform(null);
+    if (filter === "minimumRating") setMinimumRating(null);
+  };
+
+  const openModal = (bookmark: BookmarkLight, tab: ModalType = "dev") => {
+    setModalState({ url: bookmark.url, tab });
+  };
+
   const modalBookmark = modalState
-    ? bookmarks.find((b) => b.url === modalState.url)
+    ? bookmarks.find((bookmark) => bookmark.url === modalState.url) ||
+      filtered.find((bookmark) => bookmark.url === modalState.url)
     : null;
 
-  // Only show enriched bookmarks in public view
-  const enriched = bookmarks.filter((b) => b.classified_at);
+  const moveSelection = (nextIndex: number) => {
+    if (filtered.length === 0) return;
+    const boundedIndex = Math.max(0, Math.min(nextIndex, filtered.length - 1));
+    setSelectedIndex(boundedIndex);
+    document
+      .getElementById(`bookmark-row-${boundedIndex}`)
+      ?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  };
 
-  // Collect unique tags for filters
-  const allTags = enriched.flatMap((b) => b.tags || []);
-  const techTags = [...new Set(allTags.filter((t) => t.startsWith("tech:")))]
-    .map((t) => t.replace("tech:", ""))
-    .sort();
-  const typeTags = [...new Set(allTags.filter((t) => t.startsWith("type:")))]
-    .map((t) => t.replace("type:", ""))
-    .sort();
-  const platforms = [
-    ...new Set(enriched.map((b) => getPlatform(b.url)).filter(Boolean)),
-  ].sort() as string[];
-
-  // Apply filters and sorting
-  const baseList = searchResults
-    ? searchResults.map((r) => r.bookmark)
-    : enriched;
-
-  const filtered = baseList
-    .filter((b) => {
-      // Track filter
-      if (trackFilter === "mcp" && !hasTag(b.tags, "persona:mcp_developer"))
-        return false;
-      if (
-        trackFilter === "founder" &&
-        !hasTag(b.tags, "persona:startup_founder")
-      )
-        return false;
-      if (trackFilter === "investor" && !hasTag(b.tags, "persona:vc_investor"))
-        return false;
-      // Tech filter
-      if (techFilter && !hasTag(b.tags, `tech:${techFilter}`)) return false;
-      // Type filter
-      if (typeFilter && !hasTag(b.tags, `type:${typeFilter}`)) return false;
-      // Stars filter
-      if (starsFilter && (b.stars || 0) < starsFilter) return false;
-      // Platform filter
-      if (platformFilter && getPlatform(b.url) !== platformFilter) return false;
-      // Search (basic client-side for non-full-text)
-      if (search.length > 0 && search.length < 3) {
-        const q = search.toLowerCase();
-        if (
-          !b.title?.toLowerCase().includes(q) &&
-          !b.url.toLowerCase().includes(q) &&
-          !b.description?.toLowerCase().includes(q)
-        ) {
-          return false;
-        }
-      }
-      // Match type filter (for full-text search results)
-      if (searchResults && matchTypeFilter !== "all") {
-        const result = searchResults.find((r) => r.bookmark.url === b.url);
-        if (result) {
-          if (matchTypeFilter === "content" && !result.matches.content)
-            return false;
-          if (matchTypeFilter === "research" && !result.matches.research)
-            return false;
-          if (matchTypeFilter === "insight" && !result.matches.insight)
-            return false;
-        }
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === "alpha") {
-        return (a.title || "").localeCompare(b.title || "");
-      }
-      if (sortBy === "rating") {
-        return (b.stars || 0) - (a.stars || 0);
-      }
-      if (sortBy === "published") {
-        const aDate = a.published_at ? new Date(a.published_at).getTime() : 0;
-        const bDate = b.published_at ? new Date(b.published_at).getTime() : 0;
-        return bDate - aDate;
-      }
-      if (sortBy === "analyzed") {
-        const aDate = a.classified_at ? new Date(a.classified_at).getTime() : 0;
-        const bDate = b.classified_at ? new Date(b.classified_at).getTime() : 0;
-        return bDate - aDate;
-      }
-      return 0;
-    });
-
-  // Update ref for keyboard navigation
-  filteredRef.current = filtered;
-
-  // Limit tags shown in filter
-  const VISIBLE_TAG_LIMIT = 8;
-  const visibleTechTags = showAllTechTags
-    ? techTags
-    : techTags.slice(0, VISIBLE_TAG_LIMIT);
-  const visibleTypeTags = showAllTypeTags
-    ? typeTags
-    : typeTags.slice(0, VISIBLE_TAG_LIMIT);
-  const visiblePlatforms = showAllPlatforms
-    ? platforms
-    : platforms.slice(0, VISIBLE_TAG_LIMIT);
+  const handleListKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const key = event.key.toLowerCase();
+    const current = selectedIndex ?? -1;
+    if (key === "arrowdown" || key === "j") {
+      event.preventDefault();
+      moveSelection(current + 1);
+    } else if (key === "arrowup" || key === "k") {
+      event.preventDefault();
+      moveSelection(current <= 0 ? 0 : current - 1);
+    } else if (key === "enter" && selectedIndex !== null) {
+      event.preventDefault();
+      const bookmark = filtered[selectedIndex];
+      if (bookmark) openModal(bookmark);
+    } else if (key === "escape") {
+      setSelectedIndex(null);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="container py-16">
-        <div className="text-center" style={{ color: "var(--color-fg-muted)" }}>
-          Loading bookmarks...
+      <main className="container bookmarks-page" aria-busy="true">
+        <div className="bookmarks-loading-heading" />
+        <div className="bookmarks-loading-search" />
+        <div className="bookmarks-loading-rows">
+          {[0, 1, 2, 3].map((row) => (
+            <div key={row} className="bookmarks-loading-row" />
+          ))}
         </div>
-      </div>
+        <span className="sr-only">Loading bookmarks</span>
+      </main>
     );
   }
 
-  if (error) {
+  if (loadError) {
     return (
-      <div className="container py-16">
-        <div className="text-center text-red-500">Error: {error}</div>
-      </div>
+      <main className="container bookmarks-page">
+        <section className="bookmarks-state" role="alert">
+          <h1>Bookmarks are unavailable</h1>
+          <p>{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setLoadAttempt((value) => value + 1)}
+          >
+            Try again
+          </button>
+        </section>
+      </main>
     );
   }
 
   return (
-    <div className="container py-8">
-      <div className="flex items-center justify-between">
-        <PageHeader
-          title="Bookmarks"
-          subtitle={`${enriched.length} curated links`}
-        />
-        {isDev && (
-          <a
-            href="/bookmarks/edit"
-            className="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: "var(--color-accent)",
-              color: "#fff",
+    <main className="container bookmarks-page">
+      <header className="bookmarks-intro">
+        <h1>Bookmarks</h1>
+        <p>
+          A researched library of useful writing, tools, and ideas for building
+          with AI.
+        </p>
+        <div className="bookmarks-stats" aria-label="Library statistics">
+          <span>{facets.total} links</span>
+          <span>{technologyFacets.length} technologies</span>
+          {facets.average_rating > 0 && (
+            <span>{facets.average_rating.toFixed(1)} average rating</span>
+          )}
+        </div>
+      </header>
+
+      <section className="bookmarks-discovery" aria-label="Find bookmarks">
+        <label className="bookmark-search">
+          <span className="sr-only">Search bookmarks</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="m16 16 4 4" />
+          </svg>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search titles, topics, research, and notes"
+            autoComplete="off"
+          />
+          {searching && (
+            <span className="bookmark-search-status">Searching…</span>
+          )}
+        </label>
+
+        <div className="bookmarks-toolbar">
+          <details className="bookmark-filters">
+            <summary>
+              Filters
+              {activeFilterCount > 0 && (
+                <span aria-label={`${activeFilterCount} active filters`}>
+                  {activeFilterCount}
+                </span>
+              )}
+            </summary>
+            <div className="bookmark-filter-panel">
+              <fieldset className="bookmark-filter-group">
+                <legend>Audience</legend>
+                <div className="bookmark-filter-options">
+                  {(
+                    Object.entries(AUDIENCES) as [
+                      Audience,
+                      (typeof AUDIENCES)[Audience],
+                    ][]
+                  ).map(([key, item]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      className="bookmark-filter-option"
+                      aria-pressed={audience === key}
+                      onClick={() => setAudience(audience === key ? null : key)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+              <FilterGroup
+                label="Technology"
+                options={technologyFacets}
+                value={tech}
+                onChange={setTech}
+              />
+              <FilterGroup
+                label="Format"
+                options={typeFacets}
+                value={contentType}
+                onChange={setContentType}
+              />
+              <FilterGroup
+                label="Source"
+                options={facets.platforms}
+                value={platform}
+                onChange={setPlatform}
+              />
+              <fieldset className="bookmark-filter-group">
+                <legend>Minimum rating</legend>
+                <div className="bookmark-filter-options">
+                  {[3, 4, 5].map((rating) => (
+                    <button
+                      key={rating}
+                      type="button"
+                      className="bookmark-filter-option"
+                      aria-pressed={minimumRating === rating}
+                      onClick={() =>
+                        setMinimumRating(
+                          minimumRating === rating ? null : rating,
+                        )
+                      }
+                    >
+                      {rating}+ stars
+                    </button>
+                  ))}
+                </div>
+              </fieldset>
+            </div>
+          </details>
+
+          <label className="bookmark-sort">
+            <span>Sort by</span>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as SortOption)}
+            >
+              <option value="analyzed">Recently analyzed</option>
+              <option value="published">Recently published</option>
+              <option value="rating">Highest rated</option>
+              <option value="alpha">Title A–Z</option>
+            </select>
+          </label>
+        </div>
+
+        {activeFilterCount > 0 && (
+          <div className="bookmark-active-filters" aria-label="Active filters">
+            <span>Filtered by</span>
+            {audience && (
+              <button type="button" onClick={() => removeFilter("audience")}>
+                {AUDIENCES[audience].label} <span aria-hidden="true">×</span>
+              </button>
+            )}
+            {tech && (
+              <button type="button" onClick={() => removeFilter("tech")}>
+                {displayTag(tech)} <span aria-hidden="true">×</span>
+              </button>
+            )}
+            {contentType && (
+              <button type="button" onClick={() => removeFilter("contentType")}>
+                {displayTag(contentType)} <span aria-hidden="true">×</span>
+              </button>
+            )}
+            {platform && (
+              <button type="button" onClick={() => removeFilter("platform")}>
+                {platform} <span aria-hidden="true">×</span>
+              </button>
+            )}
+            {minimumRating && (
+              <button
+                type="button"
+                onClick={() => removeFilter("minimumRating")}
+              >
+                {minimumRating}+ stars <span aria-hidden="true">×</span>
+              </button>
+            )}
+            <button
+              type="button"
+              className="bookmark-clear"
+              onClick={clearFilters}
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+
+        <div className="bookmark-results-meta" aria-live="polite">
+          <span>
+            Showing {firstVisible}–{lastVisible} of {total} bookmarks
+            {query.trim() ? ` for “${query.trim()}”` : ""}
+          </span>
+          <button
+            type="button"
+            className="bookmark-keyboard-hint"
+            onKeyDown={handleListKeyDown}
+            onFocus={() => {
+              if (selectedIndex === null && filtered.length > 0)
+                setSelectedIndex(0);
             }}
           >
-            ✏️ Edit
-          </a>
+            Keyboard: ↑ ↓ or J K; Enter opens notes
+          </button>
+        </div>
+        {searchError && (
+          <output className="bookmark-inline-error">
+            Full-text search is temporarily unavailable. Try again shortly.
+          </output>
         )}
-      </div>
+      </section>
 
-      {/* Filters Section */}
-      <div
-        className="p-4 rounded-xl mb-6"
-        style={{
-          backgroundColor: "var(--color-bg-secondary)",
-          border: "1px solid var(--color-border)",
-        }}
-      >
-        {/* Search */}
-        <div className="mb-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search bookmarks... (3+ chars for full-text)"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg text-sm"
-              style={{
-                backgroundColor: "var(--color-bg)",
-                border: "1px solid var(--color-border)",
-                color: "var(--color-fg)",
-              }}
-            />
-            {searching && (
-              <span
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs"
-                style={{ color: "var(--color-fg-muted)" }}
-              >
-                Searching...
-              </span>
-            )}
-          </div>
+      {filtered.length > 0 ? (
+        <>
+          <ul className="bookmark-list" aria-label="Bookmarks">
+            {filtered.map((bookmark, index) => {
+              const selected = index === selectedIndex;
+              const published = formatDate(bookmark.published_at);
+              const analyzed = formatDate(bookmark.classified_at);
+              const result = searchResults?.find(
+                (candidate) => candidate.bookmark.url === bookmark.url,
+              );
 
-          {/* Match type filter (only when search results are present) */}
-          {searchResults && (
-            <div className="flex gap-2 mt-2">
-              {(["all", "content", "research", "insight"] as const).map(
-                (type) => (
+              return (
+                <li
+                  id={`bookmark-row-${index}`}
+                  key={bookmark.url}
+                  className="bookmark-row"
+                  data-selected={selected}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                >
                   <button
-                    key={type}
                     type="button"
-                    onClick={() => setMatchTypeFilter(type)}
-                    className="px-2 py-1 rounded text-xs transition-colors"
-                    style={{
-                      backgroundColor:
-                        matchTypeFilter === type
-                          ? "var(--color-accent)"
-                          : "var(--color-bg)",
-                      color:
-                        matchTypeFilter === type
-                          ? "#fff"
-                          : "var(--color-fg-muted)",
-                      border: "1px solid var(--color-border)",
-                    }}
+                    className="bookmark-row-main"
+                    onClick={() => openModal(bookmark)}
+                    aria-label={`Open notes for ${bookmark.title || bookmark.url}`}
                   >
-                    {type === "all"
-                      ? "All matches"
-                      : type === "content"
-                        ? "📄 Content"
-                        : type === "research"
-                          ? "🔬 Research"
-                          : "💡 Insights"}
-                  </button>
-                ),
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Track filter */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            Track:
-          </span>
-          {(["mcp", "founder", "investor"] as const).map((track) => {
-            const config = TRACK_CONFIG[track];
-            const isActive = trackFilter === track;
-            return (
-              <button
-                key={track}
-                type="button"
-                onClick={() => setTrackFilter(isActive ? null : track)}
-                className="px-2 py-1 rounded text-xs transition-colors"
-                style={{
-                  backgroundColor: isActive ? config.color : "var(--color-bg)",
-                  color: isActive ? "#fff" : "var(--color-fg-muted)",
-                  border: `1px solid ${isActive ? config.color : "var(--color-border)"}`,
-                }}
-              >
-                {config.icon} {config.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Tech tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            Tech:
-          </span>
-          {visibleTechTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => setTechFilter(techFilter === tag ? null : tag)}
-              className="px-2 py-0.5 rounded text-xs transition-colors"
-              style={{
-                backgroundColor:
-                  techFilter === tag
-                    ? "var(--color-accent)"
-                    : "var(--color-bg)",
-                color: techFilter === tag ? "#fff" : "var(--color-fg-muted)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              {tag}
-            </button>
-          ))}
-          {techTags.length > VISIBLE_TAG_LIMIT && (
-            <button
-              type="button"
-              onClick={() => setShowAllTechTags(!showAllTechTags)}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{ color: "var(--color-accent)" }}
-            >
-              {showAllTechTags
-                ? "Less"
-                : `+${techTags.length - VISIBLE_TAG_LIMIT} more`}
-            </button>
-          )}
-        </div>
-
-        {/* Type tags */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            Type:
-          </span>
-          {visibleTypeTags.map((tag) => (
-            <button
-              key={tag}
-              type="button"
-              onClick={() => setTypeFilter(typeFilter === tag ? null : tag)}
-              className="px-2 py-0.5 rounded text-xs transition-colors"
-              style={{
-                backgroundColor:
-                  typeFilter === tag
-                    ? "var(--color-accent)"
-                    : "var(--color-bg)",
-                color: typeFilter === tag ? "#fff" : "var(--color-fg-muted)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              {tag}
-            </button>
-          ))}
-          {typeTags.length > VISIBLE_TAG_LIMIT && (
-            <button
-              type="button"
-              onClick={() => setShowAllTypeTags(!showAllTypeTags)}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{ color: "var(--color-accent)" }}
-            >
-              {showAllTypeTags
-                ? "Less"
-                : `+${typeTags.length - VISIBLE_TAG_LIMIT} more`}
-            </button>
-          )}
-        </div>
-
-        {/* Platform filter */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          <span
-            className="text-xs font-medium"
-            style={{ color: "var(--color-fg-muted)" }}
-          >
-            Platform:
-          </span>
-          {visiblePlatforms.map((platform) => (
-            <button
-              key={platform}
-              type="button"
-              onClick={() =>
-                setPlatformFilter(platformFilter === platform ? null : platform)
-              }
-              className="px-2 py-0.5 rounded text-xs transition-colors"
-              style={{
-                backgroundColor:
-                  platformFilter === platform
-                    ? "var(--color-accent)"
-                    : "var(--color-bg)",
-                color:
-                  platformFilter === platform
-                    ? "#fff"
-                    : "var(--color-fg-muted)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              {platform}
-            </button>
-          ))}
-          {platforms.length > VISIBLE_TAG_LIMIT && (
-            <button
-              type="button"
-              onClick={() => setShowAllPlatforms(!showAllPlatforms)}
-              className="px-2 py-0.5 rounded text-xs"
-              style={{ color: "var(--color-accent)" }}
-            >
-              {showAllPlatforms
-                ? "Less"
-                : `+${platforms.length - VISIBLE_TAG_LIMIT} more`}
-            </button>
-          )}
-        </div>
-
-        {/* Stars filter + Sort */}
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <span
-              className="text-xs font-medium"
-              style={{ color: "var(--color-fg-muted)" }}
-            >
-              Min Stars:
-            </span>
-            {[1, 2, 3, 4, 5].map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setStarsFilter(starsFilter === s ? null : s)}
-                className="transition-opacity"
-                style={{ opacity: starsFilter === s ? 1 : 0.4 }}
-              >
-                {"⭐".repeat(s)}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span
-              className="text-xs font-medium"
-              style={{ color: "var(--color-fg-muted)" }}
-            >
-              Sort:
-            </span>
-            {(
-              ["analyzed", "published", "rating", "alpha", "none"] as const
-            ).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setSortBy(s)}
-                className="px-2 py-0.5 rounded text-xs transition-colors"
-                style={{
-                  backgroundColor:
-                    sortBy === s ? "var(--color-accent)" : "var(--color-bg)",
-                  color: sortBy === s ? "#fff" : "var(--color-fg-muted)",
-                  border: "1px solid var(--color-border)",
-                }}
-                title={
-                  {
-                    analyzed: "Sort by date analyzed",
-                    published: "Sort by publish date",
-                    rating: "Sort by rating",
-                    alpha: "Sort alphabetically",
-                    none: "Default order",
-                  }[s]
-                }
-              >
-                {
-                  {
-                    analyzed: "🔬",
-                    published: "📅",
-                    rating: "⭐",
-                    alpha: "🔤",
-                    none: "—",
-                  }[s]
-                }
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Results count */}
-      <div className="mb-4 text-sm" style={{ color: "var(--color-fg-muted)" }}>
-        Showing {filtered.length} of {enriched.length} bookmarks
-        {search && searchResults && ` (search: "${search}")`}
-      </div>
-
-      {/* Bookmarks Table */}
-      <div
-        className="rounded-xl overflow-hidden"
-        style={{
-          backgroundColor: "var(--color-bg-secondary)",
-          border: "1px solid var(--color-border)",
-        }}
-      >
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr
-                className="text-left text-xs"
-                style={{
-                  backgroundColor: "var(--color-bg)",
-                  color: "var(--color-fg-muted)",
-                }}
-              >
-                <th className="p-3 w-12">Icon</th>
-                <th className="p-3">Title</th>
-                <th className="p-3 w-24">Rating</th>
-                <th className="p-3 w-40">Insights</th>
-                <th className="p-3 w-28">Published</th>
-                <th className="p-3 w-28">Analyzed</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((bookmark, idx) => {
-                const isSelected = selectedRowIndex === idx;
-                return (
-                  <tr
-                    key={bookmark.url}
-                    className="border-t transition-colors cursor-pointer"
-                    style={{
-                      borderColor: "var(--color-border)",
-                      backgroundColor: isSelected
-                        ? "var(--color-bg)"
-                        : "transparent",
-                    }}
-                    onClick={() => openModal(bookmark.url)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") openModal(bookmark.url);
-                    }}
-                    onMouseEnter={() => setSelectedRowIndex(idx)}
-                  >
-                    <td className="p-3 text-center text-xl">
-                      {bookmark.icon || "🔗"}
-                    </td>
-                    <td className="p-3">
-                      <div
-                        className="font-medium truncate max-w-md"
-                        style={{ color: "var(--color-fg)" }}
-                        title={bookmark.title || bookmark.url}
-                      >
-                        {bookmark.title || bookmark.url}
-                      </div>
-                      <div
-                        className="text-xs truncate max-w-md"
-                        style={{ color: "var(--color-fg-muted)" }}
-                      >
-                        {bookmark.description || new URL(bookmark.url).hostname}
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <StarRating stars={bookmark.stars} />
-                    </td>
-                    <td className="p-3">
-                      {bookmark.classified_at ? (
-                        <div className="flex gap-1">
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(bookmark.url, "dev");
-                            }}
-                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
-                            style={{
-                              backgroundColor: `${TRACK_CONFIG.mcp.color}20`,
-                              color: TRACK_CONFIG.mcp.color,
-                            }}
-                            title="Dev Insight"
-                          >
-                            {TRACK_CONFIG.mcp.icon}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(bookmark.url, "founder");
-                            }}
-                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
-                            style={{
-                              backgroundColor: `${TRACK_CONFIG.founder.color}20`,
-                              color: TRACK_CONFIG.founder.color,
-                            }}
-                            title="Founder Insight"
-                          >
-                            {TRACK_CONFIG.founder.icon}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(bookmark.url, "investor");
-                            }}
-                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
-                            style={{
-                              backgroundColor: `${TRACK_CONFIG.investor.color}20`,
-                              color: TRACK_CONFIG.investor.color,
-                            }}
-                            title="Investor Insight"
-                          >
-                            {TRACK_CONFIG.investor.icon}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(bookmark.url, "research");
-                            }}
-                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
-                            style={{
-                              backgroundColor: "#3b82f620",
-                              color: "#3b82f6",
-                            }}
-                            title="Research"
-                          >
-                            🔬
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openModal(bookmark.url, "exa");
-                            }}
-                            className="px-1.5 py-0.5 rounded text-xs transition-transform cursor-pointer hover:scale-110"
-                            style={{
-                              backgroundColor: "#06b6d420",
-                              color: "#06b6d4",
-                            }}
-                            title="Page Content"
-                          >
-                            🌐
-                          </button>
-                        </div>
-                      ) : (
-                        <span className="text-gray-500 text-xs">—</span>
+                    <span className="bookmark-row-source">
+                      {getHostname(bookmark.url)}
+                    </span>
+                    <span className="bookmark-row-title">
+                      {bookmark.title || bookmark.url}
+                    </span>
+                    {bookmark.description && (
+                      <span className="bookmark-row-description">
+                        {bookmark.description}
+                      </span>
+                    )}
+                    <span className="bookmark-row-tags">
+                      {bookmark.tags
+                        .filter(
+                          (tag) =>
+                            tag.startsWith("tech:") || tag.startsWith("type:"),
+                        )
+                        .slice(0, 3)
+                        .map((tag) => (
+                          <span key={tag}>{displayTag(tag)}</span>
+                        ))}
+                      {result && (
+                        <>
+                          {result.matches.research && (
+                            <span>research match</span>
+                          )}
+                          {result.matches.insight && <span>notes match</span>}
+                          {result.matches.content && <span>content match</span>}
+                        </>
                       )}
-                    </td>
-                    <td
-                      className="p-3 text-xs"
-                      style={{ color: "var(--color-fg-muted)" }}
+                    </span>
+                  </button>
+                  <div className="bookmark-row-aside">
+                    <Rating value={bookmark.stars} />
+                    <span className="bookmark-row-date">
+                      {published
+                        ? `Published ${published}`
+                        : analyzed
+                          ? `Analyzed ${analyzed}`
+                          : ""}
+                    </span>
+                    <a
+                      href={bookmark.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`Open ${bookmark.title || bookmark.url} in a new tab`}
                     >
-                      {bookmark.published_at
-                        ? new Date(bookmark.published_at).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    <td
-                      className="p-3 text-xs"
-                      style={{ color: "var(--color-fg-muted)" }}
-                    >
-                      {bookmark.classified_at
-                        ? new Date(bookmark.classified_at).toLocaleDateString()
-                        : "—"}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <p style={{ color: "var(--color-fg-muted)" }}>
-            No bookmarks match your filters
-          </p>
-        </div>
-      )}
-
-      {/* Stats */}
-      {enriched.length > 0 && (
-        <div
-          className="mt-6 p-4 rounded-lg grid grid-cols-2 md:grid-cols-4 gap-4"
-          style={{
-            backgroundColor: "var(--color-bg-secondary)",
-            border: "1px solid var(--color-border)",
-          }}
-        >
-          <div>
-            <div
-              className="text-2xl font-bold"
-              style={{ color: "var(--color-fg)" }}
+                      Visit source <span aria-hidden="true">↗</span>
+                    </a>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <nav className="bookmark-pagination" aria-label="Bookmark pages">
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setPage((current) => Math.max(0, current - 1))}
             >
-              {(
-                enriched.reduce((sum, b) => sum + (b.stars || 0), 0) /
-                enriched.length
-              ).toFixed(1)}
-              ⭐
-            </div>
-            <div className="text-xs" style={{ color: "var(--color-fg-muted)" }}>
-              Avg Rating
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold" style={{ color: "#8b5cf6" }}>
-              {
-                enriched.filter((b) => hasTag(b.tags, "persona:mcp_developer"))
-                  .length
+              ← Previous
+            </button>
+            <span>
+              Page {page + 1} of {totalPages}
+            </span>
+            <button
+              type="button"
+              disabled={page + 1 >= totalPages}
+              onClick={() =>
+                setPage((current) => Math.min(totalPages - 1, current + 1))
               }
-            </div>
-            <div className="text-xs" style={{ color: "var(--color-fg-muted)" }}>
-              MCP Developer
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold" style={{ color: "#f59300" }}>
-              {
-                enriched.filter((b) =>
-                  hasTag(b.tags, "persona:startup_founder"),
-                ).length
-              }
-            </div>
-            <div className="text-xs" style={{ color: "var(--color-fg-muted)" }}>
-              Startup Founder
-            </div>
-          </div>
-          <div>
-            <div className="text-2xl font-bold" style={{ color: "#10b981" }}>
-              {
-                enriched.filter((b) => hasTag(b.tags, "persona:vc_investor"))
-                  .length
-              }
-            </div>
-            <div className="text-xs" style={{ color: "var(--color-fg-muted)" }}>
-              VC Investor
-            </div>
-          </div>
-        </div>
+            >
+              Next →
+            </button>
+          </nav>
+        </>
+      ) : (
+        <section className="bookmarks-state bookmarks-empty">
+          <h2>No bookmarks found</h2>
+          <p>Try a broader search or remove one of the active filters.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              clearFilters();
+            }}
+          >
+            Reset search and filters
+          </button>
+        </section>
       )}
 
-      {/* Bookmark Modal */}
       {modalBookmark && modalState && (
         <BookmarkModal
-          bookmark={{
-            url: modalBookmark.url,
-            title: modalBookmark.title,
-            icon: modalBookmark.icon,
-            published_at: modalBookmark.published_at,
-            classified_at: modalBookmark.classified_at,
-            tags: modalBookmark.tags,
-          }}
+          bookmark={modalBookmark}
           initialTab={modalState.tab}
-          onClose={closeModal}
+          onClose={() => setModalState(null)}
           onNavigateBookmark={(direction) => {
-            const list = filteredRef.current;
-            const currentIdx = list.findIndex(
-              (b) => b.url === modalBookmark.url,
+            const currentIndex = filtered.findIndex(
+              (bookmark) => bookmark.url === modalBookmark.url,
             );
-            if (direction === "next") {
-              const nextIdx = currentIdx + 1;
-              const nextBookmark = list[nextIdx];
-              if (nextIdx < list.length && nextBookmark) {
-                setSelectedRowIndex(nextIdx);
-                setModalState({ url: nextBookmark.url, tab: modalState.tab });
-              }
-            } else {
-              const prevIdx = currentIdx - 1;
-              const prevBookmark = list[prevIdx];
-              if (prevIdx >= 0 && prevBookmark) {
-                setSelectedRowIndex(prevIdx);
-                setModalState({ url: prevBookmark.url, tab: modalState.tab });
-              }
-            }
+            const nextIndex =
+              direction === "next" ? currentIndex + 1 : currentIndex - 1;
+            const nextBookmark = filtered[nextIndex];
+            if (!nextBookmark) return;
+            setSelectedIndex(nextIndex);
+            setModalState({ url: nextBookmark.url, tab: modalState.tab });
           }}
           canNavigatePrev={
-            filteredRef.current.findIndex((b) => b.url === modalBookmark.url) >
-            0
+            filtered.findIndex(
+              (bookmark) => bookmark.url === modalBookmark.url,
+            ) > 0
           }
           canNavigateNext={
-            filteredRef.current.findIndex((b) => b.url === modalBookmark.url) <
-            filteredRef.current.length - 1
+            filtered.findIndex(
+              (bookmark) => bookmark.url === modalBookmark.url,
+            ) <
+            filtered.length - 1
           }
         />
       )}
-
-      {/* Clear cache link */}
-      <div className="text-center py-6 mt-8">
-        <button
-          type="button"
-          onClick={() => {
-            clearBookmarkCache();
-            window.location.reload();
-          }}
-          className="text-xs opacity-30 hover:opacity-60 transition-opacity cursor-pointer"
-          style={{ color: "var(--color-fg-muted)" }}
-        >
-          Clear cached bookmarks
-        </button>
-      </div>
-    </div>
+    </main>
   );
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { BookmarksView, isBookmarkTool } from "./bookmarks/BookmarksView";
 import { useMcp } from "./mcp";
 
 type JsonRecord = Record<string, unknown>;
@@ -9,6 +10,7 @@ const NAV_ITEMS = [
   { label: "Projects", tool: "GET_PORTFOLIO" },
   { label: "Goals", tool: "LIST_GOALS" },
   { label: "Inbox", tool: "GET_INBOX" },
+  { label: "Bookmarks", tool: "LIST_ALL_BOOKMARKS" },
   { label: "Memory", tool: "RECALL_MEMORY" },
 ] as const;
 
@@ -16,6 +18,7 @@ export function App() {
   const { connected, loading, toolName, toolResult, error, callTool } =
     useMcp();
   const initialized = useRef(false);
+  const bookmarksActive = isBookmarkTool(toolName);
 
   useEffect(() => {
     if (!connected || initialized.current) return;
@@ -25,7 +28,7 @@ export function App() {
   }, [callTool, connected, toolName]);
 
   return (
-    <main className="shell">
+    <main className={`shell ${bookmarksActive ? "bookmarks-shell" : ""}`}>
       <header className="topbar">
         <p className="os-label">VibeGui OS</p>
         <span className={`connection ${connected ? "online" : ""}`}>
@@ -38,7 +41,12 @@ export function App() {
           <button
             type="button"
             key={item.tool}
-            className={toolName === item.tool ? "active" : ""}
+            className={
+              toolName === item.tool ||
+              (item.tool === "LIST_ALL_BOOKMARKS" && bookmarksActive)
+                ? "active"
+                : ""
+            }
             onClick={() => void callTool(item.tool)}
           >
             {item.label}
@@ -47,15 +55,13 @@ export function App() {
       </nav>
 
       <section className="content" aria-live="polite">
-        {loading && <Loading />}
-        {error && <div className="error">{error}</div>}
-        {!loading && !error && (
-          <ResultView
-            toolName={toolName}
-            result={asRecord(toolResult)}
-            callTool={callTool}
-          />
-        )}
+        <ResultView
+          toolName={toolName}
+          result={asRecord(toolResult)}
+          callTool={callTool}
+          loading={loading}
+          error={error}
+        />
       </section>
     </main>
   );
@@ -65,11 +71,28 @@ function ResultView({
   toolName,
   result,
   callTool,
+  loading,
+  error,
 }: {
   toolName?: string;
   result: JsonRecord;
   callTool: <T>(name: string, args?: Record<string, unknown>) => Promise<T>;
+  loading: boolean;
+  error?: string;
 }) {
+  if (isBookmarkTool(toolName) || Array.isArray(result.bookmarks)) {
+    return (
+      <BookmarksView
+        activeTool={toolName}
+        result={result}
+        loading={loading}
+        error={error}
+        callTool={callTool}
+      />
+    );
+  }
+  if (loading) return <Loading />;
+  if (error) return <div className="error">{error}</div>;
   if (toolName === "SITES_OVERVIEW" || Array.isArray(result.sites)) {
     return <AnalyticsView result={result} callTool={callTool} />;
   }

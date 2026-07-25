@@ -13,6 +13,7 @@ import { ThemeToggle } from "./theme-toggle";
 
 const NAV_LINKS = [
   { href: "/", label: "Writing" },
+  { href: "/bookmarks", label: "Bookmarks" },
   { href: "/context", label: "Library" },
   { href: "/commitment", label: "About" },
 ];

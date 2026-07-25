@@ -39,9 +39,13 @@ This works because:
    - Copies public assets
 
 3. **Finalize** (`scripts/finalize.ts`)
-   - Copies manifest + bookmarks to `dist/`
+   - Copies generated manifests and public assets to `dist/`
    - Processes SSG HTML (injects prod asset tags)
    - Embeds manifest into `index.html` (no fetch needed)
+
+The bookmarks page fetches its read-only data at runtime from
+`https://mcp.vibegui.com`; Cloudflare Pages does not need bookmark database
+credentials.
 
 ## Cloudflare Pages Settings
 

@@ -2,7 +2,7 @@
 
 > Guilherme Rodrigues' Personal AI OS, public ideas, and AI-curated library.
 
-A minimal, high-performance public site plus one copyable MCP that becomes a persistent personal agent in deco Studio. Articles are Markdown files in the repo; published Markdown is mirrored to R2 only for AutoRAG. Bookmarks are stored in Supabase; private projects, goals, memory, decisions, captures, and daily briefs live in D1.
+A minimal, high-performance public site plus one copyable MCP that becomes a persistent personal agent in deco Studio. Articles are Markdown files in the repo; published Markdown is mirrored to R2 only for AutoRAG. Public bookmarks are served by the Worker API; private projects, goals, memory, decisions, captures, and daily briefs live in D1.
 
 **Live at [vibegui.com](https://vibegui.com)**
 
@@ -76,7 +76,9 @@ For authoring assistance, use the `/article:*` skills (see `AGENTS.md`).
 
 ### Bookmarks
 
-Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in the Vite dev server. The `/bookmarks` page supports filtering by persona, tech, type, platform, and rating.
+The `/bookmarks` page reads the public, read-only API at
+`https://mcp.vibegui.com`. Bookmark administration lives in the MCP App rather
+than the public site.
 
 ---
 
@@ -86,9 +88,9 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CONTENT SOURCES                              │
 │                                                                  │
-│   blog/articles/*.md          Supabase (PostgreSQL)              │
-│   ├── Source of truth         └── 400+ curated bookmarks         │
-│   └── YAML frontmatter + md       (read-only via anon key)       │
+│   blog/articles/*.md          Public Worker API                  │
+│   ├── Source of truth         └── Curated bookmarks              │
+│   └── YAML frontmatter + md       (read-only HTTP endpoints)     │
 └───────────────────────────┬──────────────────────────────────────┘
                             │
                             ▼
@@ -119,7 +121,7 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 │            FINALIZE (scripts/finalize.ts)                         │
 │                                                                  │
 │   Post-processing (no database needed):                          │
-│   • Copy manifest, bookmarks to dist/                            │
+│   • Copy generated manifests and public assets to dist/          │
 │   • Process SSG HTML (inject prod assets)                        │
 │   • Embed manifest directly into index.html                      │
 └───────────────────────────┬──────────────────────────────────────┘
@@ -145,7 +147,7 @@ Bookmarks are stored in **Supabase** (PostgreSQL) and managed via MCP tools in t
 | Frontend | React 19, Vite, Tailwind CSS v4 |
 | Articles | Markdown files in `blog/articles/`, committed to the repo |
 | Article retrieval | Published Markdown mirror in R2 + Cloudflare AI Search |
-| Bookmarks | Supabase (PostgreSQL) via MCP Mesh |
+| Bookmarks | Public Worker API + MCP App administration |
 | Personal AI OS | Cloudflare Worker, D1, MCP App |
 | Testing | Playwright (E2E), Bun test (unit/constraints) |
 | Deployment | Cloudflare Pages + Worker |
@@ -187,7 +189,7 @@ vibegui.com/
 ├── lib/
 │   ├── articles.ts            # Markdown parser (frontmatter + body)
 │   ├── articles-reader.ts     # Zero-dep parser used by Cloudflare Pages build
-│   └── supabase.ts            # Supabase client (bookmarks only)
+│   └── bookmarks-api.ts       # Public read-only bookmarks client
 │
 ├── scripts/
 │   ├── build.ts               # Unified build script (dev/prod/pages)
@@ -221,7 +223,7 @@ vibegui.com/
 │
 ├── dist/                      # Build output (assets versioned in git)
 │
-├── vite.config.ts             # Vite + dev API endpoints + article watcher
+├── vite.config.ts             # Vite SSG support + article watcher
 ├── lefthook.yml               # Git hooks (stage dist + articles)
 └── package.json
 ```

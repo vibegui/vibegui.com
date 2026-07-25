@@ -1,6 +1,10 @@
 import bundledHtml from "../dist/web/index.html";
 import type { AccessLevel } from "./env.ts";
-import { ANALYTICS_RESOURCE, PERSONAL_AI_OS_RESOURCE } from "./tools.ts";
+import {
+  ANALYTICS_RESOURCE,
+  BOOKMARKS_RESOURCE,
+  PERSONAL_AI_OS_RESOURCE,
+} from "./tools.ts";
 
 export const MCP_APP_MIME = "text/html;profile=mcp-app";
 
@@ -12,6 +16,13 @@ export interface ResourceDefinition {
 }
 
 const resources: ResourceDefinition[] = [
+  {
+    uri: BOOKMARKS_RESOURCE,
+    name: "VibeGUI Bookmarks",
+    description:
+      "Private bookmark workspace for creation, editing, deletion, and enrichment.",
+    access: "private",
+  },
   {
     uri: PERSONAL_AI_OS_RESOURCE,
     name: "VibeGui Personal AI OS",
@@ -43,12 +54,17 @@ export function readResource(
   );
   if (!resource) return null;
   const html = bundledHtml as unknown as string;
+  const bootTool =
+    uri === ANALYTICS_RESOURCE
+      ? "SITES_OVERVIEW"
+      : uri === BOOKMARKS_RESOURCE
+        ? "LIST_ALL_BOOKMARKS"
+        : null;
   return {
     resource,
     // the same single-file app, told which view to boot into
-    body:
-      uri === ANALYTICS_RESOURCE
-        ? `${html}<script>window.__BOOT_TOOL__="SITES_OVERVIEW";</script>`
-        : html,
+    body: bootTool
+      ? `${html}<script>window.__BOOT_TOOL__='${bootTool}';</script>`
+      : html,
   };
 }

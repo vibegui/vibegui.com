@@ -12,6 +12,8 @@
     "test": "bun test",
     "corpus:upload": "bun scripts/upload-corpus.ts",
     "corpus:upload:remote": "bun scripts/upload-corpus.ts --remote",
+    "bookmarks:import": "bun scripts/import-bookmarks.ts --local",
+    "bookmarks:import:remote": "bun scripts/import-bookmarks.ts --remote",
     "deploy:dry": "bun run build && wrangler deploy --dry-run",
     "deploy": "bun run build && wrangler deploy"
   },
