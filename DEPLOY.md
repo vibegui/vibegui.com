@@ -15,8 +15,10 @@ node --experimental-strip-types scripts/build.ts --mode=pages
 This works because:
 1. **Node 22** is available on Cloudflare (with experimental TypeScript support)
 2. **Vite assets are pre-committed** in `dist/` (built locally before push)
-3. **Articles are markdown files** in `blog/articles/` (committed to git)
-4. **No npm install needed** (`SKIP_DEPENDENCY_INSTALL=true` in Cloudflare settings)
+3. **Articles are Markdown or MDX files** in `blog/articles/` (committed to git)
+4. **The content compiler is pre-bundled** as
+   `scripts/generate.bundle.mjs`, including MDX support
+5. **No npm install needed** (`SKIP_DEPENDENCY_INSTALL=true` in Cloudflare settings)
 
 ### Build Modes
 

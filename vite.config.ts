@@ -165,7 +165,7 @@ function articleWatcherPlugin() {
         articlesDir,
         { persistent: false, recursive: true },
         (_eventType, filename) => {
-          if (!filename?.endsWith(".md")) return;
+          if (!filename?.endsWith(".md") && !filename?.endsWith(".mdx")) return;
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(runExport, 300);
         },

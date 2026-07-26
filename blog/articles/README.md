@@ -1,6 +1,6 @@
 # blog/articles/
 
-These Markdown files are the canonical source of truth for articles.
+These Markdown and MDX files are the canonical source of truth for articles.
 
 ## Edit directly
 
@@ -10,7 +10,9 @@ for retrieval, but the committed file remains canonical.
 
 ## Workflow
 
-1. Create or edit `blog/articles/{slug}.md`.
+1. Create or edit `blog/articles/{slug}.md`. Use `.mdx` when an article needs
+   JSX-driven visual storytelling, and set `layout: story` for the wide
+   immersive layout.
 2. Run `bun run build`.
 3. Run `bun run preview` to verify locally.
 4. Commit and push after review to publish through Cloudflare Pages.

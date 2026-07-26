@@ -18,6 +18,8 @@ export interface Article {
   title: string;
   description: string;
   content: string;
+  format: "md" | "mdx";
+  layout: "prose" | "story";
   date: string;
   status: "draft" | "published";
   coverImage: string | null;
@@ -35,8 +37,8 @@ function parseFrontmatter(fileContent: string): {
     return { data: {}, content: fileContent };
   }
 
-  const yamlBlock = match[1];
-  const content = match[2];
+  const yamlBlock = match[1] ?? "";
+  const content = match[2] ?? "";
   const data: Record<string, unknown> = {};
 
   let currentKey = "";
@@ -62,10 +64,11 @@ function parseFrontmatter(fileContent: string): {
     if (!kvMatch) continue;
 
     const key = kvMatch[1];
-    const rawValue = kvMatch[2].trim();
+    const rawValue = kvMatch[2]?.trim();
+    if (!key || rawValue === undefined) continue;
 
     // Empty value followed by array items
-    if (rawValue === "" || rawValue === undefined) {
+    if (rawValue === "") {
       currentKey = key;
       inArray = true;
       continue;
@@ -116,6 +119,8 @@ export function readArticle(filePath: string): Article | null {
     title: String(data.title || ""),
     description: String(data.description || ""),
     content: content.trim(),
+    format: filePath.endsWith(".mdx") ? "mdx" : "md",
+    layout: data.layout === "story" ? "story" : "prose",
     date: String(data.date || ""),
     status: data.status === "draft" ? "draft" : "published",
     coverImage: data.coverImage != null ? String(data.coverImage) : null,
@@ -132,7 +137,10 @@ export function readAllArticles(articlesDir: string): Article[] {
   const files = readdirSync(articlesDir);
 
   for (const file of files) {
-    if (!file.endsWith(".md") || file === "README.md") {
+    if (
+      (!file.endsWith(".md") && !file.endsWith(".mdx")) ||
+      file === "README.md"
+    ) {
       continue;
     }
 

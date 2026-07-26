@@ -36,6 +36,7 @@ export const ArticleFrontmatterSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   status: z.enum(["published", "draft"]),
   coverImage: z.string().nullable(),
+  layout: z.enum(["prose", "story"]).optional(),
   tags: z
     .array(z.union([z.string(), z.number()]).transform((v) => String(v)))
     .nullable(),
@@ -68,6 +69,7 @@ const CANONICAL_KEY_ORDER = [
   "date",
   "status",
   "coverImage",
+  "layout",
   "tags",
 ] as const;
 
@@ -103,6 +105,8 @@ export interface Article {
   title: string;
   description: string;
   content: string;
+  format: "md" | "mdx";
+  layout: "prose" | "story";
   date: string;
   status: "draft" | "published";
   coverImage: string | null;
@@ -128,6 +132,8 @@ export function readArticle(filePath: string): Article | null {
     title: frontmatter.title,
     description: frontmatter.description,
     content: content.trim(),
+    format: filePath.endsWith(".mdx") ? "mdx" : "md",
+    layout: frontmatter.layout ?? "prose",
     date: frontmatter.date,
     status: frontmatter.status,
     coverImage: frontmatter.coverImage,
@@ -147,7 +153,10 @@ export function readAllArticles(articlesDir: string): Article[] {
   const files = readdirSync(articlesDir);
 
   for (const file of files) {
-    if (!file.endsWith(".md") || file === "README.md") {
+    if (
+      (!file.endsWith(".md") && !file.endsWith(".mdx")) ||
+      file === "README.md"
+    ) {
       continue;
     }
 

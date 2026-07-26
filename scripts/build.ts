@@ -10,7 +10,7 @@
  * The three modes:
  *   dev   - Local development with hot reload
  *   prod  - Full production build (requires bun/vite)
- *   pages - Cloudflare Pages build (Node.js only, no deps)
+ *   pages - Cloudflare Pages build (Node.js + bundled content compiler)
  */
 
 import { spawn } from "node:child_process";
@@ -56,12 +56,24 @@ function run(
  */
 async function generate() {
   console.log("\n📚 Generating content...\n");
-  // Use node for pages mode (no bun on Cloudflare), bun otherwise
+  // Cloudflare skips dependency installation, so it runs the compiler bundle
+  // generated and committed by the local production build.
   if (mode === "pages") {
-    await run("node", ["--experimental-strip-types", "scripts/generate.ts"]);
+    await run("node", ["scripts/generate.bundle.mjs"]);
   } else {
     await run("bun", ["scripts/generate.ts"]);
   }
+}
+
+async function bundleContentCompiler() {
+  console.log("\n📦 Bundling content compiler for Cloudflare...\n");
+  await run("bun", [
+    "build",
+    "scripts/generate.ts",
+    "--target=node",
+    "--minify",
+    "--outfile=scripts/generate.bundle.mjs",
+  ]);
 }
 
 /**
@@ -105,6 +117,7 @@ async function main() {
       break;
 
     case "prod":
+      await bundleContentCompiler();
       await generate();
       await viteBuild();
       await finalize();

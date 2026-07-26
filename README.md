@@ -53,7 +53,10 @@ bun run mcp:dev
 
 ### Articles
 
-Markdown files in `blog/articles/` are the source of truth. Edit, commit, push — Cloudflare Pages builds and deploys. There is no parallel database for articles.
+Markdown and MDX files in `blog/articles/` are the source of truth. Edit,
+commit, push — Cloudflare Pages builds and deploys. MDX is compiled locally
+into the committed zero-install content compiler. There is no parallel
+database for articles.
 
 **Workflow:**
 1. Edit (or create) `blog/articles/{slug}.md`.
@@ -187,8 +190,9 @@ vibegui.com/
 │       └── ...
 │
 ├── lib/
-│   ├── articles.ts            # Markdown parser (frontmatter + body)
+│   ├── articles.ts            # Markdown/MDX parser (frontmatter + body)
 │   ├── articles-reader.ts     # Zero-dep parser used by Cloudflare Pages build
+│   ├── mdx-renderer.ts        # Build-time MDX → inert HTML renderer
 │   └── bookmarks-api.ts       # Public read-only bookmarks client
 │
 ├── scripts/

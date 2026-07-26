@@ -7,7 +7,13 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "ignore": ["dist", "node_modules", "*.md"]
+    "ignore": [
+      "dist",
+      "node_modules",
+      "*.md",
+      "*.mdx",
+      "scripts/generate.bundle.mjs"
+    ]
   },
   "formatter": {
     "enabled": true,

@@ -18,7 +18,9 @@ import {
 } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { marked } from "marked";
 import { getAllContent, type Article } from "../lib/articles-reader.ts";
+import { renderMdx } from "../lib/mdx-renderer.ts";
 import { generateIrene } from "./generate-irene.ts";
 import { generateMalvados } from "./generate-malvados.ts";
 
@@ -44,6 +46,10 @@ mkdirSync(ARTICLE_DIR, { recursive: true });
 mkdirSync(CONTEXT_DIR, { recursive: true });
 
 const ARTICLES_DIR = join(PROJECT_ROOT, "blog/articles");
+const STORY_CSS = readFileSync(
+  join(PROJECT_ROOT, "src/styles/story.css"),
+  "utf-8",
+);
 const allArticles = getAllContent(ARTICLES_DIR);
 
 // Filter drafts in production
@@ -79,7 +85,22 @@ function escapeHtml(str: string): string {
     .replace(/'/g, "&#039;");
 }
 
-function generateArticleHtml(article: Article): string {
+function articleBody(article: Article): string {
+  return article.content.trim().replace(/^#\s+.+\n+/, "");
+}
+
+async function renderArticle(article: Article): Promise<string> {
+  const body = articleBody(article);
+  const html =
+    article.format === "mdx"
+      ? await renderMdx(body)
+      : (marked(body, { async: false }) as string);
+  return article.layout === "story"
+    ? `<style>${STORY_CSS}</style>${html}`
+    : html;
+}
+
+function generateArticleHtml(article: Article, html: string): string {
   const title = `${article.title} | vibegui`;
   const description =
     article.description ||
@@ -93,7 +114,8 @@ function generateArticleHtml(article: Article): string {
     slug: article.slug,
     title: article.title,
     description: article.description,
-    content: article.content,
+    html,
+    layout: article.layout,
     date: article.date,
     status: article.status,
     tags: article.tags,
@@ -160,7 +182,11 @@ function generateArticleHtml(article: Article): string {
 for (const article of articles) {
   const articleDir = join(ARTICLE_DIR, article.slug);
   mkdirSync(articleDir, { recursive: true });
-  writeFileSync(join(articleDir, "index.html"), generateArticleHtml(article));
+  const html = await renderArticle(article);
+  writeFileSync(
+    join(articleDir, "index.html"),
+    generateArticleHtml(article, html),
+  );
 }
 
 // Extract first meaningful paragraph from markdown for SEO description

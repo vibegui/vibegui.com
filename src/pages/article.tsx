@@ -7,14 +7,15 @@
  */
 
 import { Link } from "../app";
-import { marked } from "marked";
+import { useEffect, useRef } from "react";
 
 interface ArticleData {
   slug: string;
   title: string;
   date: string;
   description?: string;
-  content: string;
+  html: string;
+  layout?: "prose" | "story";
   tags?: string[];
   status: "draft" | "published";
   coverImage?: string;
@@ -45,6 +46,68 @@ function formatDate(dateStr: string): string {
 export function Article({ slug }: { slug: string }) {
   // Read embedded data from SSG HTML
   const article = getEmbeddedArticle();
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const root = contentRef.current;
+    if (!root) return;
+
+    const input = root.querySelector<HTMLInputElement>("[data-contract-value]");
+    const contractOutput = root.querySelector<HTMLOutputElement>(
+      "[data-contract-output]",
+    );
+    const customerOutput = root.querySelector<HTMLOutputElement>(
+      "[data-customer-output]",
+    );
+    const customerNoun = root.querySelector<HTMLElement>(
+      "[data-customer-noun]",
+    );
+    const targetMrr = 100_000_000 / 5 / 12;
+    const money = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    });
+
+    const updateCalculator = () => {
+      if (!input || !contractOutput || !customerOutput) return;
+      const contract = Number(input.value);
+      const customers = Math.ceil(targetMrr / contract);
+      contractOutput.value = money.format(contract);
+      customerOutput.value = customers.toLocaleString("en-US");
+      if (customerNoun) {
+        customerNoun.textContent = customers === 1 ? "customer" : "customers";
+      }
+    };
+
+    updateCalculator();
+    input?.addEventListener("input", updateCalculator);
+
+    const animated = root.querySelectorAll<HTMLElement>("[data-story-animate]");
+    let observer: IntersectionObserver | undefined;
+    if (
+      animated.length > 0 &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      root.classList.add("story-enhanced");
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            (entry.target as HTMLElement).classList.add("is-visible");
+            observer?.unobserve(entry.target);
+          }
+        },
+        { threshold: 0.2 },
+      );
+      for (const element of animated) observer.observe(element);
+    }
+
+    return () => {
+      input?.removeEventListener("input", updateCalculator);
+      observer?.disconnect();
+    };
+  }, [article?.slug]);
 
   // No embedded data - article not found or wrong slug
   if (!article || article.slug !== slug) {
@@ -63,14 +126,10 @@ export function Article({ slug }: { slug: string }) {
     );
   }
 
-  // Render markdown to HTML, removing the first H1 if it matches the title
-  let bodyContent = article.content.trim();
-  // Remove leading H1 that duplicates the frontmatter title
-  bodyContent = bodyContent.replace(/^#\s+.+\n+/, "");
-  const htmlContent = marked(bodyContent, { async: false }) as string;
+  const isStory = article.layout === "story";
 
   return (
-    <article className="container py-4">
+    <article className={`container py-4${isStory ? " story-article" : ""}`}>
       {/* Draft badge */}
       {article.status === "draft" && (
         <div
@@ -92,7 +151,7 @@ export function Article({ slug }: { slug: string }) {
       )}
 
       {/* Constrain all content to prose width */}
-      <div className="prose">
+      <div className={`prose${isStory ? " story-prose" : ""}`}>
         <header className="mt-4 mb-8">
           <time
             dateTime={article.date}
@@ -102,8 +161,8 @@ export function Article({ slug }: { slug: string }) {
             {formatDate(article.date)}
           </time>
           <h1
-            className="mt-6 text-3xl md:text-4xl font-bold"
-            style={{ marginBlock: "0.5em" }}
+            className={`mt-6 text-3xl md:text-4xl ${isStory ? "font-medium" : "font-bold"}`}
+            style={{ marginBlock: isStory ? "0.35em 0.5em" : "0.5em" }}
           >
             {article.title}
           </h1>
@@ -122,7 +181,7 @@ export function Article({ slug }: { slug: string }) {
                   key={tag}
                   className="text-xs px-2 py-1 rounded-full"
                   style={{
-                    backgroundColor: "var(--color-bg-tertiary)",
+                    backgroundColor: "var(--color-bg-secondary)",
                     color: "var(--color-fg-muted)",
                   }}
                 >
@@ -133,8 +192,11 @@ export function Article({ slug }: { slug: string }) {
           )}
         </header>
 
-        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted markdown content */}
-        <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+        {/* biome-ignore lint/security/noDangerouslySetInnerHtml: trusted repository content compiled at build time */}
+        <div
+          ref={contentRef}
+          dangerouslySetInnerHTML={{ __html: article.html }}
+        />
       </div>
     </article>
   );
