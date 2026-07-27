@@ -110,10 +110,10 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
 
     const animated = root.querySelectorAll<HTMLElement>("[data-story-animate]");
     let observer: IntersectionObserver | undefined;
-    if (
-      animated.length > 0 &&
-      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    ) {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (animated.length > 0 && !reduceMotion) {
       root.classList.add("story-enhanced");
       observer = new IntersectionObserver(
         (entries) => {
@@ -128,9 +128,57 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
       for (const element of animated) observer.observe(element);
     }
 
+    const flywheel = root.querySelector<HTMLElement>(".story-flywheel-orbit");
+    const comet = flywheel?.querySelector<HTMLElement>(".story-flywheel-comet");
+    const nodes = flywheel
+      ? [...flywheel.querySelectorAll<HTMLElement>(".story-flywheel-node")]
+      : [];
+    let frame = 0;
+
+    const updateFlywheelHighlights = () => {
+      if (!flywheel || !comet || nodes.length === 0) return;
+
+      const anim = comet.getAnimations()[0];
+      const progress =
+        (
+          anim?.effect?.getComputedTiming() as
+            | { progress?: number | null }
+            | undefined
+        )?.progress ?? 0;
+      const angle = progress * Math.PI * 2;
+      const orbit = flywheel.getBoundingClientRect();
+      const radius = orbit.width * 0.38;
+      const ballX = orbit.left + orbit.width / 2 + Math.sin(angle) * radius;
+      const ballY = orbit.top + orbit.height / 2 - Math.cos(angle) * radius;
+      const pad = 8;
+
+      for (const node of nodes) {
+        const box = node.getBoundingClientRect();
+        const hit =
+          ballX >= box.left - pad &&
+          ballX <= box.right + pad &&
+          ballY >= box.top - pad &&
+          ballY <= box.bottom + pad;
+        node.classList.toggle("is-active", hit);
+      }
+    };
+
+    const tickFlywheel = () => {
+      updateFlywheelHighlights();
+      frame = window.requestAnimationFrame(tickFlywheel);
+    };
+
+    if (flywheel && comet && nodes.length > 0 && !reduceMotion) {
+      frame = window.requestAnimationFrame(tickFlywheel);
+    } else if (nodes[0]) {
+      nodes[0].classList.add("is-active");
+    }
+
     return () => {
       input?.removeEventListener("input", updateCalculator);
       observer?.disconnect();
+      if (frame) window.cancelAnimationFrame(frame);
+      for (const node of nodes) node.classList.remove("is-active");
     };
   }, [article?.slug, locale]);
 

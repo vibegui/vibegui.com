@@ -155,7 +155,12 @@ Um profissional excepcional com IA deveria conseguir produzir o que vinte profis
 
 <figure className="story-flywheel" aria-labelledby="flywheel-caption">
   <div className="story-flywheel-orbit">
-    <div className="story-flywheel-center"><strong>Sistema do serviço</strong><span>decisões viram processo</span></div>
+    <div className="story-flywheel-glow" aria-hidden="true" />
+    <svg className="story-flywheel-ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle className="story-flywheel-ring-soft" cx="50" cy="50" r="38" />
+      <circle className="story-flywheel-ring-track" cx="50" cy="50" r="38" />
+    </svg>
+    <i className="story-flywheel-comet" aria-hidden="true" />
     {[
       ["01", "Especialista decide"],
       ["02", "Agentes executam"],
@@ -166,7 +171,10 @@ Um profissional excepcional com IA deveria conseguir produzir o que vinte profis
         <b>{number}</b><span>{label}</span>
       </div>
     ))}
-    <i className="story-flywheel-comet" aria-hidden="true" />
+    <div className="story-flywheel-center">
+      <strong>Sistema Operacional de IA</strong>
+      <span>decisões viram processo</span>
+    </div>
   </div>
   <figcaption id="flywheel-caption">A cada entrega, o processo fica mais bem documentado e automatizado.</figcaption>
 </figure>

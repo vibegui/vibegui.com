@@ -155,7 +155,12 @@ One extraordinary professional with AI should be able to produce what twenty ave
 
 <figure className="story-flywheel" aria-labelledby="flywheel-caption">
   <div className="story-flywheel-orbit">
-    <div className="story-flywheel-center"><strong>Service OS</strong><span>judgment becomes reusable</span></div>
+    <div className="story-flywheel-glow" aria-hidden="true" />
+    <svg className="story-flywheel-ring" viewBox="0 0 100 100" aria-hidden="true">
+      <circle className="story-flywheel-ring-soft" cx="50" cy="50" r="38" />
+      <circle className="story-flywheel-ring-track" cx="50" cy="50" r="38" />
+    </svg>
+    <i className="story-flywheel-comet" aria-hidden="true" />
     {[
       ["01", "Expert decides"],
       ["02", "Agents execute"],
@@ -166,7 +171,10 @@ One extraordinary professional with AI should be able to produce what twenty ave
         <b>{number}</b><span>{label}</span>
       </div>
     ))}
-    <i className="story-flywheel-comet" aria-hidden="true" />
+    <div className="story-flywheel-center">
+      <strong>AI Operating System</strong>
+      <span>judgment becomes reusable</span>
+    </div>
   </div>
   <figcaption id="flywheel-caption">Every delivery leaves the company smarter than the last one.</figcaption>
 </figure>
