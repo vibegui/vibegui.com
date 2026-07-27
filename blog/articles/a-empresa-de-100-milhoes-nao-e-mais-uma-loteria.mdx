@@ -15,7 +15,7 @@ tags:
   - services
   - startups
 ---
-O jogo das startups não é mais uma loteria. Dá para construir uma empresa de R$500 milhões com 100% de certeza.
+O jogo das startups não é mais uma loteria. Dá para construir uma empresa de <span data-ambition="exitLong">R$500 milhões</span> com 100% de certeza.
 
 Falar isso parece até irresponsável, mas agora existe um modelo previsível.
 
@@ -24,9 +24,9 @@ Escolha um serviço que as empresas já terceirizam por algo entre R$15.000 e R$
 <div className="story-thesis" role="img" aria-label="Vinte e quatro meses de execução podem produzir noventa milhões de reais em receita recorrente anual e uma empresa de quinhentos milhões de reais com um múltiplo de cinco vírgula cinco vezes a receita.">
   <div><strong>24</strong><span>meses</span></div>
   <b aria-hidden="true">→</b>
-  <div><strong>R$90M</strong><span>ARR</span></div>
+  <div><strong data-ambition="arrCompact">R$90M</strong><span>ARR</span></div>
   <b aria-hidden="true">5,5x</b>
-  <div><strong>R$500M</strong><span>empresa</span></div>
+  <div><strong data-ambition="exitCompact">R$500M</strong><span>empresa</span></div>
 </div>
 
 O modelo tradicional diz que quase todas as startups fracassam, algumas sobrevivem e uma única vencedora global paga a conta do fundo inteiro. Esse modelo fazia sentido quando o jogo era inventar uma categoria de software e conquistar o mundo antes que outra pessoa fizesse isso.
@@ -37,26 +37,32 @@ Você só precisa substituir a empresa que faz isso hoje.
 
 ## A conta é simples
 
-Vamos assumir que uma empresa com R$90 milhões de receita recorrente anual possa ser vendida por 5,5 vezes sua receita.
+Vamos assumir que uma empresa com <span data-ambition="arrLong">R$90 milhões</span> de receita recorrente anual possa ser vendida por 5,5 vezes sua receita.
 
-Essa é uma empresa de R$500 milhões.
+Essa é uma empresa de <span data-ambition="exitLong">R$500 milhões</span>.
 
-R$90 milhões de ARR significam R$7,5 milhões de receita recorrente mensal.
+<span data-ambition="arrLong">R$90 milhões</span> de ARR significam <span data-ambition="mrrLong">R$7,5 milhões</span> de receita recorrente mensal.
 
 <figure className="story-waterfall" aria-labelledby="waterfall-caption">
   <div className="story-waterfall-line">
-    <span>Valor de saída</span>
-    <strong>R$500M</strong>
+    <div className="story-ambition">
+      <span>Quero vender a empresa em 24 meses por…</span>
+      <strong data-ambition="exitCompact">R$500M</strong>
+      <label className="story-ambition-control">
+        <span>Escolha sua ambição</span>
+        <input data-ambition-slider type="range" min="10" max="100" step="5" defaultValue="100" />
+      </label>
+    </div>
   </div>
   <div className="story-waterfall-operator">÷ múltiplo de 5,5x a receita</div>
   <div className="story-waterfall-line">
     <span>Receita necessária</span>
-    <strong>R$90M ARR</strong>
+    <strong data-ambition="arrCompactLabel">R$90M ARR</strong>
   </div>
   <div className="story-waterfall-operator">÷ 12 meses</div>
   <div className="story-waterfall-line story-waterfall-result">
     <span>A meta mensal</span>
-    <strong>R$7,5M MRR</strong>
+    <strong data-ambition="mrrCompactLabel">R$7,5M MRR</strong>
   </div>
   <figcaption id="waterfall-caption">O múltiplo de valuation é uma premissa. A meta de receita é matemática.</figcaption>
 </figure>
@@ -65,12 +71,12 @@ Existem pelo menos dois caminhos para chegar lá:
 
 <div className="story-two-paths">
   <div>
-    <strong>500</strong>
+    <strong data-ambition="smbCustomers">500</strong>
     <p>clientes pagando em média <b>R$15.000/mês</b></p>
   </div>
   <span>ou</span>
   <div>
-    <strong>50</strong>
+    <strong data-ambition="entCustomers">50</strong>
     <p>clientes pagando em média <b>R$150.000/mês</b></p>
   </div>
 </div>
@@ -134,7 +140,9 @@ Depois, dê a cada um a capacidade que antes exigia uma equipe inteira.
 <figure className="story-capacity" aria-labelledby="capacity-caption">
   <div className="story-capacity-before">
     <span>Serviço tradicional</span>
-    <div aria-label="Vinte pessoas">{Array.from({ length: 20 }, (_, index) => <i key={index} />)}</div>
+    <div className="story-capacity-grid" aria-label="Vinte pessoas">
+      {Array.from({ length: 20 }, (_, index) => <i key={index} style={{ "--i": index }} />)}
+    </div>
   </div>
   <div className="story-capacity-transfer" aria-hidden="true">
     <b>inteligência de processo</b>
@@ -142,7 +150,16 @@ Depois, dê a cada um a capacidade que antes exigia uma equipe inteira.
   </div>
   <div className="story-capacity-after">
     <span>Serviço nativo de IA</span>
-    <div><i /><strong>especialista</strong><em>capacidade da IA</em></div>
+    <div className="story-capacity-core">
+      <svg className="story-capacity-ring" viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="story-capacity-ring-track" cx="50" cy="50" r="40" />
+      </svg>
+      <i className="story-capacity-comet" aria-hidden="true" />
+      <div className="story-capacity-expert">
+        <strong>especialista</strong>
+        <em>capacidade da IA</em>
+      </div>
+    </div>
   </div>
   <figcaption id="capacity-caption">O ser humano não desaparece. O melhor profissional passa a entregar muito mais.</figcaption>
 </figure>
@@ -183,7 +200,7 @@ Um profissional excepcional com IA deveria conseguir produzir o que vinte profis
 
 Nos primeiros seis meses, o crescimento não vai lembrar uma startup de software.
 
-Você precisa de dois a vinte clientes. Oito bastam para a matemática.
+Você precisa de dois a vinte clientes. <span data-ambition="growthStart">8</span> bastam para a matemática.
 
 No início, seus especialistas ainda farão trabalho manual demais. Ótimo. É assim que você aprende o que merece virar um ciclo agêntico, onde a aprovação humana é essencial, qual contexto muda a resposta e como o cliente pode adotar o serviço sem reorganizar a empresa inteira em torno da sua tecnologia.
 
@@ -199,23 +216,23 @@ Até o sexto mês, você precisa de:
 
 Quando isso é verdade, está na hora de mudar a curva e acelerar as vendas.
 
-Comece com oito clientes e cresça 3x, 3x, 2x e 2x nos quatro trimestres seguintes:
+Comece com <span data-ambition="growthStart">8</span> clientes e cresça 3x, 3x, 2x e 2x nos quatro trimestres seguintes:
 
 <figure className="story-growth" aria-labelledby="growth-caption">
   <ol>
     {[
-      { month: 6, customers: 8, growth: "aprender" },
-      { month: 9, customers: 24, growth: "3x" },
-      { month: 12, customers: 72, growth: "3x" },
-      { month: 15, customers: 144, growth: "2x" },
-      { month: 18, customers: 288, growth: "2x" },
-      { month: 24, customers: 500, growth: "1,74x" },
+      { month: 6, customers: 8, growth: "aprender", stage: 0 },
+      { month: 9, customers: 24, growth: "3x", stage: 1 },
+      { month: 12, customers: 72, growth: "3x", stage: 2 },
+      { month: 15, customers: 144, growth: "2x", stage: 3 },
+      { month: 18, customers: 288, growth: "2x", stage: 4 },
+      { month: 24, customers: 500, growth: "1,74x", stage: 5 },
     ].map((stage) => (
       <li key={stage.month}>
-        <div className="story-growth-label"><span>Mês {stage.month}</span><b>{stage.growth}</b></div>
-        <div className="story-growth-track" style={{ "--bar": `${(stage.customers / 500) * 100}%` }}>
+        <div className="story-growth-label"><span>Mês {stage.month}</span><b data-ambition="growthMultiple" data-stage={stage.stage}>{stage.growth}</b></div>
+        <div className="story-growth-track" data-ambition="growthBar" data-stage={stage.stage} style={{ "--bar": `${(stage.customers / 500) * 100}%` }}>
           <i data-story-animate />
-          <strong>{stage.customers}</strong>
+          <strong data-ambition="growthCustomers" data-stage={stage.stage}>{stage.customers}</strong>
         </div>
       </li>
     ))}
@@ -225,16 +242,16 @@ Comece com oito clientes e cresça 3x, 3x, 2x e 2x nos quatro trimestres seguint
 
 Agora você está no mês 18.
 
-Restam seis meses para sair de 288 clientes e chegar a 500. Isso representa 74% de crescimento total em dois trimestres. É difícil, mas muito menos agressivo do que o que você já fez.
+Restam seis meses para sair de <span data-ambition="month18Customers">288</span> clientes e chegar a <span data-ambition="smbCustomers">500</span>. Isso representa <span data-ambition="finalGrowthPct">74%</span> de crescimento total em dois trimestres. É difícil, mas muito menos agressivo do que o que você já fez.
 
-Com um valor médio de R$15.000 por mês, 500 clientes colocam você em R$90 milhões de ARR.
+Com um valor médio de R$15.000 por mês, <span data-ambition="smbCustomers">500</span> clientes colocam você em <span data-ambition="arrLong">R$90 milhões</span> de ARR.
 
-A versão enterprise segue a mesma lógica com contratos maiores e em menor quantidade. Cinquenta clientes pagando R$150.000 por mês produzem o mesmo resultado.
+A versão enterprise segue a mesma lógica com contratos maiores e em menor quantidade. <span data-ambition="entCustomers">50</span> clientes pagando R$150.000 por mês produzem o mesmo resultado.
 
 <section className="story-calculator" aria-labelledby="calculator-title" data-revenue-calculator>
   <div>
     <h3 id="calculator-title">Escolha seu contrato</h3>
-    <p>A meta continua fixa em R$7,5M de MRR. Mude o valor do contrato e veja quantos clientes serão necessários.</p>
+    <p>A meta continua fixa em <span data-ambition="mrrCompact">R$7,5M</span> de MRR. Mude o valor do contrato e veja quantos clientes serão necessários.</p>
   </div>
   <label>
     <span>Valor médio do contrato mensal</span>
@@ -294,7 +311,7 @@ Serviços continuam dependendo de gente. Confiança é local. Língua é local. 
   <div className="story-local-shift" aria-hidden="true">→</div>
   <div className="story-local-network">
     {["Brasil", "México", "Indonésia", "Nigéria", "Europa", "Índia"].map((market) => (
-      <div key={market}><i /><strong>R$500M</strong><span>{market}</span></div>
+      <div key={market}><i /><strong data-ambition="exitCompact">R$500M</strong><span>{market}</span></div>
     ))}
   </div>
   <figcaption id="local-caption">A mesma estratégia pode ser repetida porque os setores de serviços já existem em todo lugar.</figcaption>
@@ -302,7 +319,7 @@ Serviços continuam dependendo de gente. Confiança é local. Língua é local. 
 
 O Brasil já tem escritórios de contabilidade, agências, recrutadores, corretores, consultorias e empresas de terceirização recebendo esses orçamentos. O México também. A Indonésia também. O mesmo vale para qualquer país com uma economia relevante.
 
-Cada setor local de serviços pode produzir mais de uma empresa de R$500 milhões operada com IA. Sem depender de um único vencedor global.
+Cada setor local de serviços pode produzir mais de uma empresa de <span data-ambition="exitLong">R$500 milhões</span> operada com IA. Sem depender de um único vencedor global.
 
 Pela primeira vez em muito tempo, um founder fora das regiões globais que ditam tendências não precisa vencer uma categoria mundial de software para construir algo relevante e escalável.
 
@@ -325,5 +342,5 @@ Estamos transformando o conhecimento das melhores pessoas dessa indústria no si
 
 <aside className="story-methodology">
   <strong>Uma observação sobre os números</strong>
-  <p>Esta é uma tese operacional, não uma recomendação de investimento. O valuation de R$500M considera um múltiplo de 5,5x sobre R$90M de ARR. Múltiplos e resultados de aquisições variam no mundo real. A comparação de 1:6 entre software e serviços vem de “Services: The New Software”, da Sequoia Capital. Todos os outros gráficos mostram as premissas deste ensaio.</p>
+  <p>Esta é uma tese operacional, não uma recomendação de investimento. O valuation de <span data-ambition="exitCompact">R$500M</span> considera um múltiplo de 5,5x sobre <span data-ambition="arrCompact">R$90M</span> de ARR. Múltiplos e resultados de aquisições variam no mundo real. A comparação de 1:6 entre software e serviços vem de “Services: The New Software”, da Sequoia Capital. Todos os outros gráficos mostram as premissas deste ensaio.</p>
 </aside>

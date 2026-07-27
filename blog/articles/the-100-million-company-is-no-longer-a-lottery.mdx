@@ -15,7 +15,7 @@ tags:
   - services
   - startups
 ---
-The startup game is no longer a lottery. You can build a $100 million company with 100% certainty.
+The startup game is no longer a lottery. You can build a <span data-ambition="exitLong">$100 million</span> company with 100% certainty.
 
 That sounds almost irresponsible, but there is now a predictable model.
 
@@ -24,9 +24,9 @@ Choose a service that companies already outsource for between $3,000 and $30,000
 <div className="story-thesis" role="img" aria-label="Twenty-four months of execution can produce eighteen million dollars in annual recurring revenue and a one hundred million dollar company at a five-point-five-times revenue multiple.">
   <div><strong>24</strong><span>months</span></div>
   <b aria-hidden="true">→</b>
-  <div><strong>$18M</strong><span>ARR</span></div>
+  <div><strong data-ambition="arrCompact">$18M</strong><span>ARR</span></div>
   <b aria-hidden="true">5.5×</b>
-  <div><strong>$100M</strong><span>company</span></div>
+  <div><strong data-ambition="exitCompact">$100M</strong><span>company</span></div>
 </div>
 
 Startup outcomes are supposed to follow power laws. Most companies fail, a few survive, and one global category winner returns the fund. That model made sense when the game was to invent a software category and capture the world before someone else did.
@@ -37,26 +37,32 @@ You only need to replace the company doing it.
 
 ## The arithmetic is simple
 
-Assume a company producing $18 million in annual recurring revenue can be sold for 5.5 times revenue.
+Assume a company producing <span data-ambition="arrLong">$18 million</span> in annual recurring revenue can be sold for 5.5 times revenue.
 
-That is a $100 million company.
+That is a <span data-ambition="exitLong">$100 million</span> company.
 
-$18 million ARR means $1.5 million in monthly recurring revenue.
+<span data-ambition="arrLong">$18 million</span> ARR means <span data-ambition="mrrLong">$1.5 million</span> in monthly recurring revenue.
 
 <figure className="story-waterfall" aria-labelledby="waterfall-caption">
   <div className="story-waterfall-line">
-    <span>Exit value</span>
-    <strong>$100M</strong>
+    <div className="story-ambition">
+      <span>I want to sell the company in 24 months for…</span>
+      <strong data-ambition="exitCompact">$100M</strong>
+      <label className="story-ambition-control">
+        <span>Choose your ambition</span>
+        <input data-ambition-slider type="range" min="10" max="100" step="5" defaultValue="100" />
+      </label>
+    </div>
   </div>
   <div className="story-waterfall-operator">÷ 5.5× revenue multiple</div>
   <div className="story-waterfall-line">
     <span>Revenue required</span>
-    <strong>$18M ARR</strong>
+    <strong data-ambition="arrCompactLabel">$18M ARR</strong>
   </div>
   <div className="story-waterfall-operator">÷ 12 months</div>
   <div className="story-waterfall-line story-waterfall-result">
     <span>The monthly target</span>
-    <strong>$1.5M MRR</strong>
+    <strong data-ambition="mrrCompactLabel">$1.5M MRR</strong>
   </div>
   <figcaption id="waterfall-caption">The valuation multiple is an assumption. The revenue target is arithmetic.</figcaption>
 </figure>
@@ -65,12 +71,12 @@ There are at least two ways to get there:
 
 <div className="story-two-paths">
   <div>
-    <strong>500</strong>
+    <strong data-ambition="smbCustomers">500</strong>
     <p>customers paying an average of <b>$3,000/month</b></p>
   </div>
   <span>or</span>
   <div>
-    <strong>50</strong>
+    <strong data-ambition="entCustomers">50</strong>
     <p>customers paying an average of <b>$30,000/month</b></p>
   </div>
 </div>
@@ -134,7 +140,9 @@ Then give each one the capacity that previously required a team.
 <figure className="story-capacity" aria-labelledby="capacity-caption">
   <div className="story-capacity-before">
     <span>Traditional service</span>
-    <div aria-label="Twenty people">{Array.from({ length: 20 }, (_, index) => <i key={index} />)}</div>
+    <div className="story-capacity-grid" aria-label="Twenty people">
+      {Array.from({ length: 20 }, (_, index) => <i key={index} style={{ "--i": index }} />)}
+    </div>
   </div>
   <div className="story-capacity-transfer" aria-hidden="true">
     <b>process intelligence</b>
@@ -142,7 +150,16 @@ Then give each one the capacity that previously required a team.
   </div>
   <div className="story-capacity-after">
     <span>AI-native service</span>
-    <div><i /><strong>expert</strong><em>AI capacity</em></div>
+    <div className="story-capacity-core">
+      <svg className="story-capacity-ring" viewBox="0 0 100 100" aria-hidden="true">
+        <circle className="story-capacity-ring-track" cx="50" cy="50" r="40" />
+      </svg>
+      <i className="story-capacity-comet" aria-hidden="true" />
+      <div className="story-capacity-expert">
+        <strong>expert</strong>
+        <em>AI capacity</em>
+      </div>
+    </div>
   </div>
   <figcaption id="capacity-caption">The human does not disappear. The best human becomes enormously more capable.</figcaption>
 </figure>
@@ -183,7 +200,7 @@ One extraordinary professional with AI should be able to produce what twenty ave
 
 The first six months will not look like a software rocket ship.
 
-You need somewhere between two and twenty customers. Eight is enough for the math.
+You need somewhere between two and twenty customers. <span data-ambition="growthStart">8</span> is enough for the math.
 
 At first, your experts will still perform too much of the work manually. Good. That is how you learn what deserves to become an agentic loop, where human approval is essential, which context changes the answer, and how the customer can adopt the service without reorganizing their company around your technology.
 
@@ -199,23 +216,23 @@ By month six, you need:
 
 When that's true, it's time to change the curve and accelerate sales.
 
-Start with eight customers and grow 3x, 3x, 2x, and 2x over the next four quarters:
+Start with <span data-ambition="growthStart">8</span> customers and grow 3x, 3x, 2x, and 2x over the next four quarters:
 
 <figure className="story-growth" aria-labelledby="growth-caption">
   <ol>
     {[
-      { month: 6, customers: 8, growth: "learn" },
-      { month: 9, customers: 24, growth: "3×" },
-      { month: 12, customers: 72, growth: "3×" },
-      { month: 15, customers: 144, growth: "2×" },
-      { month: 18, customers: 288, growth: "2×" },
-      { month: 24, customers: 500, growth: "1.74×" },
+      { month: 6, customers: 8, growth: "learn", stage: 0 },
+      { month: 9, customers: 24, growth: "3×", stage: 1 },
+      { month: 12, customers: 72, growth: "3×", stage: 2 },
+      { month: 15, customers: 144, growth: "2×", stage: 3 },
+      { month: 18, customers: 288, growth: "2×", stage: 4 },
+      { month: 24, customers: 500, growth: "1.74×", stage: 5 },
     ].map((stage) => (
       <li key={stage.month}>
-        <div className="story-growth-label"><span>Month {stage.month}</span><b>{stage.growth}</b></div>
-        <div className="story-growth-track" style={{ "--bar": `${(stage.customers / 500) * 100}%` }}>
+        <div className="story-growth-label"><span>Month {stage.month}</span><b data-ambition="growthMultiple" data-stage={stage.stage}>{stage.growth}</b></div>
+        <div className="story-growth-track" data-ambition="growthBar" data-stage={stage.stage} style={{ "--bar": `${(stage.customers / 500) * 100}%` }}>
           <i data-story-animate />
-          <strong>{stage.customers}</strong>
+          <strong data-ambition="growthCustomers" data-stage={stage.stage}>{stage.customers}</strong>
         </div>
       </li>
     ))}
@@ -225,16 +242,16 @@ Start with eight customers and grow 3x, 3x, 2x, and 2x over the next four quarte
 
 You are now 18 months in.
 
-You have six months left to go from 288 customers to 500. That is 74% total growth across two quarters—hard, but far less violent than what you already did.
+You have six months left to go from <span data-ambition="month18Customers">288</span> customers to <span data-ambition="smbCustomers">500</span>. That is <span data-ambition="finalGrowthPct">74%</span> total growth across two quarters—hard, but far less violent than what you already did.
 
-At an average of $3,000 per month, 500 customers put you at $18 million ARR.
+At an average of $3,000 per month, <span data-ambition="smbCustomers">500</span> customers put you at <span data-ambition="arrLong">$18 million</span> ARR.
 
-The enterprise version follows the same logic with fewer, larger contracts. Fifty customers at $30,000 per month produce the same result.
+The enterprise version follows the same logic with fewer, larger contracts. <span data-ambition="entCustomers">50</span> customers at $30,000 per month produce the same result.
 
 <section className="story-calculator" aria-labelledby="calculator-title" data-revenue-calculator>
   <div>
     <h3 id="calculator-title">Choose your contract</h3>
-    <p>The target stays fixed at $1.5M MRR. Move the contract value and watch the required customer count change.</p>
+    <p>The target stays fixed at <span data-ambition="mrrCompact">$1.5M</span> MRR. Move the contract value and watch the required customer count change.</p>
   </div>
   <label>
     <span>Average monthly contract</span>
@@ -294,7 +311,7 @@ Services will remain lubricated by humans. Trust is local. Language is local. Re
   <div className="story-local-shift" aria-hidden="true">→</div>
   <div className="story-local-network">
     {["Brazil", "Mexico", "Indonesia", "Nigeria", "Europe", "India"].map((market) => (
-      <div key={market}><i /><strong>$100M</strong><span>{market}</span></div>
+      <div key={market}><i /><strong data-ambition="exitCompact">$100M</strong><span>{market}</span></div>
     ))}
   </div>
   <figcaption id="local-caption">The same play can be run repeatedly because the service industries already exist everywhere.</figcaption>
@@ -302,7 +319,7 @@ Services will remain lubricated by humans. Trust is local. Language is local. Re
 
 Brazil already has accounting firms, agencies, recruiters, brokers, consultancies, and outsourcing companies collecting these budgets. So does Mexico. So does Indonesia. So does every meaningful economy in the world.
 
-Each local service industry can produce its own $100 million AI-native companies, predictably and repeatedly.
+Each local service industry can produce its own <span data-ambition="exitLong">$100 million</span> AI-native companies, predictably and repeatedly.
 
 For the first time in a long time, a founder outside the global tastemaker regions does not need to win a worldwide software category to build something meaningful and scalable.
 
@@ -325,5 +342,5 @@ We are uploading what the best people in this industry know into a company opera
 
 <aside className="story-methodology">
   <strong>A note on the numbers</strong>
-  <p>This is an operating thesis, not investment guidance. The $100M valuation assumes a 5.5× revenue multiple on $18M ARR; real multiples and acquisition outcomes vary. The 1:6 software-to-services comparison comes from Sequoia Capital's “Services: The New Software.” Every other chart visualizes the explicit assumptions in this essay.</p>
+  <p>This is an operating thesis, not investment guidance. The <span data-ambition="exitCompact">$100M</span> valuation assumes a 5.5× revenue multiple on <span data-ambition="arrCompact">$18M</span> ARR; real multiples and acquisition outcomes vary. The 1:6 software-to-services comparison comes from Sequoia Capital's “Services: The New Software.” Every other chart visualizes the explicit assumptions in this essay.</p>
 </aside>

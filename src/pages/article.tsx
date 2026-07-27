@@ -14,6 +14,12 @@ import {
   localeText,
   type Locale,
 } from "../lib/manifest";
+import {
+  applyAmbition,
+  computeAmbition,
+  parseAmbitionHash,
+  writeAmbitionHash,
+} from "../lib/story-ambition";
 
 interface ArticleData {
   slug: string;
@@ -79,7 +85,9 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
     const customerNoun = root.querySelector<HTMLElement>(
       "[data-customer-noun]",
     );
-    const targetMrr = (locale === "en" ? 18_000_000 : 90_000_000) / 12;
+    const ambitionSlider = root.querySelector<HTMLInputElement>(
+      "[data-ambition-slider]",
+    );
     const numberLocale = locale === "en" ? "en-US" : "pt-BR";
     const money = new Intl.NumberFormat(numberLocale, {
       style: "currency",
@@ -87,10 +95,15 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
       maximumFractionDigits: 0,
     });
 
+    let ambition = computeAmbition(
+      parseAmbitionHash(window.location.hash),
+      locale,
+    );
+
     const updateCalculator = () => {
       if (!input || !contractOutput || !customerOutput) return;
       const contract = Number(input.value);
-      const customers = Math.ceil(targetMrr / contract);
+      const customers = Math.ceil(ambition.mrrLocal / contract);
       contractOutput.value = money.format(contract);
       customerOutput.value = customers.toLocaleString(numberLocale);
       if (customerNoun) {
@@ -105,7 +118,29 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
       }
     };
 
-    updateCalculator();
+    const setAmbition = (v: number, writeHash: boolean) => {
+      ambition = computeAmbition(v, locale);
+      applyAmbition(root, ambition);
+      updateCalculator();
+      if (writeHash) writeAmbitionHash(ambition.v);
+    };
+
+    setAmbition(ambition.v, false);
+    if (window.location.hash.includes("v=")) {
+      writeAmbitionHash(ambition.v);
+    }
+
+    const onAmbitionInput = () => {
+      if (!ambitionSlider) return;
+      setAmbition(Number(ambitionSlider.value), true);
+    };
+    ambitionSlider?.addEventListener("input", onAmbitionInput);
+
+    const onHashChange = () => {
+      setAmbition(parseAmbitionHash(window.location.hash), false);
+    };
+    window.addEventListener("hashchange", onHashChange);
+
     input?.addEventListener("input", updateCalculator);
 
     const animated = root.querySelectorAll<HTMLElement>("[data-story-animate]");
@@ -176,6 +211,8 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
 
     return () => {
       input?.removeEventListener("input", updateCalculator);
+      ambitionSlider?.removeEventListener("input", onAmbitionInput);
+      window.removeEventListener("hashchange", onHashChange);
       observer?.disconnect();
       if (frame) window.cancelAnimationFrame(frame);
       for (const node of nodes) node.classList.remove("is-active");
