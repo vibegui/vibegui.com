@@ -5,8 +5,103 @@
  * Articles have a status field (draft/published) - no separate drafts array.
  */
 
+export type Locale = "pt-BR" | "en";
+
+export const DEFAULT_LOCALE: Locale = "pt-BR";
+
+export const localeText = {
+  "pt-BR": {
+    nav: {
+      writing: "Textos",
+      bookmarks: "Favoritos",
+      library: "Biblioteca",
+      about: "Sobre",
+      menu: "Abrir menu",
+    },
+    home: {
+      title: "Ideias que eu gostaria de ter entendido antes.",
+      introBefore: "Eu construo software e empresas, hoje como cofundador da ",
+      introAfter:
+        ". Este é o lugar onde elaboro as distinções que moldam como eu lidero, construo e imagino futuros possíveis — para a tecnologia, para o Brasil e para mim.",
+      loading: "Carregando textos...",
+      empty: "Ainda não há textos por aqui. Volte em breve!",
+      drafts: "Rascunhos",
+      draft: "Rascunho",
+      localOnly: "(apenas local)",
+      hideDrafts: "Ocultar rascunhos",
+      showDrafts: "Mostrar rascunhos",
+      preview: "Prévia",
+      published: "Publicados",
+    },
+    article: {
+      read: "Ler texto →",
+      notFound: "Texto não encontrado",
+      loadError: "Não foi possível carregar o texto. Tente ",
+      refresh: "atualizar a página",
+      back: "← Voltar aos textos",
+      draft: "📝 Rascunho — apenas prévia local",
+      alternate: "Read in English",
+    },
+    notFound: {
+      message: "Página não encontrada",
+      back: "← Voltar aos textos",
+    },
+    footer: "Feito no Brasil 🇧🇷",
+  },
+  en: {
+    nav: {
+      writing: "Writing",
+      bookmarks: "Bookmarks",
+      library: "Library",
+      about: "About",
+      menu: "Toggle menu",
+    },
+    home: {
+      title: "Ideas I wish I had earlier.",
+      introBefore:
+        "I build software and companies, currently as co-founder of ",
+      introAfter:
+        ". This is where I work through the distinctions that shape how I lead, build, and imagine possible futures—for technology, Brazil, and myself.",
+      loading: "Loading articles...",
+      empty: "No articles yet. Check back soon!",
+      drafts: "Drafts",
+      draft: "Draft",
+      localOnly: "(local only)",
+      hideDrafts: "Hide Drafts",
+      showDrafts: "Show Drafts",
+      preview: "Preview",
+      published: "Published",
+    },
+    article: {
+      read: "Read essay →",
+      notFound: "Article not found",
+      loadError: "Could not load article data. Try ",
+      refresh: "refreshing the page",
+      back: "← Back to writing",
+      draft: "📝 Draft — local preview only",
+      alternate: "Ler em português",
+    },
+    notFound: {
+      message: "Page not found",
+      back: "← Back to writing",
+    },
+    footer: "Made in Brazil 🇧🇷",
+  },
+} as const satisfies Record<Locale, object>;
+
+export function homePath(locale: Locale): "/" | "/en" {
+  return locale === "en" ? "/en" : "/";
+}
+
+export function articlePath(locale: Locale, slug: string): string {
+  return `${locale === "en" ? "/en" : ""}/article/${slug}`;
+}
+
 export interface ArticleMeta {
   slug: string;
+  locale: Locale;
+  path: string;
+  alternatePath?: string | null;
   title: string;
   description?: string;
   date: string;
@@ -95,6 +190,9 @@ export async function loadManifest(): Promise<ContentManifest | null> {
     const articles: ArticleMeta[] = (data.articles || []).map(
       (a: Record<string, unknown>) => ({
         slug: a.slug || a.id,
+        locale: a.locale,
+        path: a.path,
+        alternatePath: a.alternatePath,
         title: a.title,
         description: a.description,
         date: a.date,

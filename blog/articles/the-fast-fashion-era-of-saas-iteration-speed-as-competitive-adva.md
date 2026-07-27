@@ -4,6 +4,9 @@ title: 'The Fast Fashion Era of SaaS: Iteration Speed as Competitive Advantage'
 description: Sam Altman says we're entering the fast fashion era of SaaS. Here's what that means for Brazil.
 date: 2025-08-05
 status: published
+locale: "en"
+translationKey: "linkedin:7358297392904863744"
+originalUrl: "https://www.linkedin.com/posts/vibegui_sam-altman-era-fast-fashion-do-saas-muito-activity-7358297392904863744-d_gj"
 coverImage: null
 tags:
   - ai

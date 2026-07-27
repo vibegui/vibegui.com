@@ -6,16 +6,19 @@
  * ensuring the SSG HTML with embedded article data is served.
  */
 
+import { localeText, type Locale } from "../lib/manifest";
+
 interface ArticleCardProps {
-  slug: string;
+  path: string;
+  locale: Locale;
   title: string;
   date: string;
   description?: string | null;
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: Locale): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "pt-BR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -24,7 +27,8 @@ function formatDate(dateStr: string): string {
 }
 
 export function ArticleCard({
-  slug,
+  path,
+  locale,
   title,
   date,
   description,
@@ -36,13 +40,13 @@ export function ArticleCard({
       style={{ borderColor: "var(--color-border)" }}
     >
       {/* Full page load ensures SSG HTML with embedded data */}
-      <a href={`/article/${slug}`} className="block hover:no-underline">
+      <a href={path} className="block hover:no-underline">
         <time
           dateTime={date}
           className="text-xs tracking-wide"
           style={{ color: "var(--color-fg-muted)" }}
         >
-          {formatDate(date)}
+          {formatDate(date, locale)}
         </time>
         <h2
           className="mt-3 text-2xl md:text-3xl transition-colors group-hover:text-[var(--color-accent)]"
@@ -62,7 +66,7 @@ export function ArticleCard({
           className="mt-5 inline-block text-sm"
           style={{ color: "var(--color-accent)" }}
         >
-          Read essay →
+          {localeText[locale].article.read}
         </span>
       </a>
     </article>

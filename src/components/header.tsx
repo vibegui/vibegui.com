@@ -9,14 +9,8 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "../app";
+import { homePath, localeText, type Locale } from "../lib/manifest";
 import { ThemeToggle } from "./theme-toggle";
-
-const NAV_LINKS = [
-  { href: "/", label: "Writing" },
-  { href: "/bookmarks", label: "Bookmarks" },
-  { href: "/context", label: "Library" },
-  { href: "/commitment", label: "About" },
-];
 
 function useCurrentPath() {
   const [path, setPath] = useState(window.location.pathname);
@@ -30,13 +24,53 @@ function useCurrentPath() {
   return path;
 }
 
-export function Header() {
+function LanguageSwitch({ locale }: { locale: Locale }) {
+  return (
+    <nav
+      className="language-switch"
+      aria-label={locale === "en" ? "Language" : "Idioma"}
+    >
+      <a
+        href="/?lang=pt"
+        className={locale === "pt-BR" ? "is-active" : undefined}
+        aria-current={locale === "pt-BR" ? "page" : undefined}
+      >
+        PT
+      </a>
+      <span aria-hidden="true">/</span>
+      <a
+        href="/en?lang=en"
+        className={locale === "en" ? "is-active" : undefined}
+        aria-current={locale === "en" ? "page" : undefined}
+      >
+        EN
+      </a>
+    </nav>
+  );
+}
+
+export function Header({ locale }: { locale: Locale }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const currentPath = useCurrentPath();
+  const text = localeText[locale];
+  const writingPath = homePath(locale);
+  const navLinks = [
+    { href: writingPath, label: text.nav.writing },
+    { href: "/bookmarks", label: text.nav.bookmarks },
+    { href: "/context", label: text.nav.library },
+    { href: "/commitment", label: text.nav.about },
+  ];
 
   const isActive = (href: string) => {
-    if (href === "/") return currentPath === "/" || currentPath === "";
-    return currentPath === href || currentPath.startsWith(href + "/");
+    if (href === writingPath) {
+      return (
+        currentPath === writingPath ||
+        (locale === "en"
+          ? currentPath.startsWith("/en/article/")
+          : currentPath.startsWith("/article/"))
+      );
+    }
+    return currentPath === href || currentPath.startsWith(`${href}/`);
   };
 
   return (
@@ -50,7 +84,7 @@ export function Header() {
       <div className="container flex items-center justify-between h-14">
         {/* Logo */}
         <Link
-          href="/"
+          href={writingPath}
           className="text-lg tracking-tight hover:no-underline"
           style={{
             color: "var(--color-fg)",
@@ -62,7 +96,7 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.href}
               href={link.href}
@@ -77,16 +111,19 @@ export function Header() {
               {link.label}
             </Link>
           ))}
+          <LanguageSwitch locale={locale} />
           <ThemeToggle />
         </nav>
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
+          <LanguageSwitch locale={locale} />
           <ThemeToggle />
           <button
+            type="button"
             onClick={() => setMenuOpen(!menuOpen)}
             className="min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
-            aria-label="Toggle menu"
+            aria-label={text.nav.menu}
             aria-expanded={menuOpen}
             style={{ color: "var(--color-fg)" }}
           >
@@ -96,6 +133,7 @@ export function Header() {
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
+              <title>{text.nav.menu}</title>
               {menuOpen ? (
                 <path
                   strokeLinecap="round"
@@ -123,7 +161,7 @@ export function Header() {
           style={{ borderColor: "var(--color-border)" }}
         >
           <div className="container py-4 flex flex-col gap-3">
-            {NAV_LINKS.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}

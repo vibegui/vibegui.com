@@ -60,6 +60,72 @@ function extractAssets(html: string): { styles: string; scripts: string } {
   };
 }
 
+function embedManifest(html: string, manifestJson: string): string {
+  const withoutOldManifest = html.replace(
+    /\s*<script id="manifest-data" type="application\/json">[\s\S]*?<\/script>/g,
+    "",
+  );
+  return withoutOldManifest.replace(
+    '<div id="root"></div>',
+    `<div id="root"></div>\n    <script id="manifest-data" type="application/json">${manifestJson}</script>`,
+  );
+}
+
+function localizeHomeShell(html: string, locale: "pt-BR" | "en"): string {
+  const english = locale === "en";
+  const description = english
+    ? "Guilherme Rodrigues' personal AI OS and writing on leadership, AI, software, Brazil, and possible futures."
+    : "O sistema operacional pessoal de IA de Guilherme Rodrigues e textos sobre liderança, IA, software, Brasil e futuros possíveis.";
+  const canonical = english
+    ? "https://vibegui.com/en/"
+    : "https://vibegui.com/";
+  const ogLocale = english ? "en_US" : "pt_BR";
+  const alternateOgLocale = english ? "pt_BR" : "en_US";
+
+  return html
+    .replace(/<html lang="[^"]+">/, `<html lang="${locale}">`)
+    .replace(
+      /<meta name="description" content="[^"]*" \/>/,
+      `<meta name="description" content="${description}" />`,
+    )
+    .replace(
+      /<link rel="canonical" href="[^"]*" \/>/,
+      `<link rel="canonical" href="${canonical}" />`,
+    )
+    .replace(
+      /<link rel="alternate" hreflang="pt-BR" href="[^"]*" \/>/,
+      '<link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/" />',
+    )
+    .replace(
+      /<link rel="alternate" hreflang="en" href="[^"]*" \/>/,
+      '<link rel="alternate" hreflang="en" href="https://vibegui.com/en/" />',
+    )
+    .replace(
+      /<link rel="alternate" hreflang="x-default" href="[^"]*" \/>/,
+      '<link rel="alternate" hreflang="x-default" href="https://vibegui.com/" />',
+    )
+    .replace(
+      /<meta property="og:description" content="[^"]*" \/>/,
+      `<meta property="og:description" content="${description}" />`,
+    )
+    .replace(
+      /<meta property="og:url" content="[^"]*" \/>/,
+      `<meta property="og:url" content="${canonical}" />`,
+    )
+    .replace(
+      /<meta property="og:locale" content="[^"]*" \/>/,
+      `<meta property="og:locale" content="${ogLocale}" />`,
+    )
+    .replace(
+      /<meta property="og:locale:alternate" content="[^"]*" \/>/,
+      `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`,
+    )
+    .replace(
+      /<meta name="twitter:description" content="[^"]*" \/>/,
+      `<meta name="twitter:description" content="${description}" />`,
+    );
+}
+
 /**
  * Process SSG HTML files - replace dev scripts with prod assets
  */
@@ -118,7 +184,15 @@ async function main() {
     resolve(contentDir, "manifest.json"),
   );
   copyDir(resolve(PUBLIC, "bookmarks"), resolve(DIST, "bookmarks"));
-  console.log("  ✅ Manifest, bookmarks copied");
+  for (const path of ["sitemap.xml", "robots.txt", "feed.xml", "_redirects"]) {
+    copyFileSync(resolve(PUBLIC, path), resolve(DIST, path));
+  }
+  mkdirSync(resolve(DIST, "en"), { recursive: true });
+  copyFileSync(
+    resolve(PUBLIC, "en", "feed.xml"),
+    resolve(DIST, "en", "feed.xml"),
+  );
+  console.log("  ✅ Manifest, bookmarks, SEO files copied");
 
   // Extract assets from built index.html
   const indexPath = resolve(DIST, "index.html");
@@ -132,12 +206,19 @@ async function main() {
     resolve(DIST, "article"),
     assets,
   );
+  const englishArticleCount = processSSGPages(
+    resolve(BUILD, "en", "article"),
+    resolve(DIST, "en", "article"),
+    assets,
+  );
   const contextCount = processSSGPages(
     resolve(BUILD, "context"),
     resolve(DIST, "context"),
     assets,
   );
-  console.log(`  ✅ ${articleCount} articles, ${contextCount} context pages`);
+  console.log(
+    `  ✅ ${articleCount} PT + ${englishArticleCount} EN articles, ${contextCount} context pages`,
+  );
 
   // Standalone static mini-sites (/irene, /malvados): pages in .build/ are
   // complete self-contained HTML — copy verbatim, no asset-tag swapping.
@@ -179,21 +260,24 @@ async function main() {
     "",
   );
 
-  // Embed manifest data after <div id="root">
-  const manifestTag = `<script id="manifest-data" type="application/json">${manifestJson}</script>`;
-  updatedIndexHtml = updatedIndexHtml.replace(
-    '<div id="root"></div>',
-    `<div id="root"></div>\n    ${manifestTag}`,
+  updatedIndexHtml = embedManifest(
+    localizeHomeShell(updatedIndexHtml, "pt-BR"),
+    manifestJson,
+  );
+  const englishIndexHtml = embedManifest(
+    localizeHomeShell(indexHtml, "en"),
+    manifestJson,
   );
 
   writeFileSync(indexPath, updatedIndexHtml);
-  console.log("  ✅ Embedded manifest (no fetch needed)");
+  writeFileSync(resolve(DIST, "en", "index.html"), englishIndexHtml);
+  console.log("  ✅ Embedded manifest in PT and EN shells");
 
   // Note: .build/ is kept around for dev server compatibility (it's in .gitignore)
 
   const elapsed = (performance.now() - startTime).toFixed(0);
   console.log(`\n✨ Build finalized (${elapsed}ms)`);
-  console.log(`   Articles: ${articleCount}`);
+  console.log(`   Articles: ${articleCount + englishArticleCount}`);
   console.log(`   Context: ${contextCount}`);
   console.log(`   Projects: ${manifest.projects?.length || 0}\n`);
 }

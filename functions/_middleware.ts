@@ -32,6 +32,7 @@ const SITES = [
 // Beacon de analytics first-party: o worker do Personal AI OS grava o evento
 // em D1 e expõe as tools SITES_OVERVIEW / SITE_METRICS no MCP privado.
 const BEACON = "https://mcp.vibegui.com/e";
+const LOCALE_COOKIE = "vibegui_locale";
 
 interface Contexto {
   request: Request;
@@ -128,15 +129,17 @@ function ehPageview(request: Request, pathname: string): boolean {
  */
 const ROTAS = new Set([
   "/",
+  "/en",
   "/content",
   "/bookmarks",
-  "/bookmarks/edit",
   "/roadmap",
   "/commitment",
   "/context",
+  "/demos/transformation",
 ]);
 const PREFIXOS = [
   "/article/",
+  "/en/article/",
   "/context/",
   "/irene",
   "/malvados",
@@ -153,13 +156,95 @@ function rotaConhecida(pathname: string): boolean {
   );
 }
 
+type LocalePreference = "pt" | "en";
+
+function localeDoCookie(request: Request): LocalePreference | null {
+  const cookie = request.headers.get("cookie") || "";
+  const match = cookie.match(
+    new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=(pt|en)(?:;|$)`),
+  );
+  return (match?.[1] as LocalePreference | undefined) ?? null;
+}
+
+function idiomaPrincipalEhIngles(request: Request): boolean {
+  const principal = request.headers
+    .get("accept-language")
+    ?.split(",", 1)[0]
+    ?.trim()
+    .toLowerCase();
+  return principal?.startsWith("en") ?? false;
+}
+
+function comVaryDeIdioma(response: Response): Response {
+  const headers = new Headers(response.headers);
+  const vary = new Set(
+    (headers.get("vary") || "")
+      .split(",")
+      .map((value) => value.trim())
+      .filter(Boolean),
+  );
+  vary.add("Accept-Language");
+  vary.add("Cookie");
+  headers.set("vary", [...vary].join(", "));
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+function redirecionar(
+  destino: URL,
+  cookie?: LocalePreference,
+  varia = false,
+): Response {
+  const headers = new Headers({ location: destino.toString() });
+  if (cookie) {
+    headers.set(
+      "set-cookie",
+      `${LOCALE_COOKIE}=${cookie}; Max-Age=31536000; Path=/; SameSite=Lax`,
+    );
+  }
+  const response = new Response(null, { status: 302, headers });
+  return varia ? comVaryDeIdioma(response) : response;
+}
+
+function destinoExplicito(url: URL, locale: LocalePreference): URL {
+  const destino = new URL(url);
+  destino.searchParams.delete("lang");
+
+  if (
+    destino.pathname === "/" ||
+    destino.pathname === "/en" ||
+    destino.pathname === "/en/" ||
+    destino.pathname === "/content"
+  ) {
+    destino.pathname = locale === "en" ? "/en" : "/";
+    return destino;
+  }
+
+  const artigoNoIdioma =
+    locale === "en"
+      ? destino.pathname.startsWith("/en/article/")
+      : destino.pathname.startsWith("/article/");
+  if (
+    (destino.pathname.startsWith("/article/") ||
+      destino.pathname.startsWith("/en/article/")) &&
+    !artigoNoIdioma
+  ) {
+    destino.pathname = locale === "en" ? "/en" : "/";
+  }
+
+  return destino;
+}
+
 export const onRequest = async (context: Contexto): Promise<Response> => {
   const { request, env, next } = context;
   const url = new URL(request.url);
   // header Host permite testar com `wrangler pages dev` + curl -H "Host: ..."
-  const rawHost = (request.headers.get("host") || url.hostname)
+  const [rawHost = url.hostname] = (request.headers.get("host") || url.hostname)
     .toLowerCase()
-    .split(":")[0];
+    .split(":");
   const host = rawHost.replace(/^www\./, "");
 
   const site = SITES.find((s) => s.dominio === host);
@@ -215,6 +300,31 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
     }
   }
 
+  const idiomaExplicito = url.searchParams.get("lang");
+  if (
+    request.method === "GET" &&
+    (idiomaExplicito === "pt" || idiomaExplicito === "en")
+  ) {
+    return redirecionar(
+      destinoExplicito(url, idiomaExplicito),
+      idiomaExplicito,
+    );
+  }
+
+  let homeNegociada = false;
+  if (request.method === "GET" && url.pathname === "/") {
+    const preferencia = localeDoCookie(request);
+    if (
+      preferencia === "en" ||
+      (!preferencia && idiomaPrincipalEhIngles(request))
+    ) {
+      const destino = new URL(url);
+      destino.pathname = "/en";
+      return redirecionar(destino, undefined, true);
+    }
+    homeNegociada = true;
+  }
+
   // rota que o SPA não conhece: 404 de verdade, sem contar como pageview.
   // Fica gravado como evento "blocked" (visível pelo SITE_METRICS) pra dar
   // pra olhar a varredura sem sujar os números de visitante.
@@ -230,7 +340,8 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
     });
   }
 
-  const resposta = await next();
+  const respostaBase = await next();
+  const resposta = homeNegociada ? comVaryDeIdioma(respostaBase) : respostaBase;
   if (resposta.ok && ehPageview(request, url.pathname)) {
     registrar(context, "pageview", host, url.pathname, resposta);
   }

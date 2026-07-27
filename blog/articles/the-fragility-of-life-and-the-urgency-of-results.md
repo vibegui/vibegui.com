@@ -4,6 +4,9 @@ title: The Fragility of Life and the Urgency of Results
 description: 'A reflection on mortality, presence, and why we shouldn''t waste time defending ourselves in meetings.'
 date: 2025-09-24
 status: published
+locale: "en"
+translationKey: "linkedin:7376438758960721920"
+originalUrl: "https://www.linkedin.com/posts/vibegui_%C3%A9-muito-triste-quando-uma-pessoa-%C3%A0-frente-activity-7376438758960721920-po6V"
 coverImage: null
 tags:
   - life

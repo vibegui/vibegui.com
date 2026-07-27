@@ -4,6 +4,9 @@ title: 'Alignment and Integrity: The Two Essential Dimensions of Success'
 description: 'You can confuse yourself with as many metrics as you want, but you''ll always return to these two dimensions.'
 date: 2025-05-10
 status: published
+locale: "en"
+translationKey: "linkedin:7326798472852987904"
+originalUrl: "https://www.linkedin.com/posts/vibegui_voc%C3%AA-pode-se-confundir-em-quantas-m%C3%A9tricas-activity-7326798472852987904--kyM"
 coverImage: null
 tags:
   - culture

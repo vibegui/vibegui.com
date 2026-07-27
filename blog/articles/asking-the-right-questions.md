@@ -4,6 +4,8 @@ title: The Most Productive Thing I Did Today Was Answer Questions
 description: How GSD turned a messy SQLite-to-Supabase migration into 49 commits across 5 phases in 33 minutes — while I was working on 3 other projects.
 date: 2026-02-16
 status: published
+locale: "en"
+translationKey: "article:asking-the-right-questions"
 coverImage: /images/articles/from-coder-to-conductor.jpeg
 tags: null
 ---

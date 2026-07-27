@@ -4,6 +4,9 @@ title: The Power of Being Obsessed and Underestimated
 description: Why being doubted is my greatest fuel for building Brazil's tech future.
 date: 2024-11-03
 status: published
+locale: "en"
+translationKey: "linkedin:7258621520279654401"
+originalUrl: "https://www.linkedin.com/posts/vibegui_a-melhor-parte-de-ser-obcecado-%C3%A9-observar-activity-7258621520279654401-uMub"
 coverImage: null
 tags:
   - brazil

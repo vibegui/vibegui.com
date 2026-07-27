@@ -6,12 +6,17 @@
  * When title/subtitle are passed, shows a custom page header.
  */
 
+import { localeText, type Locale } from "../lib/manifest";
+
 interface PageHeaderProps {
+  locale: Locale;
   title?: string;
   subtitle?: string;
 }
 
-export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
+export function PageHeader({ locale, title, subtitle }: PageHeaderProps) {
+  const text = localeText[locale].home;
+
   // Custom header for specific pages
   if (title) {
     return (
@@ -47,13 +52,13 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
             className="text-4xl md:text-5xl"
             style={{ color: "var(--color-fg)" }}
           >
-            Ideas I wish I had earlier.
+            {text.title}
           </h1>
           <p
             className="mt-5 text-base md:text-lg leading-relaxed"
             style={{ color: "var(--color-fg-muted)" }}
           >
-            I build software and companies, currently as co-founder of{" "}
+            {text.introBefore}
             <a
               href="https://decocms.com"
               target="_blank"
@@ -61,9 +66,7 @@ export function PageHeader({ title, subtitle }: PageHeaderProps = {}) {
             >
               deco
             </a>
-            . This is where I work through the distinctions that shape how I
-            lead, build, and imagine possible futures—for technology, Brazil,
-            and myself.
+            {text.introAfter}
           </p>
           <nav
             className="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm"

@@ -95,7 +95,7 @@ test.describe("Context Pages", () => {
 
 test.describe("Article Pages", () => {
   test("article page loads correctly", async ({ page }) => {
-    await page.goto("/article/hello-world-building-an-mcp-native-blog");
+    await page.goto("/en/article/hello-world-building-an-mcp-native-blog");
     await page.waitForLoadState("domcontentloaded");
 
     // Should NOT show error
@@ -110,7 +110,7 @@ test.describe("Article Pages", () => {
   });
 
   test("content index page shows articles", async ({ page }) => {
-    await page.goto("/content");
+    await page.goto("/en");
     await page.waitForLoadState("domcontentloaded");
 
     // Should show at least one article
@@ -120,7 +120,7 @@ test.describe("Article Pages", () => {
   });
 
   test("writing list stays editorial and image-free", async ({ page }) => {
-    await page.goto("/content");
+    await page.goto("/en");
     await page.waitForLoadState("domcontentloaded");
 
     const cards = page.getByTestId("article-card");
@@ -131,7 +131,7 @@ test.describe("Article Pages", () => {
 
 test.describe("Content Loading", () => {
   test("manifest is loaded and contains articles", async ({ page }) => {
-    await page.goto("/content");
+    await page.goto("/en");
     await page.waitForLoadState("domcontentloaded");
 
     // Content page should show articles from manifest

@@ -22,6 +22,7 @@ function ssgDevPlugin() {
           next: Connect.NextFunction,
         ) => {
           const url = req.url || "";
+          const pathname = url.split("?")[0]?.replace(/\/$/, "") || "/";
 
           // Standalone static mini-sites (/irene, /malvados): serve the
           // complete HTML/JSON from .build/ verbatim (no SPA injection).
@@ -43,17 +44,56 @@ function ssgDevPlugin() {
             return next();
           }
 
+          if (pathname === "/en") {
+            const englishDescription =
+              "Guilherme Rodrigues' personal AI OS and writing on leadership, AI, software, Brazil, and possible futures.";
+            let englishHtml = readFileSync(
+              resolve(__dirname, "index.html"),
+              "utf-8",
+            );
+            englishHtml = englishHtml
+              .replace('<html lang="pt-BR">', '<html lang="en">')
+              .replace(
+                /O sistema operacional pessoal de IA de Guilherme Rodrigues e textos sobre liderança, IA, software, Brasil e futuros possíveis\./g,
+                englishDescription,
+              )
+              .replace(
+                '<link rel="canonical" href="https://vibegui.com/" />',
+                '<link rel="canonical" href="https://vibegui.com/en/" />',
+              )
+              .replace(
+                '<meta property="og:url" content="https://vibegui.com/" />',
+                '<meta property="og:url" content="https://vibegui.com/en/" />',
+              )
+              .replace(
+                '<meta property="og:locale" content="pt_BR" />',
+                '<meta property="og:locale" content="en_US" />',
+              )
+              .replace(
+                '<meta property="og:locale:alternate" content="en_US" />',
+                '<meta property="og:locale:alternate" content="pt_BR" />',
+              );
+            server
+              .transformIndexHtml(url, englishHtml)
+              .then((transformed) => {
+                res.setHeader("Content-Type", "text/html");
+                res.end(transformed);
+              })
+              .catch(next);
+            return;
+          }
+
           let buildDir: string;
-          let dataScriptId: string;
           let pathPrefix: string;
 
-          if (url.startsWith("/article/")) {
+          if (url.startsWith("/en/article/")) {
+            buildDir = "en/article";
+            pathPrefix = "/en/article/";
+          } else if (url.startsWith("/article/")) {
             buildDir = "article";
-            dataScriptId = "article-data";
             pathPrefix = "/article/";
           } else if (url.startsWith("/context/") && url !== "/context/") {
             buildDir = "context";
-            dataScriptId = "context-data";
             pathPrefix = "/context/";
           } else {
             return next();
@@ -90,20 +130,12 @@ function ssgDevPlugin() {
             return;
           }
 
-          const ssgHtml = readFileSync(ssgPath, "utf-8");
-          const regex = new RegExp(
-            `<script id="${dataScriptId}" type="application/json">([\\s\\S]*?)</script>`,
+          const ssgHtml = readFileSync(ssgPath, "utf-8").replace(
+            '<script type="module" src="/@vite/client"></script>',
+            "",
           );
-          const match = ssgHtml.match(regex);
-          if (!match) return next();
-
-          const indexPath = resolve(__dirname, "index.html");
-          let indexHtml = readFileSync(indexPath, "utf-8");
-          const dataScript = `<script id="${dataScriptId}" type="application/json">${match[1]}</script>`;
-          indexHtml = indexHtml.replace("</body>", `${dataScript}\n</body>`);
-
           server
-            .transformIndexHtml(url, indexHtml)
+            .transformIndexHtml(url, ssgHtml)
             .then((transformed) => {
               res.setHeader("Content-Type", "text/html");
               res.end(transformed);

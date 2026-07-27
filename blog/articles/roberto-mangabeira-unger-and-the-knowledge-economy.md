@@ -4,6 +4,9 @@ title: Roberto Mangabeira Unger and the Knowledge Economy
 description: Meeting the professor whose ideas are as powerful as they are improbable—and why they matter now more than ever.
 date: 2025-09-09
 status: published
+locale: "en"
+translationKey: "linkedin:7371129068819406848"
+originalUrl: "https://www.linkedin.com/posts/vibegui_ontem-tive-o-privil%C3%A9gio-de-entrevistar-o-activity-7371129068819406848-i8oA"
 coverImage: null
 tags:
   - brazil

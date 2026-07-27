@@ -4,6 +4,9 @@ title: 'The Golden Opportunity in AI: Teach and Build Your Personal Brand'
 description: Why the next two years are the best time to teach AI—and how being early is your biggest advantage.
 date: 2025-08-22
 status: published
+locale: "en"
+translationKey: "linkedin:7364642220827639808"
+originalUrl: "https://www.linkedin.com/posts/vibegui_nos-pr%C3%B3ximos-2-anos-quem-ensinar-ia-de-forma-activity-7364642220827639808-ALam"
 coverImage: null
 tags:
   - ai

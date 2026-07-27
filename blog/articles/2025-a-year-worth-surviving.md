@@ -4,6 +4,8 @@ title: 2025 - A year worth surviving
 description: 'Reflections on a year that nearly broke us — and what we learned about focus, leadership, and building something meant to last.'
 date: 2025-12-31
 status: published
+locale: "en"
+translationKey: "article:2025-a-year-worth-surviving"
 coverImage: null
 tags:
   - '2025'

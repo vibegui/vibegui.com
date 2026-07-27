@@ -4,6 +4,9 @@ title: 'The Pathology of Apathy: Why Companies Die When People Stop Believing'
 description: Companies don't end because they run out of money. They end because people stop caring about a powerful future.
 date: 2025-07-17
 status: published
+locale: "en"
+translationKey: "linkedin:7351546854901268482"
+originalUrl: "https://www.linkedin.com/posts/vibegui_empresas-n%C3%A3o-acabam-por-que-acabou-o-dinheiro-activity-7351546854901268482-kwIe"
 coverImage: null
 tags:
   - culture

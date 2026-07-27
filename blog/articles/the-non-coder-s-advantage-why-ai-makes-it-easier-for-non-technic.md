@@ -4,6 +4,9 @@ title: 'The Non-Coder''s Advantage: Why AI Makes It Easier for Non-Technical Fou
 description: 'For the first time ever, there are MANY relevant theses you can pursue without a technical co-founder.'
 date: 2025-09-21
 status: published
+locale: "en"
+translationKey: "linkedin:7375517089018679296"
+originalUrl: "https://www.linkedin.com/posts/vibegui_pela-primeira-vez-na-vida-tem-muita-tese-activity-7375517089018679296-npE4"
 coverImage: null
 tags:
   - ai

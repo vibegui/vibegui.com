@@ -4,6 +4,9 @@ title: 'Embrace Crazy Opportunities: The Story of Our Web Summit Victory'
 description: How we won the Web Summit Pitch competition with a deck written over a weekend—and what it taught me about seizing unexpected chances.
 date: 2024-12-03
 status: published
+locale: "en"
+translationKey: "linkedin:7269832451676393472"
+originalUrl: "https://www.linkedin.com/posts/vibegui_surreal-pensar-que-foi-ainda-esse-ano-que-activity-7269832451676393472-u_ql"
 coverImage: null
 tags:
   - founder-story

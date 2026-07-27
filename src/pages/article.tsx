@@ -8,9 +8,18 @@
 
 import { Link } from "../app";
 import { useEffect, useRef } from "react";
+import {
+  articlePath,
+  homePath,
+  localeText,
+  type Locale,
+} from "../lib/manifest";
 
 interface ArticleData {
   slug: string;
+  locale: Locale;
+  path: string;
+  alternatePath?: string | null;
   title: string;
   date: string;
   description?: string;
@@ -33,9 +42,9 @@ function getEmbeddedArticle(): ArticleData | null {
   }
 }
 
-function formatDate(dateStr: string): string {
+function formatDate(dateStr: string, locale: Locale): string {
   const date = new Date(dateStr);
-  return date.toLocaleDateString("en-US", {
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "pt-BR", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -43,10 +52,18 @@ function formatDate(dateStr: string): string {
   });
 }
 
-export function Article({ slug }: { slug: string }) {
+function isAlternatePath(path: string, locale: Locale): boolean {
+  return locale === "en"
+    ? /^\/article\/[^/]+$/.test(path)
+    : /^\/en\/article\/[^/]+$/.test(path);
+}
+
+export function Article({ slug, locale }: { slug: string; locale: Locale }) {
   // Read embedded data from SSG HTML
   const article = getEmbeddedArticle();
   const contentRef = useRef<HTMLDivElement>(null);
+  const text = localeText[locale].article;
+  const expectedPath = articlePath(locale, slug);
 
   useEffect(() => {
     const root = contentRef.current;
@@ -63,7 +80,8 @@ export function Article({ slug }: { slug: string }) {
       "[data-customer-noun]",
     );
     const targetMrr = 100_000_000 / 5 / 12;
-    const money = new Intl.NumberFormat("en-US", {
+    const numberLocale = locale === "en" ? "en-US" : "pt-BR";
+    const money = new Intl.NumberFormat(numberLocale, {
       style: "currency",
       currency: "USD",
       maximumFractionDigits: 0,
@@ -74,9 +92,16 @@ export function Article({ slug }: { slug: string }) {
       const contract = Number(input.value);
       const customers = Math.ceil(targetMrr / contract);
       contractOutput.value = money.format(contract);
-      customerOutput.value = customers.toLocaleString("en-US");
+      customerOutput.value = customers.toLocaleString(numberLocale);
       if (customerNoun) {
-        customerNoun.textContent = customers === 1 ? "customer" : "customers";
+        customerNoun.textContent =
+          locale === "en"
+            ? customers === 1
+              ? "customer"
+              : "customers"
+            : customers === 1
+              ? "cliente"
+              : "clientes";
       }
     };
 
@@ -107,26 +132,36 @@ export function Article({ slug }: { slug: string }) {
       input?.removeEventListener("input", updateCalculator);
       observer?.disconnect();
     };
-  }, [article?.slug]);
+  }, [article?.slug, locale]);
 
   // No embedded data - article not found or wrong slug
-  if (!article || article.slug !== slug) {
+  if (
+    !article ||
+    article.slug !== slug ||
+    article.locale !== locale ||
+    article.path !== expectedPath
+  ) {
     return (
       <div className="container py-12">
-        <h1 className="text-2xl font-bold mb-4">Article not found</h1>
+        <h1 className="text-2xl font-bold mb-4">{text.notFound}</h1>
         <p className="text-[var(--color-fg-muted)] mb-4">
-          Could not load article data. Try{" "}
-          <a href={`/article/${slug}`} className="underline">
-            refreshing the page
+          {text.loadError}
+          <a href={expectedPath} className="underline">
+            {text.refresh}
           </a>
           .
         </p>
-        <Link href="/">← Back to home</Link>
+        <Link href={homePath(locale)}>{text.back}</Link>
       </div>
     );
   }
 
   const isStory = article.layout === "story";
+  const alternatePath =
+    article.alternatePath && isAlternatePath(article.alternatePath, locale)
+      ? article.alternatePath
+      : null;
+  const alternateLocale = locale === "en" ? "pt" : "en";
 
   return (
     <article className={`container py-4${isStory ? " story-article" : ""}`}>
@@ -139,7 +174,7 @@ export function Article({ slug }: { slug: string }) {
             color: "#000",
           }}
         >
-          📝 Draft - Local Preview Only
+          {text.draft}
         </div>
       )}
 
@@ -152,13 +187,26 @@ export function Article({ slug }: { slug: string }) {
 
       {/* Constrain all content to prose width */}
       <div className={`prose${isStory ? " story-prose" : ""}`}>
+        <nav
+          className="mt-4 mb-6 flex flex-wrap items-center justify-between gap-3 text-sm"
+          aria-label={
+            locale === "en" ? "Article navigation" : "Navegação do texto"
+          }
+        >
+          <Link href={homePath(locale)}>{text.back}</Link>
+          {alternatePath && (
+            <a href={`${alternatePath}?lang=${alternateLocale}`}>
+              {text.alternate}
+            </a>
+          )}
+        </nav>
         <header className="mt-4 mb-8">
           <time
             dateTime={article.date}
             className="text-sm"
             style={{ color: "var(--color-fg-muted)" }}
           >
-            {formatDate(article.date)}
+            {formatDate(article.date, locale)}
           </time>
           <h1
             className={`mt-6 text-3xl md:text-4xl ${isStory ? "font-medium" : "font-bold"}`}

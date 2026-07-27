@@ -4,6 +4,9 @@ title: The Pleasure of Choosing the Hardest Game You Can Find
 description: Why deliberately picking games where extraordinary things must happen to win is the most alive you can feel.
 date: 2024-11-11
 status: published
+locale: "en"
+translationKey: "linkedin:7261714591074713600"
+originalUrl: "https://www.linkedin.com/posts/vibegui_me-chamem-de-masoquista-mas-pra-mim-a-coisa-activity-7261714591074713600-0hoJ"
 coverImage: null
 tags:
   - linkedin-import

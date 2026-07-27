@@ -4,6 +4,9 @@ title: 'DeepSeek and the Democratization of AI: A New Paradigm for Global Innova
 description: 'DeepSeek is giving away powerful AI models for free, and Silicon Valley is scrambling. This is bigger than just cost savings.'
 date: 2025-02-03
 status: published
+locale: "en"
+translationKey: "linkedin:7292229940064800769"
+originalUrl: "https://www.linkedin.com/posts/vibegui_the-ai-industry-just-got-disrupted-by-an-activity-7292229940064800769-tOGs"
 coverImage: null
 tags:
   - ai

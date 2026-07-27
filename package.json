@@ -39,6 +39,7 @@
     "dev": "bun scripts/build.ts --mode=dev",
     "build": "bun scripts/build.ts --mode=prod",
     "content:bundle": "bun build scripts/generate.ts --target=node --minify --outfile=scripts/generate.bundle.mjs",
+    "og:generate": "bun scripts/generate-og-images.ts",
     "preview": "bun scripts/preview-server.ts",
     "preview:build": "bun run build && bun run preview",
     "pages:build": "node --no-warnings --experimental-strip-types scripts/build.ts --mode=pages",

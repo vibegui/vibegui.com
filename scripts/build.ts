@@ -52,6 +52,14 @@ function run(
 }
 
 /**
+ * Generate deterministic social images locally. Pages consumes committed output.
+ */
+async function generateOgImages() {
+  console.log("\n🖼️  Generating article OG images...\n");
+  await run("bun", ["scripts/generate-og-images.ts"]);
+}
+
+/**
  * Run generate.ts (Step 1: Markdown articles → manifest.json + SSG HTML)
  */
 async function generate() {
@@ -59,9 +67,22 @@ async function generate() {
   // Cloudflare skips dependency installation, so it runs the compiler bundle
   // generated and committed by the local production build.
   if (mode === "pages") {
-    await run("node", ["scripts/generate.bundle.mjs"]);
+    await run("node", ["scripts/generate.bundle.mjs"], {
+      env: {
+        NODE_ENV: "production",
+        VIBEGUI_BUILD_MODE: "production",
+      },
+    });
   } else {
-    await run("bun", ["scripts/generate.ts"]);
+    await run("bun", ["scripts/generate.ts"], {
+      env:
+        mode === "prod"
+          ? {
+              NODE_ENV: "production",
+              VIBEGUI_BUILD_MODE: "production",
+            }
+          : undefined,
+    });
   }
 }
 
@@ -109,6 +130,10 @@ async function main() {
   const startTime = performance.now();
 
   console.log(`\n🚀 Build mode: ${mode}\n`);
+
+  if (mode !== "pages") {
+    await generateOgImages();
+  }
 
   switch (mode) {
     case "dev":

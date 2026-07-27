@@ -30,7 +30,7 @@ describe("MDX articles", () => {
     const built = readFileSync(
       join(
         import.meta.dir,
-        "../../dist/article/the-100-million-company-is-no-longer-a-lottery/index.html",
+        "../../dist/en/article/the-100-million-company-is-no-longer-a-lottery/index.html",
       ),
       "utf-8",
     );

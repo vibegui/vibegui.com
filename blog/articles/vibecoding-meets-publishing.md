@@ -4,6 +4,8 @@ title: Vibecoding Meets Publishing
 description: How MCP mesh and custom skills turned Claude Code into an end-to-end agentic blog pipeline
 date: 2026-02-17
 status: published
+locale: "en"
+translationKey: "article:vibecoding-meets-publishing"
 coverImage: /images/articles/vibecoding-meets-publishing.png
 tags: null
 ---

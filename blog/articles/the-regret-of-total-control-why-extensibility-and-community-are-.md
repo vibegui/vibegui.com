@@ -4,6 +4,9 @@ title: 'The Regret of Total Control: Why Extensibility and Community Are Priorit
 description: 'A founder''s hard-learned lesson about open-source, platform thinking, and the hidden cost of keeping control.'
 date: 2024-11-10
 status: published
+locale: "en"
+translationKey: "linkedin:7261153092614705153"
+originalUrl: "https://www.linkedin.com/posts/vibegui_se-tem-uma-coisa-que-eu-me-arrependo-amargamente-activity-7261153092614705153-e2Gf"
 coverImage: null
 tags:
   - linkedin-import

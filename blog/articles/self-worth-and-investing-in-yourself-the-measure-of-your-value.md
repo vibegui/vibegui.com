@@ -4,6 +4,9 @@ title: 'Self-Worth and Investing in Yourself: The Measure of Your Value'
 description: Why the exact measure of your self-esteem is how much you invest in your tools and in yourself.
 date: 2024-11-07
 status: published
+locale: "en"
+translationKey: "linkedin:7260078257088196608"
+originalUrl: "https://www.linkedin.com/posts/vibegui_a-medida-exata-da-sua-auto-estima-%C3%A9-quanto-activity-7260078257088196608-9G1U"
 coverImage: null
 tags:
   - growth

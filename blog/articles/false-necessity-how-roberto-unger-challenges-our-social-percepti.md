@@ -4,6 +4,9 @@ title: 'False Necessity: How Mangabeira Challenges Our Social Perceptions'
 description: 'Harvard''s most radical professor taught one dangerous idea for 40 years: everything you think is fixed about society is an illusion.'
 date: 2025-01-30
 status: published
+locale: "en"
+translationKey: "linkedin:7290757115055382528"
+originalUrl: "https://www.linkedin.com/posts/vibegui_harvards-most-radical-professor-taught-one-activity-7290757115055382528-DL0Y"
 coverImage: null
 tags:
   - change

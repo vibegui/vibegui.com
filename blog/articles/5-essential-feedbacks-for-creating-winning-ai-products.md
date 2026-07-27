@@ -4,6 +4,9 @@ title: 5 Essential Feedbacks for Creating Winning AI Products
 description: 'Lessons from judging an AI hackathon—on focus, distribution, and why capitalism works.'
 date: 2025-12-15
 status: published
+locale: "en"
+translationKey: "linkedin:7406138466864017408"
+originalUrl: "https://www.linkedin.com/posts/vibegui_hoje-eu-tive-o-prazer-de-ser-jurado-na-devs-activity-7406138466864017408-RFk_"
 coverImage: null
 tags:
   - ai

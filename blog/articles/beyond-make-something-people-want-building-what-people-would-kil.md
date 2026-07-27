@@ -4,6 +4,9 @@ title: 'Beyond ''Make Something People Want'': Building What People Would Kill F
 description: '"Make something people want" is NOT ENOUGH! If I knew how Paul Graham was subtly wrong with that sentence, it would''ve saved me years of building.'
 date: 2024-11-12
 status: published
+locale: "en"
+translationKey: "linkedin:7262185122689404930"
+originalUrl: "https://www.linkedin.com/posts/vibegui_webdraw-alpha-draw-to-code-platform-activity-7262185122689404930-Er4k"
 coverImage: null
 tags:
   - linkedin-import

@@ -4,6 +4,8 @@ title: Software Gardening in the Era of Agents
 description: Agents made coding cheap. Now the teams tending their software daily are burying the ones still drawing blueprints.
 date: 2026-04-08
 status: published
+locale: "en"
+translationKey: "article:software-gardening-era-of-agents"
 coverImage: /images/articles/software-gardening-era-of-agents.png
 tags:
   - agents

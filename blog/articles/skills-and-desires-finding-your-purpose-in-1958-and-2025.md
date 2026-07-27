@@ -4,6 +4,9 @@ title: 'Skills and Desires: Finding Your Purpose in 1958 and 2025'
 description: A 1958 letter on finding purpose that still rings true today—and what it teaches us about the Zone of Genius.
 date: 2025-03-28
 status: published
+locale: "en"
+translationKey: "linkedin:7311472972395913217"
+originalUrl: "https://www.linkedin.com/posts/vibegui_hoje-me-mandaram-essa-carta-de-1958-sobre-activity-7311472972395913217-WsdS"
 coverImage: null
 tags:
   - career

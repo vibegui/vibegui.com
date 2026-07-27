@@ -4,6 +4,9 @@ title: The Disadvantage of Thinking You're Important
 description: Why letting go of your self-importance is the key to infinite possibilities.
 date: 2025-02-21
 status: published
+locale: "en"
+translationKey: "linkedin:7298715701681258496"
+originalUrl: "https://www.linkedin.com/posts/vibegui_eu-tenho-pena-de-quem-vive-achando-que-%C3%A9-activity-7298715701681258496-ptlu"
 coverImage: null
 tags:
   - humility

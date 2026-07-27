@@ -4,6 +4,9 @@ title: 'Protagonists of the Future: Challenging Victimism and Building Prosperit
 description: The past doesn't determine the future. The future is made now. Let's be protagonists of the world's prosperity.
 date: 2025-08-11
 status: published
+locale: "en"
+translationKey: "linkedin:7360468284829265920"
+originalUrl: "https://www.linkedin.com/posts/vibegui_eu-tenho-um-amigo-que-insiste-em-dizer-que-activity-7360468284829265920-b0m9"
 coverImage: null
 tags:
   - brazil

@@ -4,6 +4,9 @@ title: 'Brazil: A Hidden Giant in Software Development'
 description: 'Why Brazil has more developers per GDP than the US, Germany, or France—and what that means for the future.'
 date: 2024-11-10
 status: published
+locale: "en"
+translationKey: "linkedin:7261473708639219712"
+originalUrl: "https://www.linkedin.com/posts/vibegui_voc%C3%AA-acredita-que-o-brasil-%C3%A9-mais-eficiente-activity-7261473708639219712-Mibp"
 coverImage: null
 tags:
   - brazil
