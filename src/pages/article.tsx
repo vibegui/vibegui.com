@@ -54,8 +54,8 @@ function formatDate(dateStr: string, locale: Locale): string {
 
 function isAlternatePath(path: string, locale: Locale): boolean {
   return locale === "en"
-    ? /^\/article\/[^/]+$/.test(path)
-    : /^\/en\/article\/[^/]+$/.test(path);
+    ? /^\/article\/[^/]+\/?$/.test(path)
+    : /^\/en\/article\/[^/]+\/?$/.test(path);
 }
 
 export function Article({ slug, locale }: { slug: string; locale: Locale }) {

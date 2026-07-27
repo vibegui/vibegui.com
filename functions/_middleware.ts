@@ -219,7 +219,7 @@ function destinoExplicito(url: URL, locale: LocalePreference): URL {
     destino.pathname === "/en/" ||
     destino.pathname === "/content"
   ) {
-    destino.pathname = locale === "en" ? "/en" : "/";
+    destino.pathname = locale === "en" ? "/en/" : "/";
     return destino;
   }
 
@@ -319,7 +319,7 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
       (!preferencia && idiomaPrincipalEhIngles(request))
     ) {
       const destino = new URL(url);
-      destino.pathname = "/en";
+      destino.pathname = "/en/";
       return redirecionar(destino, undefined, true);
     }
     homeNegociada = true;

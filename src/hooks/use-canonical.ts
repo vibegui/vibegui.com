@@ -4,10 +4,10 @@
  */
 export function updateCanonical(pathname: string): void {
   const canonicalPath =
-    pathname === "/en"
+    pathname === "/en" || pathname === "/en/"
       ? "/en/"
-      : /^\/(?:en\/)?article\/[^/]+\/$/.test(pathname)
-        ? pathname.slice(0, -1)
+      : /^\/(?:en\/)?article\/[^/]+\/?$/.test(pathname)
+        ? `${pathname.replace(/\/$/, "")}/`
         : pathname;
   const canonicalUrl = `https://vibegui.com${canonicalPath}`;
 

@@ -39,7 +39,7 @@ function LanguageSwitch({ locale }: { locale: Locale }) {
       </a>
       <span aria-hidden="true">/</span>
       <a
-        href="/en?lang=en"
+        href="/en/?lang=en"
         className={locale === "en" ? "is-active" : undefined}
         aria-current={locale === "en" ? "page" : undefined}
       >
