@@ -16,6 +16,7 @@ import {
 } from "../lib/manifest";
 import {
   applyAmbition,
+  applyGrowthTarget,
   computeAmbition,
   parseAmbitionHash,
   writeAmbitionHash,
@@ -100,22 +101,62 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
       locale,
     );
 
+    const customerWord = (count: number) =>
+      locale === "en"
+        ? count === 1
+          ? "customer"
+          : "customers"
+        : count === 1
+          ? "cliente"
+          : "clientes";
+
     const updateCalculator = () => {
       if (!input || !contractOutput || !customerOutput) return;
       const contract = Number(input.value);
       const customers = Math.ceil(ambition.mrrLocal / contract);
-      contractOutput.value = money.format(contract);
-      customerOutput.value = customers.toLocaleString(numberLocale);
-      if (customerNoun) {
-        customerNoun.textContent =
-          locale === "en"
-            ? customers === 1
-              ? "customer"
-              : "customers"
-            : customers === 1
-              ? "cliente"
-              : "clientes";
+      const entContract = Number(input.max);
+      const entCustomers = Math.ceil(ambition.mrrLocal / entContract);
+      const customersLabel = customers.toLocaleString(numberLocale);
+      const entCustomersLabel = entCustomers.toLocaleString(numberLocale);
+      const contractLabel = money.format(contract);
+      const entContractLabel = money.format(entContract);
+
+      contractOutput.value = contractLabel;
+      customerOutput.value = customersLabel;
+      if (customerNoun) customerNoun.textContent = customerWord(customers);
+
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-contract]",
+      )) {
+        el.textContent = contractLabel;
       }
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-customers]",
+      )) {
+        el.textContent = customersLabel;
+      }
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-customers-noun]",
+      )) {
+        el.textContent = customerWord(customers);
+      }
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-ent-contract]",
+      )) {
+        el.textContent = entContractLabel;
+      }
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-ent-customers]",
+      )) {
+        el.textContent = entCustomersLabel;
+      }
+      for (const el of root.querySelectorAll<HTMLElement>(
+        "[data-calc-ent-customers-noun]",
+      )) {
+        el.textContent = customerWord(entCustomers);
+      }
+
+      applyGrowthTarget(root, customers, locale);
     };
 
     const setAmbition = (v: number, writeHash: boolean) => {

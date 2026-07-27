@@ -1,6 +1,6 @@
 import type { Locale } from "./manifest";
 
-export const AMBITION_MIN = 10;
+export const AMBITION_MIN = 30;
 export const AMBITION_MAX = 100;
 export const AMBITION_STEP = 5;
 export const AMBITION_DEFAULT = 100;
@@ -106,6 +106,113 @@ function formatMultiple(value: number, locale: Locale): string {
   return locale === "en" ? `${text}×` : `${text}x`;
 }
 
+export type GrowthTarget = {
+  stages: number[];
+  month18Customers: number;
+  month24Customers: number;
+  finalGrowthPct: number;
+  finalMultiple: number;
+  growthStart: number;
+};
+
+export function computeGrowthTarget(targetCustomers: number): GrowthTarget {
+  const target = Math.max(1, Math.round(targetCustomers));
+  const stages = GROWTH_RATIOS.map((ratio, index) => {
+    if (index === GROWTH_RATIOS.length - 1) return target;
+    return Math.max(1, Math.round(target * ratio));
+  });
+  const month18Customers = stages[4] ?? target;
+  const month24Customers = stages[5] ?? target;
+  return {
+    stages,
+    month18Customers,
+    month24Customers,
+    finalGrowthPct: Math.round(
+      ((month24Customers - month18Customers) / month18Customers) * 100,
+    ),
+    finalMultiple: month24Customers / month18Customers,
+    growthStart: stages[0] ?? target,
+  };
+}
+
+export function applyGrowthTarget(
+  root: HTMLElement,
+  targetCustomers: number,
+  locale: Locale,
+): void {
+  const numberLocale = locale === "en" ? "en-US" : "pt-BR";
+  const growth = computeGrowthTarget(targetCustomers);
+  const finalMultiple = formatMultiple(growth.finalMultiple, locale);
+  const growthStartLabel = growth.growthStart.toLocaleString(numberLocale);
+  const growthStartNoun =
+    locale === "en"
+      ? growth.growthStart === 1
+        ? "customer"
+        : "customers"
+      : growth.growthStart === 1
+        ? "cliente"
+        : "clientes";
+
+  for (const el of root.querySelectorAll<HTMLElement>("[data-ambition]")) {
+    const token = el.dataset.ambition;
+    if (!token) continue;
+
+    if (token === "growthCustomers") {
+      const stage = Number(el.dataset.stage ?? "0");
+      const customers = growth.stages[stage] ?? growth.month24Customers;
+      el.textContent = customers.toLocaleString(numberLocale);
+      continue;
+    }
+
+    if (token === "growthBar") {
+      const stage = Number(el.dataset.stage ?? "0");
+      const customers = growth.stages[stage] ?? growth.month24Customers;
+      el.style.setProperty(
+        "--bar",
+        `${(customers / growth.month24Customers) * 100}%`,
+      );
+      continue;
+    }
+
+    if (token === "growthMultiple") {
+      const stage = Number(el.dataset.stage ?? "0");
+      if (stage === growth.stages.length - 1) {
+        el.textContent = finalMultiple;
+      }
+      continue;
+    }
+
+    if (token === "month18Customers") {
+      el.textContent = growth.month18Customers.toLocaleString(numberLocale);
+      continue;
+    }
+
+    if (token === "month24Customers") {
+      el.textContent = growth.month24Customers.toLocaleString(numberLocale);
+      continue;
+    }
+
+    if (token === "finalGrowthPct") {
+      el.textContent = `${growth.finalGrowthPct}%`;
+      continue;
+    }
+
+    if (token === "finalMultiple") {
+      el.textContent = finalMultiple;
+      continue;
+    }
+
+    if (token === "growthStart") {
+      el.textContent = growthStartLabel;
+      continue;
+    }
+
+    if (token === "growthStartWith") {
+      el.textContent = `${growthStartLabel} ${growthStartNoun}`;
+    }
+  }
+}
+
 export function computeAmbition(
   vMillionsUsd: number,
   locale: Locale,
@@ -124,19 +231,7 @@ export function computeAmbition(
   const entContract = locale === "en" ? 30_000 : 150_000;
   const smbCustomers = Math.ceil(mrrLocal / smbContract);
   const entCustomers = Math.ceil(mrrLocal / entContract);
-
-  const stages = GROWTH_RATIOS.map((ratio, index) => {
-    if (index === GROWTH_RATIOS.length - 1) return smbCustomers;
-    return Math.max(1, Math.round(smbCustomers * ratio));
-  });
-
-  const month18Customers = stages[4] ?? smbCustomers;
-  const month24Customers = stages[5] ?? smbCustomers;
-  const growthStart = stages[0] ?? smbCustomers;
-  const finalGrowthPct = Math.round(
-    ((month24Customers - month18Customers) / month18Customers) * 100,
-  );
-  const finalMultiple = month24Customers / month18Customers;
+  const growth = computeGrowthTarget(smbCustomers);
 
   const exitCompact = formatMillionsCompact(exitMillions, locale, numberLocale);
   const arrCompact = formatMillionsCompact(arrMillions, locale, numberLocale);
@@ -144,19 +239,19 @@ export function computeAmbition(
   const exitLong = formatMillionsLong(exitMillions, locale, numberLocale);
   const arrLong = formatMillionsLong(arrMillions, locale, numberLocale);
   const mrrLong = formatMillionsLong(mrrMillions, locale, numberLocale);
-  const growthStartLabel = growthStart.toLocaleString(numberLocale);
+  const growthStartLabel = growth.growthStart.toLocaleString(numberLocale);
   const growthStartNoun =
     locale === "en"
-      ? growthStart === 1
+      ? growth.growthStart === 1
         ? "customer"
         : "customers"
-      : growthStart === 1
+      : growth.growthStart === 1
         ? "cliente"
         : "clientes";
   const growthStartEnough =
     locale === "en"
       ? `${growthStartLabel} is enough for the math`
-      : growthStart === 1
+      : growth.growthStart === 1
         ? `${growthStartLabel} basta para a matemática`
         : `${growthStartLabel} bastam para a matemática`;
 
@@ -171,10 +266,10 @@ export function computeAmbition(
     mrrCompactLabel: `${mrrCompact} MRR`,
     smbCustomers: smbCustomers.toLocaleString(numberLocale),
     entCustomers: entCustomers.toLocaleString(numberLocale),
-    month18Customers: month18Customers.toLocaleString(numberLocale),
-    month24Customers: month24Customers.toLocaleString(numberLocale),
-    finalGrowthPct: `${finalGrowthPct}%`,
-    finalMultiple: formatMultiple(finalMultiple, locale),
+    month18Customers: growth.month18Customers.toLocaleString(numberLocale),
+    month24Customers: growth.month24Customers.toLocaleString(numberLocale),
+    finalGrowthPct: `${growth.finalGrowthPct}%`,
+    finalMultiple: formatMultiple(growth.finalMultiple, locale),
     growthStart: growthStartLabel,
     growthStartWith: `${growthStartLabel} ${growthStartNoun}`,
     growthStartEnough,
@@ -192,11 +287,11 @@ export function computeAmbition(
     entContract,
     smbCustomers,
     entCustomers,
-    stages,
-    month18Customers,
-    month24Customers,
-    finalGrowthPct,
-    finalMultiple,
+    stages: growth.stages,
+    month18Customers: growth.month18Customers,
+    month24Customers: growth.month24Customers,
+    finalGrowthPct: growth.finalGrowthPct,
+    finalMultiple: growth.finalMultiple,
     tokens,
   };
 }
