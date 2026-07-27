@@ -132,6 +132,7 @@ export function computeAmbition(
 
   const month18Customers = stages[4] ?? smbCustomers;
   const month24Customers = stages[5] ?? smbCustomers;
+  const growthStart = stages[0] ?? smbCustomers;
   const finalGrowthPct = Math.round(
     ((month24Customers - month18Customers) / month18Customers) * 100,
   );
@@ -143,6 +144,21 @@ export function computeAmbition(
   const exitLong = formatMillionsLong(exitMillions, locale, numberLocale);
   const arrLong = formatMillionsLong(arrMillions, locale, numberLocale);
   const mrrLong = formatMillionsLong(mrrMillions, locale, numberLocale);
+  const growthStartLabel = growthStart.toLocaleString(numberLocale);
+  const growthStartNoun =
+    locale === "en"
+      ? growthStart === 1
+        ? "customer"
+        : "customers"
+      : growthStart === 1
+        ? "cliente"
+        : "clientes";
+  const growthStartEnough =
+    locale === "en"
+      ? `${growthStartLabel} is enough for the math`
+      : growthStart === 1
+        ? `${growthStartLabel} basta para a matemática`
+        : `${growthStartLabel} bastam para a matemática`;
 
   const tokens: Record<string, string> = {
     exitCompact,
@@ -159,7 +175,9 @@ export function computeAmbition(
     month24Customers: month24Customers.toLocaleString(numberLocale),
     finalGrowthPct: `${finalGrowthPct}%`,
     finalMultiple: formatMultiple(finalMultiple, locale),
-    growthStart: (stages[0] ?? smbCustomers).toLocaleString(numberLocale),
+    growthStart: growthStartLabel,
+    growthStartWith: `${growthStartLabel} ${growthStartNoun}`,
+    growthStartEnough,
     calculatorMrr: mrrCompact,
   };
 
