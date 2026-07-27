@@ -224,23 +224,6 @@
   color: var(--color-fg);
 }
 
-.story-path-people {
-  display: block;
-  max-width: 16rem;
-  margin: 0 auto 0.75rem;
-  overflow: hidden;
-  color: var(--story-lime);
-  font-family: var(--font-mono);
-  font-size: 1.25rem;
-  letter-spacing: 0.25em;
-  line-height: 1;
-  text-shadow: 0 0 0 var(--story-green);
-}
-
-.story-path-people-enterprise {
-  letter-spacing: 0.8em;
-}
-
 .story-budget-bar {
   display: grid;
   min-height: 7rem;
@@ -588,15 +571,19 @@
   position: absolute;
   z-index: 1;
   top: 50%;
-  left: min(calc(var(--bar) + 0.65rem), calc(100% - 3.5rem));
+  left: min(calc(var(--bar) + 0.75rem), calc(100% - 3.25rem));
   color: var(--color-fg);
   font-family: var(--font-mono);
-  font-size: 0.75rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
   transform: translateY(-50%);
 }
 
 .story-growth li:last-child .story-growth-track strong {
+  left: auto;
+  right: 0.75rem;
   color: #07401a;
 }
 
@@ -611,7 +598,7 @@
 
 .story-calculator {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(14rem, 1.2fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(14rem, 1.2fr) 7.5rem;
   align-items: center;
   gap: clamp(1.5rem, 4vw, 3rem);
   padding: clamp(1.5rem, 5vw, 3rem);
@@ -657,17 +644,28 @@
   font-variant-numeric: tabular-nums;
 }
 
+.story-calculator label > output {
+  min-width: 9ch;
+  text-align: right;
+}
+
 .story-calculator-result {
   display: flex;
   flex-direction: column;
+  align-items: flex-end;
+  width: 7.5rem;
   text-align: right;
 }
 
 .story-calculator-result output {
+  display: block;
+  width: 3ch;
   font-size: clamp(2.5rem, 7vw, 4.5rem);
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
   letter-spacing: -0.07em;
   line-height: 0.95;
+  text-align: right;
 }
 
 .story-calculator-result span {
@@ -934,6 +932,8 @@
   }
 
   .story-calculator-result {
+    align-items: flex-start;
+    width: 7.5rem;
     text-align: left;
   }
 
