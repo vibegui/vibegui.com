@@ -109,4 +109,42 @@ test.describe("Responsive Design Constraints", () => {
       }
     });
   });
+
+  test("story thesis steps do not overlap on mobile", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(
+      "/article/a-empresa-de-100-milhoes-nao-e-mais-uma-loteria/",
+    );
+
+    const diagram = page.locator(".story-thesis");
+    await expect(diagram).toBeVisible();
+    const diagramBox = await diagram.boundingBox();
+    const stepBoxes = await diagram
+      .locator(":scope > div, :scope > b")
+      .evaluateAll((elements) =>
+        elements.map((element) => {
+          const box = element.getBoundingClientRect();
+          return {
+            top: box.top,
+            bottom: box.bottom,
+            left: box.left,
+            right: box.right,
+          };
+        }),
+      );
+
+    expect(diagramBox).not.toBeNull();
+    expect(stepBoxes).toHaveLength(5);
+    for (let index = 1; index < stepBoxes.length; index += 1) {
+      expect(stepBoxes[index]?.top).toBeGreaterThanOrEqual(
+        (stepBoxes[index - 1]?.bottom ?? 0) - 1,
+      );
+    }
+    for (const box of stepBoxes) {
+      expect(box.left).toBeGreaterThanOrEqual(diagramBox?.x ?? 0);
+      expect(box.right).toBeLessThanOrEqual(
+        (diagramBox?.x ?? 0) + (diagramBox?.width ?? 0) + 1,
+      );
+    }
+  });
 });

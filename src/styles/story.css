@@ -853,10 +853,24 @@
 
   .story-thesis {
     grid-template-columns: 1fr;
+    gap: 0.75rem;
   }
 
   .story-thesis > b {
-    transform: rotate(90deg);
+    width: max-content;
+    justify-self: center;
+    transform: none;
+  }
+
+  .story-thesis > b:first-of-type {
+    font-size: 0;
+    transform: none;
+  }
+
+  .story-thesis > b:first-of-type::after {
+    content: "↓";
+    font-size: 1.25rem;
+    line-height: 1;
   }
 
   .story-two-paths,
@@ -944,7 +958,20 @@
   }
 
   .story-thesis > b {
-    transform: rotate(90deg);
+    width: max-content;
+    justify-self: center;
+    transform: none;
+  }
+
+  .story-thesis > b:first-of-type {
+    font-size: 0;
+    transform: none;
+  }
+
+  .story-thesis > b:first-of-type::after {
+    content: "↓";
+    font-size: 1.25rem;
+    line-height: 1;
   }
 }
 
