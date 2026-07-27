@@ -4,6 +4,9 @@ title: 'The Culture of Recognition: Our Friday Week End Ritual'
 description: 'Why explicit recognition matters, and the meeting structure that makes extraordinary results possible.'
 date: 2025-06-20
 status: published
+locale: "en"
+translationKey: "linkedin:7341940138718994433"
+originalUrl: "https://www.linkedin.com/posts/vibegui_mais-uma-semana-maravilhosa-chega-ao-fim-activity-7341940138718994433-tqwA"
 coverImage: null
 tags:
   - culture

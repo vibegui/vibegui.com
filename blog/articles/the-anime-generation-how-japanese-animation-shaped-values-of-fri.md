@@ -4,6 +4,9 @@ title: 'The Anime Generation: How Japanese Animation Shaped Values of Friendship
 description: How TV Manchete and Japanese anime morally formed a generation of Brazilians.
 date: 2025-11-13
 status: published
+locale: "en"
+translationKey: "linkedin:7394537646963970048"
+originalUrl: "https://www.linkedin.com/posts/vibegui_quem-nasceu-entre-85-95-no-brasil-teve-um-activity-7394537646963970048-tRUR"
 coverImage: null
 tags:
   - brazil

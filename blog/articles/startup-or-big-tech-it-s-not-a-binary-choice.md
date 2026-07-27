@@ -4,6 +4,9 @@ title: Startup or Big Tech? It's Not a Binary Choice
 description: Three questions to help you navigate the spectrum between chaos and stability.
 date: 2024-11-19
 status: published
+locale: "en"
+translationKey: "linkedin:7264771955550015488"
+originalUrl: "https://www.linkedin.com/posts/vibegui_should-i-work-at-a-startup-or-big-tech-actually-activity-7264771955550015488-R8Qj"
 coverImage: null
 tags:
   - advice

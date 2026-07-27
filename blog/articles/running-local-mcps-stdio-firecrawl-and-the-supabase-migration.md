@@ -4,6 +4,8 @@ title: 'Running Local MCPs: STDIO, Firecrawl, and the Supabase Migration'
 description: A Saturday coding session that started with wanting to track Perplexity API costs and ended with a complete infrastructure overhaul.
 date: 2025-12-28
 status: published
+locale: "en"
+translationKey: "article:running-local-mcps-stdio-firecrawl-and-the-supabase-migration"
 coverImage: null
 tags:
   - 'tech:firecrawl'

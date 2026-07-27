@@ -4,6 +4,9 @@ title: The Gravest Mistake in AI-Native Product Development
 description: The gravest mistake AI-native product companies make is confusing the lack of limits AI enables for the lack of limits to the product's use case.
 date: 2025-03-08
 status: published
+locale: "en"
+translationKey: "linkedin:7304137576381136896"
+originalUrl: "https://www.linkedin.com/posts/vibegui_the-gravest-mistake-im-seeing-ai-native-activity-7304137576381136896-dBI-"
 coverImage: null
 tags:
   - ai

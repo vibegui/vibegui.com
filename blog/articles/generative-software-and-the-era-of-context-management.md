@@ -4,6 +4,9 @@ title: Generative Software and the Era of Context Management
 description: Your software will only be as good as your AI. And your AI will only be as good as your Context.
 date: 2025-10-29
 status: published
+locale: "en"
+translationKey: "linkedin:7389118909309677568"
+originalUrl: "https://www.linkedin.com/posts/vibegui_embora-gost%C3%A1ssemos-de-nos-ver-como-artistas-activity-7389118909309677568-Bk_v"
 coverImage: null
 tags:
   - ai

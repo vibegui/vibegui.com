@@ -4,6 +4,9 @@ title: 'Action Creates Hope: Building the Possible Future'
 description: 'Why pessimism is a self-fulfilling prison, and how taking action—regardless of motivation—generates the hope we need.'
 date: 2025-11-06
 status: published
+locale: "en"
+translationKey: "linkedin:7392164862484787200"
+originalUrl: "https://www.linkedin.com/posts/vibegui_me-irrita-e-entristece-profundamente-que-activity-7392164862484787200-3d63"
 coverImage: null
 tags:
   - action

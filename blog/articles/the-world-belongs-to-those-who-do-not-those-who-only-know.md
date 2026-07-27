@@ -4,6 +4,9 @@ title: 'The World Belongs to Those Who Do, Not Those Who Only Know'
 description: Why action beats knowledge in the AI age—and the trap of endless preparation.
 date: 2025-06-23
 status: published
+locale: "en"
+translationKey: "linkedin:7342856873798172673"
+originalUrl: "https://www.linkedin.com/posts/vibegui_n%C3%B3s-fomos-ensinados-que-quem-se-preparar-activity-7342856873798172673-pxAk"
 coverImage: null
 tags:
   - action

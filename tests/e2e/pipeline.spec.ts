@@ -16,7 +16,7 @@ import { test, expect } from "@playwright/test";
 test.describe("E2E Pipeline Verification", () => {
   test("article pages served from dist with HTTP 200", async ({ page }) => {
     const response = await page.goto(
-      "/article/hello-world-building-an-mcp-native-blog",
+      "/en/article/hello-world-building-an-mcp-native-blog",
     );
 
     // Assert HTTP 200

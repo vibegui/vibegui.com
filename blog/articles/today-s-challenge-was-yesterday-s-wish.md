@@ -4,6 +4,9 @@ title: Today's Challenge Was Yesterday's Wish
 description: 'Every time I feel overwhelmed by real-world challenges, I remember that this was once my greatest desire.'
 date: 2025-11-25
 status: published
+locale: "en"
+translationKey: "linkedin:7399216170438041600"
+originalUrl: "https://www.linkedin.com/posts/vibegui_todas-as-vezes-que-eu-me-sinto-sobrecarregado-activity-7399216170438041600-u936"
 coverImage: null
 tags:
   - gratitude

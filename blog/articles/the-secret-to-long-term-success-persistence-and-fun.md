@@ -4,6 +4,9 @@ title: 'The Secret to Long-Term Success: Persistence and Fun'
 description: Why building a billion-dollar company requires finding the tribe you want to survive hardships with—and learning to enjoy the journey.
 date: 2025-04-22
 status: published
+locale: "en"
+translationKey: "linkedin:7320565301945819136"
+originalUrl: "https://www.linkedin.com/posts/vibegui_se-fosse-f%C3%A1cil-qualquer-idiota-faria-activity-7320565301945819136-M99A"
 coverImage: null
 tags:
   - leadership

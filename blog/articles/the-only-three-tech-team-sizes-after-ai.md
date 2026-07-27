@@ -4,6 +4,8 @@ title: The Only Three Tech Team Sizes After AI
 description: AI-native tech organizations have three useful sizes—two for proving, ten for growing, and thirty for building a platform with services.
 date: 2026-07-20
 status: draft
+locale: "en"
+translationKey: "article:the-only-three-tech-team-sizes-after-ai"
 coverImage: null
 tags:
   - agents

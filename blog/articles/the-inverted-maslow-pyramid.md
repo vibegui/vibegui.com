@@ -4,6 +4,8 @@ title: The Inverted Maslow Pyramid
 description: As humanity moves from scarcity toward abundance, self-realization will stop being a privilege reserved for the few.
 date: 2026-07-20
 status: draft
+locale: "en"
+translationKey: "article:the-inverted-maslow-pyramid"
 coverImage: null
 tags:
   - ai

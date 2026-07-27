@@ -4,6 +4,10 @@ title: The Inferiority Complex of Brazilian Software
 description: 'Why saying Brazilian software "competes with" foreign tools is an insult, not a compliment.'
 date: 2024-11-11
 status: published
+locale: "en"
+translationKey: "linkedin:7261709490469683201"
+originalUrl: "https://www.linkedin.com/posts/vibegui_eu-odeio-quando-algu%C3%A9m-faz-review-de-software-activity-7261709490469683201-Ubjl"
+translationKind: "adapted"
 coverImage: null
 tags:
   - brazil

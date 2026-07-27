@@ -4,6 +4,9 @@ title: 'The Future of Software: From Code to Content and Intelligent Agents'
 description: 'Why software is becoming content, and how agents with access to tools will transform every industry.'
 date: 2025-03-17
 status: published
+locale: "en"
+translationKey: "linkedin:7307214987318517760"
+originalUrl: "https://www.linkedin.com/posts/vibegui_a-partir-de-agora-software-%C3%A9-conte%C3%BAdo-pode-activity-7307214987318517760-jeNx"
 coverImage: null
 tags:
   - agents

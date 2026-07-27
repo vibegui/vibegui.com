@@ -13,9 +13,17 @@ import { join } from "node:path";
 
 // -- Article Interface --
 
+export type ArticleLocale = "pt-BR" | "en";
+
 export interface Article {
   slug: string;
+  locale: ArticleLocale;
+  translationKey: string;
   title: string;
+  originalUrl?: string;
+  sourceLocale?: ArticleLocale;
+  translationKind?: string;
+  titleGenerated?: boolean;
   description: string;
   content: string;
   format: "md" | "mdx";
@@ -95,14 +103,19 @@ function unquote(s: string): string {
   return s;
 }
 
-function parseValue(raw: string): string | null {
+function parseValue(raw: string): string | boolean | null {
   if (raw === "null" || raw === "~") return null;
+  if (raw === "true") return true;
+  if (raw === "false") return false;
   return unquote(raw);
 }
 
 // -- Read --
 
-export function readArticle(filePath: string): Article | null {
+export function readArticle(
+  filePath: string,
+  requireLocalization = false,
+): Article | null {
   if (!existsSync(filePath)) {
     return null;
   }
@@ -113,10 +126,51 @@ export function readArticle(filePath: string): Article | null {
   const tags = Array.isArray(data.tags)
     ? data.tags.map((t: unknown) => String(t))
     : [];
+  const locale = data.locale;
+  const sourceLocale = data.sourceLocale;
+
+  if (locale !== undefined && locale !== "pt-BR" && locale !== "en") {
+    throw new Error(`${filePath}: locale must be "pt-BR" or "en"`);
+  }
+  if (requireLocalization && locale === undefined) {
+    throw new Error(`${filePath}: locale is required`);
+  }
+  if (
+    requireLocalization &&
+    (typeof data.translationKey !== "string" || !data.translationKey.trim())
+  ) {
+    throw new Error(`${filePath}: translationKey is required`);
+  }
+  if (
+    sourceLocale !== undefined &&
+    sourceLocale !== "pt-BR" &&
+    sourceLocale !== "en"
+  ) {
+    throw new Error(`${filePath}: sourceLocale must be "pt-BR" or "en"`);
+  }
+  if (
+    data.titleGenerated !== undefined &&
+    typeof data.titleGenerated !== "boolean"
+  ) {
+    throw new Error(`${filePath}: titleGenerated must be a boolean`);
+  }
 
   return {
     slug: String(data.slug || ""),
+    locale: locale ?? "pt-BR",
+    translationKey:
+      typeof data.translationKey === "string" && data.translationKey.trim()
+        ? data.translationKey
+        : String(data.slug || ""),
     title: String(data.title || ""),
+    originalUrl:
+      typeof data.originalUrl === "string" ? data.originalUrl : undefined,
+    sourceLocale,
+    translationKind:
+      typeof data.translationKind === "string"
+        ? data.translationKind
+        : undefined,
+    titleGenerated: data.titleGenerated,
     description: String(data.description || ""),
     content: content.trim(),
     format: filePath.endsWith(".mdx") ? "mdx" : "md",
@@ -128,7 +182,10 @@ export function readArticle(filePath: string): Article | null {
   };
 }
 
-export function readAllArticles(articlesDir: string): Article[] {
+export function readAllArticles(
+  articlesDir: string,
+  requireLocalization = false,
+): Article[] {
   if (!existsSync(articlesDir)) {
     return [];
   }
@@ -144,7 +201,7 @@ export function readAllArticles(articlesDir: string): Article[] {
       continue;
     }
 
-    const article = readArticle(join(articlesDir, file));
+    const article = readArticle(join(articlesDir, file), requireLocalization);
     if (article) {
       articles.push(article);
     }
@@ -157,6 +214,9 @@ export function readAllArticles(articlesDir: string): Article[] {
   return articles;
 }
 
-export function getAllContent(articlesDir = "blog/articles"): Article[] {
-  return readAllArticles(articlesDir);
+export function getAllContent(
+  articlesDir = "blog/articles",
+  requireLocalization = false,
+): Article[] {
+  return readAllArticles(articlesDir, requireLocalization);
 }

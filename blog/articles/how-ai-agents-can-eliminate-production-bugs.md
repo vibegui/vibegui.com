@@ -4,6 +4,9 @@ title: How AI Agents Can Eliminate Production Bugs
 description: From manually fixing customer errors with Claude Code and Cursor to building MCPs that let agents debug in real-time.
 date: 2025-09-11
 status: published
+locale: "en"
+translationKey: "linkedin:7371884584998727680"
+originalUrl: "https://www.linkedin.com/posts/vibegui_normalmente-uma-startup-escreve-o-c%C3%B3digo-activity-7371884584998727680-qNPb"
 coverImage: null
 tags:
   - agents

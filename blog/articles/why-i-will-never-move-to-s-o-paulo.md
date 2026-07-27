@@ -4,6 +4,9 @@ title: Why I Will Never Move to São Paulo
 description: 'On choosing your game, defining your conditions of satisfaction, and betting on Rio as a global AI hub.'
 date: 2025-01-11
 status: published
+locale: "en"
+translationKey: "linkedin:7283833072624558080"
+originalUrl: "https://www.linkedin.com/posts/vibegui_por-que-eu-nunca-irei-morar-em-s%C3%A3o-paulo-activity-7283833072624558080-jzuu"
 coverImage: null
 tags:
   - brazil

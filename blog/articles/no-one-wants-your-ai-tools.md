@@ -4,6 +4,8 @@ title: No One Wants Your AI Tools
 description: Customers do not know what to do with a horizontal AI platform. Take responsibility for an outcome, deliver it as a service, and let the product emerge from the work.
 date: 2026-07-24
 status: draft
+locale: "en"
+translationKey: "article:no-one-wants-your-ai-tools"
 coverImage: null
 tags:
   - agents

@@ -4,6 +4,9 @@ title: 'Pessimism vs. Leadership: The Choice to Make the Unpredictable Happen'
 description: Why the opposite of pessimist isn't optimist—it's leader. And why that distinction matters.
 date: 2025-03-27
 status: published
+locale: "en"
+translationKey: "linkedin:7310984842827997184"
+originalUrl: "https://www.linkedin.com/posts/vibegui_o-pessimista-tem-o-trabalho-mais-f%C3%A1cil-ele-activity-7310984842827997184-YlTt"
 coverImage: null
 tags:
   - leadership

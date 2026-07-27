@@ -3,7 +3,13 @@
  * Always uses the naked domain (no www).
  */
 export function updateCanonical(pathname: string): void {
-  const canonicalUrl = `https://vibegui.com${pathname}`;
+  const canonicalPath =
+    pathname === "/en"
+      ? "/en/"
+      : /^\/(?:en\/)?article\/[^/]+\/$/.test(pathname)
+        ? pathname.slice(0, -1)
+        : pathname;
+  const canonicalUrl = `https://vibegui.com${canonicalPath}`;
 
   // Update the canonical link element
   let link = document.querySelector(

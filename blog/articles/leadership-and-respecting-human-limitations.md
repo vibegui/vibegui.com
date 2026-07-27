@@ -4,6 +4,9 @@ title: Leadership and Respecting Human Limitations
 description: Why learning to work with—not against—people's limitations makes you a better leader.
 date: 2024-11-18
 status: published
+locale: "en"
+translationKey: "linkedin:7264056915255545856"
+originalUrl: "https://www.linkedin.com/posts/vibegui_quanto-mais-r%C3%A1pido-voc%C3%AA-distinguir-que-cada-activity-7264056915255545856-KtuW"
 coverImage: null
 tags:
   - empathy

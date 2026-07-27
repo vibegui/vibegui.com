@@ -12,6 +12,12 @@ import { Commitment } from "./pages/commitment";
 import { Content } from "./pages/content";
 import { Context, ContextDoc } from "./pages/context";
 import { updateCanonical } from "./hooks/use-canonical";
+import {
+  DEFAULT_LOCALE,
+  homePath,
+  localeText,
+  type Locale,
+} from "./lib/manifest";
 
 // Lazy load heavy pages
 const Bookmarks = React.lazy(() =>
@@ -20,26 +26,41 @@ const Bookmarks = React.lazy(() =>
 const Roadmap = React.lazy(() =>
   import("./pages/roadmap").then((m) => ({ default: m.Roadmap })),
 );
+const TransformationDemo = React.lazy(() =>
+  import("./pages/transformation-demo").then((m) => ({
+    default: m.TransformationDemo,
+  })),
+);
 
 type Route =
-  | { type: "content" }
-  | { type: "article"; slug: string }
+  | { type: "content"; locale: Locale }
+  | { type: "article"; locale: Locale; slug: string }
   | { type: "bookmarks" }
   | { type: "roadmap" }
   | { type: "commitment" }
   | { type: "context" }
   | { type: "context-doc"; path: string }
-  | { type: "not-found" };
+  | { type: "transformation" }
+  | { type: "not-found"; locale: Locale };
 
 function parseRoute(pathname: string): Route {
   if (pathname === "/" || pathname === "" || pathname === "/content") {
-    return { type: "content" };
+    return { type: "content", locale: "pt-BR" };
+  }
+  if (pathname === "/en" || pathname === "/en/") {
+    return { type: "content", locale: "en" };
   }
   if (pathname === "/bookmarks" || pathname === "/bookmarks/") {
     return { type: "bookmarks" };
   }
   if (pathname === "/roadmap" || pathname === "/roadmap/") {
     return { type: "roadmap" };
+  }
+  if (
+    pathname === "/demos/transformation" ||
+    pathname === "/demos/transformation/"
+  ) {
+    return { type: "transformation" };
   }
   if (pathname === "/commitment") {
     return { type: "commitment" };
@@ -54,14 +75,19 @@ function parseRoute(pathname: string): Route {
       return { type: "context-doc", path };
     }
   }
-  if (pathname.startsWith("/article/")) {
+  const articleRoute = pathname.match(/^\/(en\/)?article\/([^/]+)\/?$/);
+  if (articleRoute?.[2]) {
     // Strip trailing slash for consistent comparison with embedded data
-    const slug = pathname.slice("/article/".length).replace(/\/$/, "");
-    if (slug) {
-      return { type: "article", slug };
-    }
+    return {
+      type: "article",
+      locale: articleRoute[1] ? "en" : "pt-BR",
+      slug: articleRoute[2],
+    };
   }
-  return { type: "not-found" };
+  return {
+    type: "not-found",
+    locale: pathname === "/en" || pathname.startsWith("/en/") ? "en" : "pt-BR",
+  };
 }
 
 function useRoute(): Route {
@@ -89,7 +115,7 @@ function useRoute(): Route {
  * Navigate programmatically (for link clicks)
  */
 export function navigate(to: string): void {
-  updateCanonical(to);
+  updateCanonical(new URL(to, window.location.origin).pathname);
   window.history.pushState({}, "", to);
   window.dispatchEvent(new PopStateEvent("popstate"));
 }
@@ -133,17 +159,21 @@ export function Link({
   );
 }
 
-function RouteContent({ route }: { route: Route }) {
+function RouteContent({ route, locale }: { route: Route; locale: Locale }) {
+  const text = localeText[locale];
+
   switch (route.type) {
     case "content":
-      return <Content />;
+      return <Content locale={route.locale} />;
     case "article":
-      return <Article slug={route.slug} />;
+      return <Article slug={route.slug} locale={route.locale} />;
     case "bookmarks":
       return (
         <Suspense
           fallback={
-            <div className="container py-16 text-center">Loading...</div>
+            <div className="container py-16 text-center">
+              {locale === "en" ? "Loading..." : "Carregando..."}
+            </div>
           }
         >
           <Bookmarks />
@@ -153,7 +183,9 @@ function RouteContent({ route }: { route: Route }) {
       return (
         <Suspense
           fallback={
-            <div className="container py-16 text-center">Loading...</div>
+            <div className="container py-16 text-center">
+              {locale === "en" ? "Loading..." : "Carregando..."}
+            </div>
           }
         >
           <Roadmap />
@@ -165,13 +197,21 @@ function RouteContent({ route }: { route: Route }) {
       return <Context />;
     case "context-doc":
       return <ContextDoc path={route.path} />;
+    case "transformation":
+      return (
+        <Suspense fallback={<div className="transformation-demo" />}>
+          <TransformationDemo />
+        </Suspense>
+      );
     case "not-found":
       return (
         <div className="container py-16 text-center">
           <h1 className="text-4xl font-bold mb-4">404</h1>
-          <p style={{ color: "var(--color-fg-muted)" }}>Page not found</p>
-          <Link href="/" className="mt-4 inline-block">
-            ← Back to content
+          <p style={{ color: "var(--color-fg-muted)" }}>
+            {text.notFound.message}
+          </p>
+          <Link href={homePath(locale)} className="mt-4 inline-block">
+            {text.notFound.back}
           </Link>
         </div>
       );
@@ -180,29 +220,38 @@ function RouteContent({ route }: { route: Route }) {
 
 export function App() {
   const route = useRoute();
+  const locale =
+    "locale" in route && route.locale ? route.locale : DEFAULT_LOCALE;
+  const isStandaloneDemo = route.type === "transformation";
+
+  useEffect(() => {
+    document.documentElement.lang = locale;
+  }, [locale]);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      {!isStandaloneDemo && <Header locale={locale} />}
       <main className="flex-1">
-        <RouteContent route={route} />
+        <RouteContent route={route} locale={locale} />
       </main>
-      <footer
-        className="container py-8 text-center text-sm"
-        style={{ color: "var(--color-fg-muted)" }}
-      >
-        <p>
-          Built with{" "}
-          <a
-            href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=footer"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            decoCMS
-          </a>{" "}
-          · Made in Brazil 🇧🇷
-        </p>
-      </footer>
+      {!isStandaloneDemo && (
+        <footer
+          className="container py-8 text-center text-sm"
+          style={{ color: "var(--color-fg-muted)" }}
+        >
+          <p>
+            {locale === "en" ? "Built with" : "Feito com"}{" "}
+            <a
+              href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=footer"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              decoCMS
+            </a>{" "}
+            · {localeText[locale].footer}
+          </p>
+        </footer>
+      )}
     </div>
   );
 }

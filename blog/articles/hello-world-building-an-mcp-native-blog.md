@@ -4,6 +4,8 @@ title: 'Hello World: Building an MCP-Native Blog'
 description: 'Welcome to vibegui.com — a personal blog built entirely through MCP, served at the edge with sub-100KB payloads.'
 date: 2025-12-21
 status: published
+locale: "en"
+translationKey: "article:hello-world-building-an-mcp-native-blog"
 coverImage: null
 tags:
   - architecture

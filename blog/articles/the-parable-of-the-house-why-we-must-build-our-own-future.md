@@ -4,6 +4,9 @@ title: 'The Parable of the House: Why We Must Build Our Own Future'
 description: 'An allegory about brain drain, serving others'' empires, and the cost of not building your own home.'
 date: 2024-11-01
 status: published
+locale: "en"
+translationKey: "linkedin:7258072637707329536"
+originalUrl: "https://www.linkedin.com/posts/vibegui_voc%C3%AA-nasceu-numa-casa-com-muitos-irm%C3%A3os-e-activity-7258072637707329536-5m8I"
 coverImage: null
 tags:
   - brain-drain

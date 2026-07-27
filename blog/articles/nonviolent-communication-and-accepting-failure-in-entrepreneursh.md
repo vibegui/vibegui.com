@@ -4,6 +4,9 @@ title: Nonviolent Communication and Accepting Failure in Entrepreneurship
 description: How accepting the possibility of failure creates the freedom to actually deal with problems.
 date: 2024-12-05
 status: published
+locale: "en"
+translationKey: "linkedin:7270425110925234177"
+originalUrl: "https://www.linkedin.com/posts/vibegui_toda-comunica%C3%A7%C3%A3o-violenta-ou-sarc%C3%A1stica-activity-7270425110925234177-7klV"
 coverImage: null
 tags:
   - emotional-intelligence

@@ -4,6 +4,8 @@ title: Web Generation As Human Expression
 description: Everyone deserves to express themselves through the web. For the first time, the software doesn't ask you to learn its language first.
 date: 2026-04-10
 status: draft
+locale: "en"
+translationKey: "article:web-generation-as-human-expression"
 coverImage: null
 tags: []
 ---

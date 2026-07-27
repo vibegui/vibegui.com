@@ -9,12 +9,18 @@
 import { useState, useEffect } from "react";
 import { ArticleCard } from "../components/article-card";
 import { PageHeader } from "../components/page-header";
-import { loadManifest, type ArticleMeta } from "../lib/manifest";
+import {
+  loadManifest,
+  localeText,
+  type ArticleMeta,
+  type Locale,
+} from "../lib/manifest";
 
-export function Content() {
+export function Content({ locale }: { locale: Locale }) {
   const [allArticles, setAllArticles] = useState<ArticleMeta[]>([]);
   const [loading, setLoading] = useState(true);
   const [showDrafts, setShowDrafts] = useState(true);
+  const text = localeText[locale].home;
 
   useEffect(() => {
     const loadArticles = async () => {
@@ -26,17 +32,18 @@ export function Content() {
     loadArticles();
   }, []);
 
-  const drafts = allArticles.filter((a) => a.status === "draft");
-  const published = allArticles.filter((a) => a.status === "published");
+  const localizedArticles = allArticles.filter((a) => a.locale === locale);
+  const drafts = localizedArticles.filter((a) => a.status === "draft");
+  const published = localizedArticles.filter((a) => a.status === "published");
   const hasDrafts = drafts.length > 0;
 
   return (
     <div className="container py-8 md:py-12">
       <div className="content-width">
-        <PageHeader />
+        <PageHeader locale={locale} />
 
         {loading ? (
-          <p style={{ color: "var(--color-fg-muted)" }}>Loading articles...</p>
+          <p style={{ color: "var(--color-fg-muted)" }}>{text.loading}</p>
         ) : (
           <>
             {/* Draft toggle - only shown when drafts exist (dev mode) */}
@@ -57,7 +64,9 @@ export function Content() {
                         fontWeight: 500,
                       }}
                     >
-                      {drafts.length} Draft{drafts.length !== 1 ? "s" : ""}
+                      {locale === "en"
+                        ? `${drafts.length} Draft${drafts.length !== 1 ? "s" : ""}`
+                        : `${drafts.length} rascunho${drafts.length !== 1 ? "s" : ""}`}
                     </span>
                     <span
                       style={{
@@ -66,7 +75,7 @@ export function Content() {
                         fontSize: "0.875rem",
                       }}
                     >
-                      (local only)
+                      {text.localOnly}
                     </span>
                   </div>
                 </div>
@@ -86,7 +95,7 @@ export function Content() {
                       : "1px solid var(--color-border)",
                   }}
                 >
-                  {showDrafts ? "Hide Drafts" : "Show Drafts"}
+                  {showDrafts ? text.hideDrafts : text.showDrafts}
                 </button>
               </div>
             )}
@@ -98,7 +107,7 @@ export function Content() {
                   className="text-lg font-semibold mb-4 flex items-center gap-2"
                   style={{ color: "var(--color-fg-muted)" }}
                 >
-                  <span>Drafts</span>
+                  <span>{text.drafts}</span>
                   <span
                     className="text-xs px-2 py-0.5 rounded-full"
                     style={{
@@ -106,7 +115,7 @@ export function Content() {
                       color: "#000",
                     }}
                   >
-                    Preview
+                    {text.preview}
                   </span>
                 </h2>
                 {drafts.map((article) => (
@@ -132,10 +141,11 @@ export function Content() {
                         zIndex: 10,
                       }}
                     >
-                      Draft
+                      {text.draft}
                     </div>
                     <ArticleCard
-                      slug={article.slug}
+                      path={article.path}
+                      locale={locale}
                       title={article.title}
                       date={article.date}
                       description={article.description}
@@ -151,9 +161,7 @@ export function Content() {
                 className="p-6 rounded-lg text-center"
                 style={{ backgroundColor: "var(--color-bg-secondary)" }}
               >
-                <p style={{ color: "var(--color-fg-muted)" }}>
-                  No articles yet. Check back soon!
-                </p>
+                <p style={{ color: "var(--color-fg-muted)" }}>{text.empty}</p>
               </div>
             ) : (
               <>
@@ -162,13 +170,14 @@ export function Content() {
                     className="text-lg font-semibold mb-4"
                     style={{ color: "var(--color-fg-muted)" }}
                   >
-                    Published
+                    {text.published}
                   </h2>
                 )}
                 {published.map((article) => (
                   <ArticleCard
                     key={article.slug}
-                    slug={article.slug}
+                    path={article.path}
+                    locale={locale}
                     title={article.title}
                     date={article.date}
                     description={article.description}

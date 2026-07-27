@@ -4,6 +4,9 @@ title: 'Fossil Recognition vs. Renewable Recognition: Where Do You Seek Validati
 description: 'Are you renewable, hybrid, or still 100% dependent on fossil recognition? A reflection on where we seek validation.'
 date: 2024-12-27
 status: published
+locale: "en"
+translationKey: "linkedin:7278511693729587200"
+originalUrl: "https://www.linkedin.com/posts/vibegui_voc%C3%AA-%C3%A9-renov%C3%A1vel-h%C3%ADbrido-ou-ainda-precisa-activity-7278511693729587200-CapQ"
 coverImage: null
 tags:
   - linkedin-import

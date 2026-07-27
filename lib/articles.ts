@@ -8,6 +8,8 @@
  * Article format:
  * ---
  * slug: my-article
+ * locale: pt-BR
+ * translationKey: my-article
  * title: "My Article Title"
  * description: "Brief description"
  * date: 2025-01-27
@@ -29,18 +31,29 @@ import { z } from "zod";
 
 // -- Schema Definition --
 
-export const ArticleFrontmatterSchema = z.object({
-  slug: z.string(),
-  title: z.string(),
-  description: z.string(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  status: z.enum(["published", "draft"]),
-  coverImage: z.string().nullable(),
-  layout: z.enum(["prose", "story"]).optional(),
-  tags: z
-    .array(z.union([z.string(), z.number()]).transform((v) => String(v)))
-    .nullable(),
-});
+export const ARTICLE_LOCALES = ["pt-BR", "en"] as const;
+export type ArticleLocale = (typeof ARTICLE_LOCALES)[number];
+
+export const ArticleFrontmatterSchema = z
+  .object({
+    slug: z.string(),
+    locale: z.enum(ARTICLE_LOCALES),
+    translationKey: z.string(),
+    title: z.string(),
+    originalUrl: z.string().optional(),
+    sourceLocale: z.enum(ARTICLE_LOCALES).optional(),
+    translationKind: z.string().optional(),
+    titleGenerated: z.boolean().optional(),
+    description: z.string(),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+    status: z.enum(["published", "draft"]),
+    coverImage: z.string().nullable(),
+    layout: z.enum(["prose", "story"]).optional(),
+    tags: z
+      .array(z.union([z.string(), z.number()]).transform((v) => String(v)))
+      .nullable(),
+  })
+  .passthrough();
 
 export type ArticleFrontmatter = z.infer<typeof ArticleFrontmatterSchema>;
 
@@ -64,7 +77,13 @@ export const GRAY_MATTER_OPTIONS = {
 
 const CANONICAL_KEY_ORDER = [
   "slug",
+  "locale",
+  "translationKey",
   "title",
+  "originalUrl",
+  "sourceLocale",
+  "translationKind",
+  "titleGenerated",
   "description",
   "date",
   "status",
@@ -102,7 +121,13 @@ export function stringifyArticle(
 
 export interface Article {
   slug: string;
+  locale: ArticleLocale;
+  translationKey: string;
   title: string;
+  originalUrl?: string;
+  sourceLocale?: ArticleLocale;
+  translationKind?: string;
+  titleGenerated?: boolean;
   description: string;
   content: string;
   format: "md" | "mdx";
@@ -129,7 +154,13 @@ export function readArticle(filePath: string): Article | null {
 
   return {
     slug: frontmatter.slug,
+    locale: frontmatter.locale,
+    translationKey: frontmatter.translationKey,
     title: frontmatter.title,
+    originalUrl: frontmatter.originalUrl,
+    sourceLocale: frontmatter.sourceLocale,
+    translationKind: frontmatter.translationKind,
+    titleGenerated: frontmatter.titleGenerated,
     description: frontmatter.description,
     content: content.trim(),
     format: filePath.endsWith(".mdx") ? "mdx" : "md",

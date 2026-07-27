@@ -4,6 +4,8 @@ title: 'Shipping vibegui Bookmarks v1: Architecture, Costs, and Lessons'
 description: 'How I built an AI-enriched bookmark manager using MCP, Gemini Flash, Firecrawl, and Perplexity — and what it cost to enrich 305 bookmarks.'
 date: 2025-12-29
 status: published
+locale: "en"
+translationKey: "article:shipping-vibegui-bookmarks-v1-architecture-costs-and-lessons"
 coverImage: null
 tags:
   - 'tech:llm'
