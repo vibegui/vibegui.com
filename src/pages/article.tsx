@@ -79,11 +79,11 @@ export function Article({ slug, locale }: { slug: string; locale: Locale }) {
     const customerNoun = root.querySelector<HTMLElement>(
       "[data-customer-noun]",
     );
-    const targetMrr = 100_000_000 / 5 / 12;
+    const targetMrr = (locale === "en" ? 100_000_000 : 500_000_000) / 5 / 12;
     const numberLocale = locale === "en" ? "en-US" : "pt-BR";
     const money = new Intl.NumberFormat(numberLocale, {
       style: "currency",
-      currency: "USD",
+      currency: locale === "en" ? "USD" : "BRL",
       maximumFractionDigits: 0,
     });
 
