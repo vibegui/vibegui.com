@@ -69,7 +69,7 @@ test.describe("Localized writing", () => {
     await page.goto("/");
     await expect(
       page.getByRole("heading", {
-        name: "Ideias que eu gostaria de ter entendido antes.",
+        name: "Ideias que eu gostaria de ter tido antes.",
       }),
     ).toBeVisible();
 
@@ -155,7 +155,7 @@ test.describe("Localized writing", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: "Ideias que eu gostaria de ter entendido antes.",
+        name: "Ideias que eu gostaria de ter tido antes.",
       }),
     ).toBeVisible();
     await context.close();
