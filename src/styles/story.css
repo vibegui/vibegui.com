@@ -406,6 +406,10 @@
   border-radius: 50%;
 }
 
+.story-flywheel figcaption {
+  margin-top: 2.75rem;
+}
+
 .story-flywheel-center {
   position: absolute;
   inset: 31%;
