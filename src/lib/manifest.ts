@@ -89,12 +89,12 @@ export const localeText = {
   },
 } as const satisfies Record<Locale, object>;
 
-export function homePath(locale: Locale): "/" | "/en" {
-  return locale === "en" ? "/en" : "/";
+export function homePath(locale: Locale): "/" | "/en/" {
+  return locale === "en" ? "/en/" : "/";
 }
 
 export function articlePath(locale: Locale, slug: string): string {
-  return `${locale === "en" ? "/en" : ""}/article/${slug}`;
+  return `${locale === "en" ? "/en" : ""}/article/${slug}/`;
 }
 
 export interface ArticleMeta {

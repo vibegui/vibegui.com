@@ -76,11 +76,11 @@ test.describe("Localized writing", () => {
     const switcher = page.locator(".language-switch:visible");
     await expect(switcher.getByRole("link", { name: "EN" })).toHaveAttribute(
       "href",
-      "/en?lang=en",
+      "/en/?lang=en",
     );
     await switcher.getByRole("link", { name: "EN" }).click();
 
-    await expect(page).toHaveURL(/\/en\?lang=en$/);
+    await expect(page).toHaveURL(/\/en\/\?lang=en$/);
     await expect(
       page.getByRole("heading", { name: "Ideas I wish I had earlier." }),
     ).toBeVisible();
@@ -120,7 +120,7 @@ test.describe("Localized writing", () => {
         page.getByRole("link", {
           name: locale === "en" ? "← Back to writing" : "← Voltar aos textos",
         }),
-      ).toHaveAttribute("href", locale === "en" ? "/en" : "/");
+      ).toHaveAttribute("href", locale === "en" ? "/en/" : "/");
     }
   });
 
@@ -186,7 +186,7 @@ test.describe("Locale middleware", () => {
       }),
     );
     expect(home.status).toBe(302);
-    expect(home.headers.get("location")).toBe("https://vibegui.com/en");
+    expect(home.headers.get("location")).toBe("https://vibegui.com/en/");
     expect(home.headers.get("vary")).toBe("Accept-Language, Cookie");
 
     const article = await middleware(
@@ -215,7 +215,7 @@ test.describe("Locale middleware", () => {
       new Request("https://vibegui.com/?lang=en"),
     );
     expect(explicit.status).toBe(302);
-    expect(explicit.headers.get("location")).toBe("https://vibegui.com/en");
+    expect(explicit.headers.get("location")).toBe("https://vibegui.com/en/");
     expect(explicit.headers.get("set-cookie")).toContain(
       "vibegui_locale=en; Max-Age=31536000; Path=/; SameSite=Lax",
     );

@@ -153,8 +153,8 @@ for (const article of articles) {
 
 function articlePath(article: Article): string {
   return article.locale === "en"
-    ? `/en/article/${article.slug}`
-    : `/article/${article.slug}`;
+    ? `/en/article/${article.slug}/`
+    : `/article/${article.slug}/`;
 }
 
 function alternateArticle(article: Article): Article | undefined {
@@ -483,9 +483,10 @@ function generateRedirects(): void {
   );
   const generated = articles
     .filter((article) => article.locale === "en" && !ptSlugs.has(article.slug))
-    .map(
-      (article) => `/article/${article.slug} /en/article/${article.slug} 301`,
-    )
+    .flatMap((article) => [
+      `/article/${article.slug} /en/article/${article.slug}/ 301`,
+      `/article/${article.slug}/ /en/article/${article.slug}/ 301`,
+    ])
     .join("\n");
 
   writeFileSync(

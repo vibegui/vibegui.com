@@ -45,8 +45,8 @@ describe("Localized build and SEO", () => {
       expect(["prose", "story"]).toContain(article.layout);
       expect(article.path).toBe(
         article.locale === "en"
-          ? `/en/article/${article.slug}`
-          : `/article/${article.slug}`,
+          ? `/en/article/${article.slug}/`
+          : `/article/${article.slug}/`,
       );
       expect(existsSync(join(DIST, article.path.slice(1), "index.html"))).toBe(
         true,
@@ -132,7 +132,10 @@ describe("Localized build and SEO", () => {
       );
       if (article.locale === "en" && !ptSlugs.has(article.slug)) {
         expect(redirects).toContain(
-          `/article/${article.slug} /en/article/${article.slug} 301`,
+          `/article/${article.slug} /en/article/${article.slug}/ 301`,
+        );
+        expect(redirects).toContain(
+          `/article/${article.slug}/ /en/article/${article.slug}/ 301`,
         );
       }
     }
