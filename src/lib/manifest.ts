@@ -19,7 +19,7 @@ export const localeText = {
       menu: "Abrir menu",
     },
     home: {
-      title: "Ideias que eu gostaria de ter entendido antes.",
+      title: "Ideias que eu gostaria de ter tido antes.",
       introBefore: "Eu construo software e empresas, hoje como cofundador da ",
       introAfter:
         ". Este é o lugar onde elaboro as distinções que moldam como eu lidero, construo e imagino futuros possíveis — para a tecnologia, para o Brasil e para mim.",
