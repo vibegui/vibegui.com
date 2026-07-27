@@ -1111,7 +1111,12 @@
     grid-template-columns: 1fr;
   }
 
-  .story-two-paths > span,
+  .story-two-paths > span {
+    justify-self: center;
+    padding-block: 0.25rem;
+    transform: none;
+  }
+
   .story-vendor-swap > b,
   .story-local-shift {
     justify-self: center;
