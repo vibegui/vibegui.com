@@ -627,8 +627,8 @@
 
 .story-calculator label {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0.65rem 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.65rem;
   color: #d7dfd1;
   font-size: 0.75rem;
   font-weight: 600;
@@ -637,7 +637,6 @@
 .story-calculator input {
   width: 100%;
   min-height: 2.75rem;
-  grid-column: 1 / -1;
   accent-color: var(--story-lime);
   cursor: ew-resize;
 }
@@ -649,8 +648,11 @@
 }
 
 .story-calculator label > output {
-  min-width: 9ch;
-  text-align: right;
+  font-size: clamp(1.75rem, 5vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  text-align: left;
 }
 
 .story-calculator-result {
@@ -676,13 +678,6 @@
   margin-top: 0.5rem;
   color: #d7dfd1;
   font-size: 0.75rem;
-}
-
-.story-calculator > small {
-  grid-column: 1 / -1;
-  color: #a9b7a4;
-  font-size: 0.6875rem;
-  text-align: right;
 }
 
 .story-conditions {
@@ -938,11 +933,6 @@
   .story-calculator-result {
     align-items: flex-start;
     width: 7.5rem;
-    text-align: left;
-  }
-
-  .story-calculator > small {
-    grid-column: auto;
     text-align: left;
   }
 
