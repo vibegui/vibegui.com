@@ -1444,7 +1444,6 @@ header {
 }
 
 .transformation-controls-heading button {
-  min-height: 2rem;
   padding-inline: 0.65rem;
 }
 
@@ -1476,7 +1475,7 @@ header {
 
 .transformation-range input {
   width: 100%;
-  height: 1.25rem;
+  height: 2.75rem;
   margin: 0;
   accent-color: var(--demo-accent);
   cursor: pointer;
@@ -1570,6 +1569,21 @@ header {
     right: auto;
     width: min(100%, 34rem);
     margin-inline: auto;
+    transform: none;
+  }
+}
+
+@media (min-width: 901px) and (max-height: 720px) {
+  .transformation-demo {
+    overflow: auto;
+  }
+
+  .transformation-stage {
+    min-height: 46rem;
+  }
+
+  .transformation-controls {
+    top: 6rem;
     transform: none;
   }
 }
