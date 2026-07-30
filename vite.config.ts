@@ -45,8 +45,10 @@ function ssgDevPlugin() {
           }
 
           if (pathname === "/en") {
+            const englishTitle =
+              "vibegui — Guilherme Rodrigues on AI, leadership, and software";
             const englishDescription =
-              "Guilherme Rodrigues' personal AI OS and writing on leadership, AI, software, Brazil, and possible futures.";
+              "Writing by Guilherme Rodrigues on leadership, AI, software, Brazil, and possible futures.";
             let englishHtml = readFileSync(
               resolve(__dirname, "index.html"),
               "utf-8",
@@ -54,7 +56,11 @@ function ssgDevPlugin() {
             englishHtml = englishHtml
               .replace('<html lang="pt-BR">', '<html lang="en">')
               .replace(
-                /O sistema operacional pessoal de IA de Guilherme Rodrigues e textos sobre liderança, IA, software, Brasil e futuros possíveis\./g,
+                /vibegui — Guilherme Rodrigues sobre IA, liderança e software/g,
+                englishTitle,
+              )
+              .replace(
+                /Textos de Guilherme Rodrigues sobre liderança, IA, software, Brasil e futuros possíveis\./g,
                 englishDescription,
               )
               .replace(

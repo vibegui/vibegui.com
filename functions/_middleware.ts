@@ -3,7 +3,7 @@
  *
  * - poesiadairene.com/*  → serves the /_dominio-irene build (rewrite, URL intact)
  * - buscamalvados.com/*  → serves the /_dominio-malvados build
- * - www.<domain>         → 301 to the apex
+ * - www.<any>            → 301 to the apex (canonical host)
  * - vibegui.com/irene*   → 301 to poesiadairene.com (same for /malvados),
  *   so the dedicated domains are canonical in production. Dev servers and
  *   *.pages.dev previews are unaffected (host doesn't match), where /irene
@@ -247,14 +247,16 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
     .split(":");
   const host = rawHost.replace(/^www\./, "");
 
+  // Canonical host is always apex (www → 301). Applies to vibegui + mini-sites.
+  if (rawHost.startsWith("www.")) {
+    return Response.redirect(
+      `https://${host}${url.pathname}${url.search}`,
+      301,
+    );
+  }
+
   const site = SITES.find((s) => s.dominio === host);
   if (site) {
-    if (rawHost.startsWith("www.")) {
-      return Response.redirect(
-        `https://${host}${url.pathname}${url.search}`,
-        301,
-      );
-    }
     const destino = new URL(url);
     destino.pathname = site.build + (url.pathname === "/" ? "/" : url.pathname);
     // páginas são diretórios com index.html: já pede com barra final para o

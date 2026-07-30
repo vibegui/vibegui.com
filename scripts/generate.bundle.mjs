@@ -928,7 +928,7 @@ Sitemap: ${Y.origin}/sitemap.xml
 Allow: /
 
 Sitemap: ${Z7}/sitemap.xml
-`)}function Oz(Z){let Q=Z==="en",Y=V2.filter((j)=>j.locale===Z),G=Q?"/en/feed.xml":"/feed.xml",J=Q?"/en/":"/",B=Q?"vibegui.com — English":"vibegui.com",z=Q?"Writing on leadership, AI, software, Brazil, and possible futures.":"Textos sobre liderança, IA, software, Brasil e futuros possíveis.",F=Y.map((j)=>`    <item>
+`)}function Oz(Z){let Q=Z==="en",Y=V2.filter((j)=>j.locale===Z),G=Q?"/en/feed.xml":"/feed.xml",J=Q?"/en/":"/",B=Q?"vibegui — Guilherme Rodrigues on AI, leadership, and software":"vibegui — Guilherme Rodrigues sobre IA, liderança e software",z=Q?"Writing on leadership, AI, software, Brazil, and possible futures.":"Textos sobre liderança, IA, software, Brasil e futuros possíveis.",F=Y.map((j)=>`    <item>
       <title>${fX(j.title)}</title>
       <link>${p7(D7(j))}</link>
       <guid isPermaLink="true">${p7(D7(j))}</guid>

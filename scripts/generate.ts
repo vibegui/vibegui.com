@@ -431,7 +431,9 @@ function generateFeed(locale: Article["locale"]): void {
   );
   const feedPath = isEnglish ? "/en/feed.xml" : "/feed.xml";
   const homePath = isEnglish ? "/en/" : "/";
-  const title = isEnglish ? "vibegui.com — English" : "vibegui.com";
+  const title = isEnglish
+    ? "vibegui — Guilherme Rodrigues on AI, leadership, and software"
+    : "vibegui — Guilherme Rodrigues sobre IA, liderança e software";
   const description = isEnglish
     ? "Writing on leadership, AI, software, Brazil, and possible futures."
     : "Textos sobre liderança, IA, software, Brasil e futuros possíveis.";

@@ -70,13 +70,33 @@ describe("Localized build and SEO", () => {
     const en = read("dist/en/index.html");
 
     expect(pt).toContain('<html lang="pt-BR">');
+    expect(pt).toContain(
+      "<title>vibegui — Guilherme Rodrigues sobre IA, liderança e software</title>",
+    );
+    expect(pt).toContain(
+      'content="vibegui — Guilherme Rodrigues sobre IA, liderança e software"',
+    );
     expect(pt).toContain('<link rel="canonical" href="https://vibegui.com/"');
     expect(pt).toContain('<meta property="og:locale" content="pt_BR"');
     expect(en).toContain('<html lang="en">');
     expect(en).toContain(
+      "<title>vibegui — Guilherme Rodrigues on AI, leadership, and software</title>",
+    );
+    expect(en).toContain(
+      'content="vibegui — Guilherme Rodrigues on AI, leadership, and software"',
+    );
+    expect(en).toContain(
       '<link rel="canonical" href="https://vibegui.com/en/"',
     );
     expect(en).toContain('<meta property="og:locale" content="en_US"');
+    expect(pt).toContain(
+      'content="Textos de Guilherme Rodrigues sobre liderança, IA, software, Brasil e futuros possíveis."',
+    );
+    expect(en).toContain(
+      'content="Writing by Guilherme Rodrigues on leadership, AI, software, Brazil, and possible futures."',
+    );
+    expect(pt).not.toContain("sistema operacional pessoal");
+    expect(en).not.toContain("personal AI OS");
     expect(pt).toContain('id="manifest-data"');
     expect(en).toContain('id="manifest-data"');
   });

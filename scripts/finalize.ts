@@ -73,9 +73,12 @@ function embedManifest(html: string, manifestJson: string): string {
 
 function localizeHomeShell(html: string, locale: "pt-BR" | "en"): string {
   const english = locale === "en";
+  const title = english
+    ? "vibegui — Guilherme Rodrigues on AI, leadership, and software"
+    : "vibegui — Guilherme Rodrigues sobre IA, liderança e software";
   const description = english
-    ? "Guilherme Rodrigues' personal AI OS and writing on leadership, AI, software, Brazil, and possible futures."
-    : "O sistema operacional pessoal de IA de Guilherme Rodrigues e textos sobre liderança, IA, software, Brasil e futuros possíveis.";
+    ? "Writing by Guilherme Rodrigues on leadership, AI, software, Brazil, and possible futures."
+    : "Textos de Guilherme Rodrigues sobre liderança, IA, software, Brasil e futuros possíveis.";
   const canonical = english
     ? "https://vibegui.com/en/"
     : "https://vibegui.com/";
@@ -84,6 +87,7 @@ function localizeHomeShell(html: string, locale: "pt-BR" | "en"): string {
 
   return html
     .replace(/<html lang="[^"]+">/, `<html lang="${locale}">`)
+    .replace(/<title>[^<]*<\/title>/, `<title>${title}</title>`)
     .replace(
       /<meta name="description" content="[^"]*" \/>/,
       `<meta name="description" content="${description}" />`,
@@ -105,6 +109,10 @@ function localizeHomeShell(html: string, locale: "pt-BR" | "en"): string {
       '<link rel="alternate" hreflang="x-default" href="https://vibegui.com/" />',
     )
     .replace(
+      /<meta property="og:title" content="[^"]*" \/>/,
+      `<meta property="og:title" content="${title}" />`,
+    )
+    .replace(
       /<meta property="og:description" content="[^"]*" \/>/,
       `<meta property="og:description" content="${description}" />`,
     )
@@ -119,6 +127,10 @@ function localizeHomeShell(html: string, locale: "pt-BR" | "en"): string {
     .replace(
       /<meta property="og:locale:alternate" content="[^"]*" \/>/,
       `<meta property="og:locale:alternate" content="${alternateOgLocale}" />`,
+    )
+    .replace(
+      /<meta name="twitter:title" content="[^"]*" \/>/,
+      `<meta name="twitter:title" content="${title}" />`,
     )
     .replace(
       /<meta name="twitter:description" content="[^"]*" \/>/,
