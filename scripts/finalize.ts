@@ -196,9 +196,23 @@ async function main() {
     resolve(contentDir, "manifest.json"),
   );
   copyDir(resolve(PUBLIC, "bookmarks"), resolve(DIST, "bookmarks"));
-  for (const path of ["sitemap.xml", "robots.txt", "feed.xml", "_redirects"]) {
+  for (const path of [
+    "sitemap.xml",
+    "robots.txt",
+    "feed.xml",
+    "_redirects",
+    "_headers",
+    "_routes.json",
+  ]) {
     copyFileSync(resolve(PUBLIC, path), resolve(DIST, path));
   }
+  // Pages SPA-fallbacks unknown paths to index.html; a 404.html under /assets
+  // makes missing hashed bundles return a real 404 instead of cacheable HTML.
+  mkdirSync(resolve(DIST, "assets"), { recursive: true });
+  copyFileSync(
+    resolve(PUBLIC, "assets", "404.html"),
+    resolve(DIST, "assets", "404.html"),
+  );
   mkdirSync(resolve(DIST, "en"), { recursive: true });
   copyFileSync(
     resolve(PUBLIC, "en", "feed.xml"),

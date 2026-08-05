@@ -22,8 +22,16 @@
 /malvados/tirinhas/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Static assets - immutable (content-hash in filename)
-/assets/*
+# Hashed bundles only — real files under /assets/*.js|css|…
+# Missing paths must NOT inherit this (see public/assets/404.html); otherwise a
+# deploy race can SPA-fallback to index.html and pin text/html as immutable.
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.map
   Cache-Control: public, max-age=31536000, immutable
 
 # Fonts - long cache

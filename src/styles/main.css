@@ -32,6 +32,7 @@
   --color-accent: #476454;
   --color-accent-hover: #344c3e;
   --color-border: #dedbd2;
+  --asset-cache-bust: 20260805;
 }
 
 [data-theme="dark"] {
