@@ -13,6 +13,24 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/" />
   </url>
   <url>
+    <loc>https://vibegui.com/en/article/honey-i-shrunk-the-agency/</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/article/querida-encolhi-a-agencia/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/en/article/honey-i-shrunk-the-agency/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/article/querida-encolhi-a-agencia/" />
+    <lastmod>2026-08-05</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/article/querida-encolhi-a-agencia/</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/article/querida-encolhi-a-agencia/" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/en/article/honey-i-shrunk-the-agency/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/article/querida-encolhi-a-agencia/" />
+    <lastmod>2026-08-05</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/en/article/control-in-an-unpredictable-world/</loc>
+    <lastmod>2026-08-04</lastmod>
+  </url>
+  <url>
     <loc>https://vibegui.com/article/a-empresa-de-100-milhoes-nao-e-mais-uma-loteria/</loc>
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/article/a-empresa-de-100-milhoes-nao-e-mais-uma-loteria/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/en/article/the-100-million-company-is-no-longer-a-lottery/" />
@@ -25,6 +43,22 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/en/article/the-100-million-company-is-no-longer-a-lottery/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/article/a-empresa-de-100-milhoes-nao-e-mais-uma-loteria/" />
     <lastmod>2026-07-26</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/en/article/no-one-wants-your-ai-tools/</loc>
+    <lastmod>2026-07-24</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/en/article/the-only-three-tech-team-sizes-after-ai/</loc>
+    <lastmod>2026-07-20</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/en/article/the-inverted-maslow-pyramid/</loc>
+    <lastmod>2026-07-20</lastmod>
+  </url>
+  <url>
+    <loc>https://vibegui.com/en/article/web-generation-as-human-expression/</loc>
+    <lastmod>2026-04-10</lastmod>
   </url>
   <url>
     <loc>https://vibegui.com/en/article/software-gardening-era-of-agents/</loc>
