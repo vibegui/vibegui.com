@@ -8,7 +8,7 @@ allowed-tools:
 ---
 
 <objective>
-Build the site and serve it locally so the user can preview an article in the browser.
+Serve the site locally so the user can preview an article in the browser. Drafts require the dev server; only a published build can be checked with the preview server.
 </objective>
 
 <context>
@@ -17,29 +17,39 @@ Arguments: $ARGUMENTS
 
 <process>
 
-1. **Build the site.** Run `bun run build` to regenerate all pages including the article.
+1. **Check the article's status.** Read the frontmatter of `blog/articles/{slug}.md`.
 
-2. **Start preview server.** Run `bun run preview` in the background.
+2. **Draft (`status: draft`) — use the dev server.**
 
-3. **Report the preview URL.**
+   `bun run preview` serves the production build, which filters drafts out. Use dev mode instead.
 
-   If a slug was provided via `$ARGUMENTS`:
-   ```
-   Site built and serving at: http://localhost:4173
-   Article preview: http://localhost:4173/article/{slug}
-   ```
+   - If nothing is listening on 4001 (`lsof -ti:4001`), start `bun run dev` in the background.
+   - Report and open the URL:
+     ```
+     Dev server: http://localhost:4001
+     Article preview: http://localhost:4001/article/{slug}
+     ```
+   - `open http://localhost:4001/article/{slug}` (English articles: `/en/article/{slug}`).
+   - Leave the server running — markdown saves regenerate and reload the page automatically.
 
-   If no slug:
-   ```
-   Site built and serving at: http://localhost:4173
-   ```
+   If 4001 is held by another workspace, start with `PORT=4011 bun run dev` and use that port.
 
-4. **Optionally open the browser.** Run `open http://localhost:4173/article/{slug}` to open the article directly.
+3. **Published (`status: published`) — verify the real build.**
+
+   - `bun run build`
+   - `bun run preview` in the background (serves `dist/` on **port 4002**)
+   - Report and open:
+     ```
+     Site built and serving at: http://localhost:4002
+     Article preview: http://localhost:4002/article/{slug}
+     ```
+
+4. **No slug given.** Default to the dev server and report `http://localhost:4001`.
 
 </process>
 
 <success_criteria>
-- `bun run build` completes without errors
-- Preview server is running in the background
-- User is given the local URL to preview the article
+- A server is running and the URL reported actually renders the requested article
+- Drafts are previewed via dev mode, never via `bun run preview`
+- Ports are correct: dev 4001, preview 4002
 </success_criteria>

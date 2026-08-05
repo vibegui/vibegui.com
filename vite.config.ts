@@ -2,7 +2,7 @@ import { defineConfig, type Connect } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { resolve, join } from "node:path";
-import { watch, existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { exec } from "node:child_process";
 
 /**
@@ -125,7 +125,7 @@ function ssgDevPlugin() {
             res.setHeader("Content-Type", "text/html");
             res.end(`<!DOCTYPE html>
 <html>
-<head><title>Rebuilding...</title></head>
+<head><title>Rebuilding...</title><meta http-equiv="refresh" content="1"></head>
 <body style="background:#1a1a2e;color:#fff;font-family:system-ui;padding:2rem;">
   <h1>Content rebuilding...</h1>
   <p>The SSG file for <code>/${buildDir}/${path}</code> was not found.</p>
@@ -160,15 +160,27 @@ function ssgDevPlugin() {
  * Regenerate article output and reload Vite when Markdown changes.
  */
 function articleWatcherPlugin() {
-  let articlesWatcher: ReturnType<typeof watch> | null = null;
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
   let isExporting = false;
+  // A save landing mid-generate must not be dropped, or the browser reloads
+  // stale HTML and the only fix is restarting the dev server.
+  let pending = false;
   let viteServer: { ws: { send: (message: { type: string }) => void } } | null =
     null;
 
+  const reload = () => {
+    if (!viteServer?.ws) return;
+    console.log("🔄 Reloading browser...");
+    viteServer.ws.send({ type: "full-reload" });
+  };
+
   const runExport = () => {
-    if (isExporting) return;
+    if (isExporting) {
+      pending = true;
+      return;
+    }
     isExporting = true;
+    pending = false;
 
     console.log("\n🔄 Articles changed, regenerating content...");
     exec(
@@ -178,41 +190,50 @@ function articleWatcherPlugin() {
         isExporting = false;
         if (error) {
           console.error("❌ Build failed:", stderr);
+        } else {
+          console.log(stdout.trim() || "✅ Content rebuilt");
+        }
+        if (pending) {
+          runExport();
           return;
         }
-
-        console.log(stdout.trim() || "✅ Content rebuilt");
-        setTimeout(() => {
-          if (viteServer?.ws) {
-            console.log("🔄 Reloading browser...");
-            viteServer.ws.send({ type: "full-reload" });
-          }
-        }, 100);
+        setTimeout(reload, 100);
       },
     );
   };
+
+  // Regenerating on story.css / config.json too: both are inlined at generate
+  // time, so editing them is invisible until the next build.
+  const extraWatched = ["blog/config.json", "src/styles/story.css"].map((p) =>
+    resolve(__dirname, p),
+  );
+  const articlesDir = resolve(__dirname, "blog", "articles");
+
+  const shouldRegenerate = (file: string) =>
+    (file.startsWith(articlesDir + "/") &&
+      (file.endsWith(".md") || file.endsWith(".mdx"))) ||
+    extraWatched.includes(file);
 
   return {
     name: "article-watcher",
     configureServer(server: {
       ws: { send: (message: { type: string }) => void };
+      watcher: {
+        on: (event: string, cb: (file: string) => void) => void;
+      };
     }) {
       viteServer = server;
-      const articlesDir = resolve(__dirname, "blog", "articles");
-      articlesWatcher = watch(
-        articlesDir,
-        { persistent: false, recursive: true },
-        (_eventType, filename) => {
-          if (!filename?.endsWith(".md") && !filename?.endsWith(".mdx")) return;
+      // Vite's chokidar watcher (already covers the project root) instead of
+      // fs.watch: survives the atomic rename editors and agent writes use,
+      // which a recursive fs.watch can miss.
+      for (const event of ["add", "change", "unlink"]) {
+        server.watcher.on(event, (file: string) => {
+          if (!shouldRegenerate(file)) return;
           if (debounceTimer) clearTimeout(debounceTimer);
           debounceTimer = setTimeout(runExport, 300);
-        },
-      );
+        });
+      }
       console.log("👁️  Watching blog/articles/ for changes...");
-    },
-    closeBundle() {
-      articlesWatcher?.close();
-      articlesWatcher = null;
     },
   };
 }
@@ -255,7 +276,9 @@ export default defineConfig({
   },
 
   server: {
-    port: 4001,
+    // PORT lets parallel workspaces run their own dev server instead of one
+    // silently failing to bind and the other's .build/ being read as "stale".
+    port: Number(process.env.PORT) || 4001,
     strictPort: true,
     host: true,
     allowedHosts: [".decocms.com", "localhost"],

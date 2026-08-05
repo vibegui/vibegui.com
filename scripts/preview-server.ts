@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 const DIST = join(__dirname, "..", "dist");
-const PORT = parseInt(process.argv[2] || "4002", 10);
+const PORT = parseInt(process.argv[2] || process.env.PORT || "4002", 10);
 
 const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",

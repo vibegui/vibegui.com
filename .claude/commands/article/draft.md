@@ -6,6 +6,7 @@ allowed-tools:
   - Write
   - Edit
   - Glob
+  - Bash
 ---
 
 <objective>
@@ -23,15 +24,17 @@ Arguments: $ARGUMENTS
 
 1. **Resolve the slug.** If `$ARGUMENTS` is provided, use it as the slug. Otherwise, scan `content/briefs/` for directories with all three artifacts (BRIEF.md, RESEARCH.md, OUTLINE.md), and list them.
 
-2. **Read all planning artifacts.**
+2. **Open the live preview.** If nothing is listening on 4001 (`lsof -ti:4001`), start `bun run dev` in the background, then `open http://localhost:4001/article/{slug}` (English: `/en/article/{slug}`). Leave it running for the whole session — every save regenerates and reloads, so the user watches the draft land. If 4001 is taken by another workspace, use `PORT=4011 bun run dev`.
+
+3. **Read all planning artifacts.**
    - `content/briefs/{slug}/BRIEF.md` — topic, angle, audience, key message
    - `content/briefs/{slug}/RESEARCH.md` — findings, data, sources, contrarian angles
    - `content/briefs/{slug}/OUTLINE.md` — beat structure, hook, closing, voice notes
    - `blog/tone-of-voice.md` — the full voice guide
 
-3. **Read the existing draft skeleton.** Read `blog/articles/{slug}.md` to get current frontmatter.
+4. **Read the existing draft skeleton.** Read `blog/articles/{slug}.md` to get current frontmatter.
 
-4. **Write the first draft.** Follow the outline beat by beat:
+5. **Write the first draft.** Follow the outline beat by beat:
    - Open with the hook from the outline (refined if needed)
    - Follow each beat's purpose, key points, and emotional register
    - Incorporate research data and sources naturally
@@ -52,7 +55,7 @@ Arguments: $ARGUMENTS
    - Close using the strategy from the outline
    - Save to `blog/articles/{slug}.md`
 
-5. **Revision pass — re-read and rewrite.** This is a SEPARATE step, not a mental checklist. Actually do it:
+6. **Revision pass — re-read and rewrite.** This is a SEPARATE step, not a mental checklist. Actually do it:
    - Re-read `blog/tone-of-voice.md` (especially Sections 3.3, 5, and 11)
    - Re-read the draft you just wrote in `blog/articles/{slug}.md`
    - Go through the article paragraph by paragraph and ask:
@@ -64,7 +67,7 @@ Arguments: $ARGUMENTS
    - **Rewrite every sentence that fails these checks.** Don't just flag them — fix them in the file.
    - This pass typically improves the article significantly. The first draft captures the structure and information; the revision pass makes it sound human.
 
-6. **Self-review checklist.** After the revision pass, verify (Section 11.1):
+7. **Self-review checklist.** After the revision pass, verify (Section 11.1):
    - [ ] Opening hook stops the scroll
    - [ ] First-person voice throughout
    - [ ] At least one vulnerable moment (specific, not vague)
@@ -77,14 +80,14 @@ Arguments: $ARGUMENTS
    - [ ] No hedging language
    - [ ] Zero AI-speak slop (Section 3.3)
 
-7. **Run the Guilherme Voice Test** (Section 11.2):
+8. **Run the Guilherme Voice Test** (Section 11.2):
    - Would he actually say this in conversation?
    - Does it feel like he's in the arena or the stands?
    - Is there something vulnerable and specific?
    - Does it connect to action, not just contemplation?
    - Would it fit on his LinkedIn without feeling off-brand?
 
-8. **Present to user.** Show:
+9. **Present to user.** Show:
    - Word count
    - Voice checklist results (pass/note for each item)
    - Notable changes made during the revision pass (so the user can see what was caught)

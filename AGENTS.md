@@ -12,7 +12,8 @@ Guidelines for AI agents working on this repository.
 ## Build & Deploy
 
 - Always run `bun run fmt` after making code changes.
-- Test locally with `bun run preview` before committing.
+- While drafting or editing an article, keep `bun run dev` running (http://localhost:4001) and open the draft — see Articles below. `bun run preview` cannot show drafts.
+- Verify a **published** build with `bun run build` + `bun run preview` before committing. That serves `dist/` on **port 4002** (`PORT` overrides both servers) and prod mode filters out `status: draft`.
 - The `pages:build` script is for Cloudflare — it doesn't run Vite.
 - Cloudflare Pages runs `pages` mode, which does **not** generate OG images. Commit `public/images/og/` (PNG + `manifest.json`) before a published article can deploy. Local `bun run build` / `bun run og:generate` writes those files; leave them uncommitted and Pages fails with `Missing OG image for …`.
 - Pages SPA-fallbacks unknown paths to `index.html` (200). Never put `Cache-Control: immutable` on `/assets/*` (wildcard) — only `/assets/*.{js,css,…}`. `/assets/*` is handled in `functions/_middleware.ts` (must stay in `_routes.json` include): HTML or wrong MIME → `404` + `no-store`. Keep `public/assets/404.html`. A deploy race once pinned HTML as an immutable JS URL and blanked vibegui.com while `*.pages.dev` still worked — see DEPLOY.md “Blank page on vibegui.com”; purge the zone cache for leftover poisoned hashes.
@@ -22,6 +23,13 @@ Guidelines for AI agents working on this repository.
 ### Articles
 
 Markdown files in `blog/articles/` are the source of truth. Committing the file publishes the article — there is no parallel database, no sync step.
+
+**Always draft against a running dev server.** Before writing or editing an article, start `bun run dev` in the background and open the draft:
+
+- pt-BR: `http://localhost:4001/article/{slug}`
+- English: `http://localhost:4001/en/article/{slug}`
+
+Saving the markdown regenerates `.build/` and full-reloads the browser automatically (`articleWatcherPlugin` in `vite.config.ts`). The served page is the generated `.build/` HTML, not the markdown — which is why drafts only appear in dev mode, and why the dev server has to be running for edits to be visible at all. Port 4001 is `strictPort`; if another workspace holds it, use `PORT=4011 bun run dev` rather than reading the other workspace's build.
 
 **Before publishing** (`status: published`):
 1. Run `bun run og:generate` (or a full `bun run build`).
