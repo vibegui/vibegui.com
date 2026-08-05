@@ -29,17 +29,23 @@ Arguments: $ARGUMENTS
    - If `date` is unset or in the future (relative to today), set it to today (`YYYY-MM-DD`).
    - Leave every other field untouched.
 
-4. **Stage.** Run `git add blog/articles/{slug}.md`. If `coverImage` points to a file under `public/images/articles/` that is currently untracked or modified, stage that too.
+4. **Generate OG images.** Run `bun run og:generate`. Cloudflare Pages does not run this step — without committed OG assets the deploy fails with `Missing OG image for …`.
 
-5. **Commit.** Use the convention from recent history:
+5. **Stage.** Run `git add blog/articles/{slug}.md` (or `.mdx`). Also stage:
+   - `public/images/og/manifest.json`
+   - matching `public/images/og/{en,pt}/{slug}.*.png` (and the PT translation slug if present)
+   - `coverImage` under `public/images/articles/` if untracked or modified
+   - any PT twin under `blog/articles/` that shares the same `translationKey`
+
+6. **Commit.** Use the convention from recent history:
    ```
    feat(article): publish '{slug}'
    ```
    No body required for a simple publish.
 
-6. **Push.** `git push origin HEAD`. This skill is the one authorized exception to the "never auto-push" rule in `AGENTS.md`.
+7. **Push.** `git push origin HEAD`. This skill is the one authorized exception to the "never auto-push" rule in `AGENTS.md`.
 
-7. **Report.**
+8. **Report.**
 
 ```
 Published: {title}
@@ -54,8 +60,9 @@ Pushed to origin. Cloudflare Pages will deploy shortly.
 </process>
 
 <success_criteria>
-- `blog/articles/{slug}.md` has `status: published` and a sensible `date`.
+- `blog/articles/{slug}.md` (or `.mdx`) has `status: published` and a sensible `date`.
+- `public/images/og/manifest.json` includes `{locale}:{slug}` and the PNG files are committed.
 - A commit was created on the current branch with the expected message.
 - The commit was pushed to `origin`.
-- No Supabase calls. No sync. No build invocation (the deployment pipeline handles build).
+- No Supabase calls. No sync. OG generation (`bun run og:generate`) is required; the rest of the site build stays on the deployment pipeline.
 </success_criteria>

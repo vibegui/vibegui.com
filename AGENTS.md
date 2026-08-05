@@ -14,12 +14,18 @@ Guidelines for AI agents working on this repository.
 - Always run `bun run fmt` after making code changes.
 - Test locally with `bun run preview` before committing.
 - The `pages:build` script is for Cloudflare — it doesn't run Vite.
+- Cloudflare Pages runs `pages` mode, which does **not** generate OG images. Commit `public/images/og/` (PNG + `manifest.json`) before a published article can deploy. Local `bun run build` / `bun run og:generate` writes those files; leave them uncommitted and Pages fails with `Missing OG image for …`.
 
 ## Content Management
 
 ### Articles
 
 Markdown files in `blog/articles/` are the source of truth. Committing the file publishes the article — there is no parallel database, no sync step.
+
+**Before publishing** (`status: published`):
+1. Run `bun run og:generate` (or a full `bun run build`).
+2. Stage `public/images/og/manifest.json` and the new `public/images/og/{en,pt}/{slug}.*.png` files alongside the article.
+3. Cover images under `public/images/articles/` must also be committed if referenced.
 
 **Skills** (`.claude/commands/article/`):
 
@@ -40,6 +46,7 @@ Markdown files in `blog/articles/` are the source of truth. Committing the file 
 - `content/briefs/{slug}/` — Planning artifacts (BRIEF.md, RESEARCH.md, OUTLINE.md)
 - `blog/articles/{slug}.md` — The article (status: draft until published)
 - `public/images/articles/` — Generated cover images
+- `public/images/og/` — Social OG cards + `manifest.json` (required in git for published articles)
 
 **Lifecycle:** new → research → outline → draft → image → publish
 

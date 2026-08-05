@@ -22,7 +22,8 @@ pre-commit:
     5_stage:
       # Article publishing stages its selected file explicitly. Never sweep
       # unrelated local drafts into a code commit.
-      run: git add dist/index.html dist/assets/ dist/_headers dist/images/
+      # public/images/og is required by Cloudflare pages builds (no og:generate there).
+      run: git add dist/index.html dist/assets/ dist/_headers dist/images/ public/images/og/
 
     6_constraints:
       run: bun run test:constraints
