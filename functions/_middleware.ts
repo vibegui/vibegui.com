@@ -255,6 +255,31 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
     );
   }
 
+  // Hashed client bundles must never SPA-fallback to index.html.
+  // Pages serves 200 text/html for unknown paths; combined with immutable
+  // Cache-Control on /assets/* that once blanked vibegui.com (custom domain
+  // cache) while *.pages.dev still worked.
+  if (url.pathname.startsWith("/assets/")) {
+    const asset = await env.ASSETS.fetch(request);
+    const ct = asset.headers.get("content-type") || "";
+    if (!asset.ok || ct.includes("text/html")) {
+      return new Response("Not found\n", {
+        status: 404,
+        headers: {
+          "content-type": "text/plain; charset=utf-8",
+          "cache-control": "no-store",
+          "x-robots-tag": "noindex",
+        },
+      });
+    }
+    const headers = new Headers(asset.headers);
+    if (/\.(?:js|css|woff2|map)$/i.test(url.pathname)) {
+      headers.set("cache-control", "public, max-age=31536000, immutable");
+    }
+    headers.set("x-content-type-options", "nosniff");
+    return new Response(asset.body, { status: asset.status, headers });
+  }
+
   const site = SITES.find((s) => s.dominio === host);
   if (site) {
     const destino = new URL(url);

@@ -15,7 +15,7 @@ Guidelines for AI agents working on this repository.
 - Test locally with `bun run preview` before committing.
 - The `pages:build` script is for Cloudflare — it doesn't run Vite.
 - Cloudflare Pages runs `pages` mode, which does **not** generate OG images. Commit `public/images/og/` (PNG + `manifest.json`) before a published article can deploy. Local `bun run build` / `bun run og:generate` writes those files; leave them uncommitted and Pages fails with `Missing OG image for …`.
-- Pages SPA-fallbacks unknown paths to `index.html` (200). Keep `public/assets/404.html` so missing `/assets/*` return real 404s. Never apply a blanket immutable `Cache-Control` to `/assets/*` — a deploy race once pinned HTML as the JS URL and blanked vibegui.com while `*.pages.dev` still worked.
+- Pages SPA-fallbacks unknown paths to `index.html` (200). `/assets/*` is handled in `functions/_middleware.ts` (not excluded in `_routes.json`): missing or HTML responses become `404` + `no-store`. Also keep `public/assets/404.html`. A deploy race once pinned HTML as an immutable JS URL and blanked vibegui.com while `*.pages.dev` still worked — purge the zone cache if that happens again.
 
 ## Content Management
 

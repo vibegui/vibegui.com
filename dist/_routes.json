@@ -3,7 +3,6 @@
   "description": "Routes the domain middleware (functions/_middleware.ts), which also records first-party pageviews. Only non-page static paths are excluded (article/context pages stay included so their views are counted).",
   "include": ["/*"],
   "exclude": [
-    "/assets/*",
     "/images/*",
     "/fonts/*",
     "/content/*",
