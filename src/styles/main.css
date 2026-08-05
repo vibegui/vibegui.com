@@ -191,6 +191,24 @@ a:hover {
   margin-block: 1.5em;
 }
 
+.prose .video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-block: 1.5em;
+  overflow: hidden;
+  border-radius: 0.5rem;
+  background: var(--color-bg-secondary);
+}
+
+.prose .video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .prose strong {
   color: var(--color-fg);
   font-weight: 600;
