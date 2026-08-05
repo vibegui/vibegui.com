@@ -344,20 +344,20 @@ type LocaleProp = { locale?: "en" | "pt" };
 
 const DECAY = {
   en: {
-    growth: "Growth $",
-    efficiency: "Efficiency",
-    leftLabel: "As GMV grows",
-    leftTitle: "Growth outruns the team",
+    growth: "Work to do",
+    efficiency: "What ships",
+    leftLabel: "As the brand grows",
+    leftTitle: "The work outruns the team",
     rightLabel: "With the factory",
-    rightTitle: "They keep pace",
+    rightTitle: "The queue keeps pace",
   },
   pt: {
-    growth: "Crescimento $",
-    efficiency: "Eficiência",
-    leftLabel: "Conforme o GMV cresce",
-    leftTitle: "Crescimento deixa o time pra trás",
+    growth: "Trabalho a fazer",
+    efficiency: "O que sobe",
+    leftLabel: "Conforme a marca cresce",
+    leftTitle: "O trabalho passa o time",
     rightLabel: "Com a fábrica",
-    rightTitle: "Acompanham o ritmo",
+    rightTitle: "A fila acompanha",
   },
 } as const;
 
@@ -471,19 +471,19 @@ const CAST = {
     beforeLabel: "Legacy agency",
     afterLabel: "Software factory",
     beforeNote: "15 people · meetings · retainer",
-    afterNote: "same roles - chat rooms - 24/7 loop",
+    afterNote: "same roles · chat rooms · 24/7 loop",
     roles: ["PO", "SEO", "CRO", "Frontend", "QA", "Content"],
     caption:
-      "Same cast on the org chart. The grind compresses. Judgment stays at prioritization.",
+      "Same roles on the org chart. What disappears is the waiting between them.",
   },
   pt: {
     beforeLabel: "Agência legada",
     afterLabel: "Fábrica de software",
     beforeNote: "15 pessoas · reunião · retainer",
-    afterNote: "mesmos papéis - chat rooms - loop 24/7",
+    afterNote: "mesmos papéis · chat rooms · loop 24/7",
     roles: ["PO", "SEO", "CRO", "Frontend", "QA", "Conteúdo"],
     caption:
-      "Mesmo elenco no organograma. A moagem comprime. O julgamento fica na priorização.",
+      "Mesmos papéis no organograma. O que desaparece é a espera entre eles.",
   },
 } as const;
 
@@ -538,7 +538,8 @@ const ROOMS = {
         note: "I'll take it means the card moves",
       },
     ],
-    caption: "You don't talk to a blob. You talk to an agency — in rooms.",
+    caption:
+      "Rooms, threads, a board: the agency you already know how to talk to.",
   },
   pt: {
     rows: [
@@ -564,7 +565,7 @@ const ROOMS = {
         note: "eu pego quer dizer que o card andou",
       },
     ],
-    caption: "Você não fala com uma massa. Fala com uma agência — em rooms.",
+    caption: "Room, thread, board: a agência com quem você já sabe conversar.",
   },
 } as const;
 
