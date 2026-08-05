@@ -67,8 +67,7 @@ const LOOP_EN: LoopCopy = {
   stepsAside: "Variation, selection, inheritance. Thanks, Darwin.",
   memory: {
     lead: "Every fix is remembered, so the next store runs smarter than the last.",
-    strong:
-      "Four times the work in half the time, at the same price as the legacy agency.",
+    strong: "Four times the work in half the time.",
   },
 };
 
@@ -76,16 +75,15 @@ const LOOP_PT: LoopCopy = {
   signals: "389",
   signalsCaption: "sinais monitorados",
   steps: [
-    { verb: "Find", rest: "o que custa conversão." },
-    { verb: "Fix", rest: "sozinho: código, copy, layout, velocidade." },
-    { verb: "Prove", rest: "no tráfego ao vivo com um A/B test." },
-    { verb: "Ship", rest: "o que ganha — e recomeça." },
+    { verb: "Acha", rest: "o que custa conversão." },
+    { verb: "Faz", rest: "sozinho: código, copy, layout, velocidade." },
+    { verb: "Prova", rest: "no tráfego ao vivo com um A/B test." },
+    { verb: "Sobe", rest: "o que ganha — e recomeça." },
   ],
   stepsAside: "Variação, seleção, herança. Valeu, Darwin.",
   memory: {
     lead: "Cada fix fica na memória, então a próxima loja roda mais esperta que a anterior.",
-    strong:
-      "Quatro vezes o trabalho na metade do tempo, no mesmo preço da agência legada.",
+    strong: "Quatro vezes o trabalho na metade do tempo.",
   },
 };
 
