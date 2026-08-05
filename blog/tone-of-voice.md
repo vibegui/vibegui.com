@@ -667,6 +667,42 @@ While this guide is English-first, Guilherme originally writes in Portuguese. Ke
 - Uses diminutives sparingly and affectionately
 - "Tamos perdendo" style contractions are authentic
 
+**Imperatives take the "você" conjugation, never the bare stem.** CTAs, instructions and any command form:
+
+| ✅ Comece | ❌ Começa |
+|---|---|
+| Cole uma URL | Cola uma URL |
+| **ganhe** um score | **ganha** um score |
+| Conecte os dados | Conecta os dados |
+| Veja o que os agentes consertariam | Vê o que os agentes consertariam |
+| Tire a priorização | Tira a priorização |
+| Rode o diagnóstico | Roda o diagnóstico |
+
+The bare stem ("cola", "vê", "roda") is how it's spoken in parts of the country, but on the page it reads sloppy — and it clashes with the "você" the rest of the text uses. Fix the whole chain, not just the first verb: "Cole uma URL, **ganhe** um score público" — one imperative in the wrong conjugation drags the next one with it.
+
+Not imperatives, so leave them alone:
+- 3rd-person descriptions of the system: "**Acha** o que custa conversão. **Faz** sozinho. **Prova** no tráfego. **Sobe** o que ganha." (the loop is being described, not commanded)
+- Subjunctive invitations: "**Seja** você o empreendedor que…"
+- Infinitives in buttons and links: "**Abrir** decocms.com →"
+
+**Generic statements go plural.** Portuguese doesn't carry the English generic singular:
+
+| ✅ Marcas sérias brigam por relevância | ❌ Marca séria briga por relevância |
+|---|---|
+| Marcas que vendem por site e app vivem | Marca que vende por site e app vive |
+| Especialistas puxam card | Especialista puxa card |
+| Agentes de IA tornam o trabalho vendável | Agente torna o trabalho vendável |
+
+**Watch for translationese** — phrasing that's grammatical but nobody says:
+
+| ✅ A Sequoia fez a conta | ❌ A Sequoia colocou número onde o dinheiro já está |
+|---|---|
+| Pra dar conta de tudo isso são sete papéis | Cobre tudo isso e você está carregando sete papéis |
+| empreendedores | founders de mid-market |
+| Numa agência esse conhecimento mora… | Em agência esse conhecimento mora… |
+
+Read the Portuguese aloud on its own, not next to the English. If it sounds like a translation, it is one — rewrite from the idea, not from the English sentence.
+
 ### 12.2 Translation Considerations
 
 When translating Guilherme's Portuguese to English:
