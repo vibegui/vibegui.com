@@ -202,16 +202,21 @@ function articleWatcherPlugin() {
     );
   };
 
-  // Regenerating on story.css / config.json too: both are inlined at generate
+  // Everything the generator reads, not just the Markdown: story components,
+  // story.css and config.json are all baked into the SSG HTML at generate
   // time, so editing them is invisible until the next build.
-  const extraWatched = ["blog/config.json", "src/styles/story.css"].map((p) =>
-    resolve(__dirname, p),
-  );
+  const extraWatched = [
+    "blog/config.json",
+    "src/styles/story.css",
+    "scripts/generate.ts",
+  ].map((p) => resolve(__dirname, p));
   const articlesDir = resolve(__dirname, "blog", "articles");
+  const libDir = resolve(__dirname, "lib");
 
   const shouldRegenerate = (file: string) =>
     (file.startsWith(articlesDir + "/") &&
       (file.endsWith(".md") || file.endsWith(".mdx"))) ||
+    file.startsWith(libDir + "/") ||
     extraWatched.includes(file);
 
   return {

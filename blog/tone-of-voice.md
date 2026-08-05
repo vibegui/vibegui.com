@@ -125,13 +125,35 @@ These are patterns LLMs produce by default. They sound polished but read as soul
 
 - ❌ **"No X. No Y. Just Z."** — The tricolon summary. Dead giveaway of AI writing. ("No CMS. No context switching. Just an agent." → rewrite as a specific, messy, human sentence)
 - ❌ **"This isn't X. It's Y."** — Defensive reframing nobody asked for. ("This isn't AI writing my blog. It's vibecoding." → just say what it is, don't pre-argue against phantom critics)
+- ❌ **"X was never the problem. The problem is Y."** — Same defensive reframing wearing a different coat. Invents a dumb objection so you can knock it down. ("'Can AI write a banner' was never their problem. Their problem is…" → just describe the real problem, in a scene)
 - ❌ **"Let's dive in" / "Here's the thing" / "At its core"** — Filler transitions that add zero meaning
 - ❌ **"It's worth noting" / "Importantly" / "Interestingly"** — Metacommentary that tells the reader how to feel instead of letting the content do it
 - ❌ **Tidy parallel structures as punchlines** — ("X gives it hands. Y gives it a brain." — too neat, too packaged, reads like a slide deck)
 - ❌ **Starting consecutive paragraphs with the same structure** — AI loves repeating "The X..." or "This Y..." paragraph after paragraph
 - ❌ **"...and that's a game-changer" / "...and it changes everything"** — Hollow escalation
+- ❌ **Abstract nouns doing the verb's job** — "The grind compresses." "Efficiency drops." "Complexity increases." Nothing you can picture. Name the thing that shrinks: "What disappears is the week between 'let's fix this' and 'it's live'."
+- ❌ **Metaphors that don't survive one question** — "Nothing on that list files a ticket" (lists can't file tickets), "the factory that runs the experience that prints the money" (three abstractions stacked), "people don't have margins." If a reader can ask "wait, how would that work?", the image is decorative. Replace with what literally happens: "No customer writes in to say the mobile PDP got slower. They just don't buy."
+- ❌ **Swagger nouns** — "the seat I care about", "that's the whole game", "where the magic happens". Reads like a pitch deck read aloud. State the job: "watching the thing customers buy through, every day."
+- ❌ **Corporate-register words nobody says out loud** — "cast" for a team, "leverage", "bandwidth", "unlock". Use the word a person would use in Slack: roles, jobs, people.
 
 ✅ **Instead**: Write like you're explaining it to a friend over coffee. Messy. Specific. Human. If a sentence could appear in any LinkedIn post by any person, it's not Guilherme's voice.
+
+### 3.4 Section Cohesion (the failure that survives line-editing)
+
+Slop is usually caught sentence by sentence. The worse failure is a section where every sentence is fine and the section still says nothing — usually because it was edited paragraph by paragraph and never re-read whole.
+
+Before shipping a section, answer in one line: **what is this section for, and what does the reader now know that they didn't before?** If you can't, the section is decoration.
+
+Then check for these, which only show up when you read the whole section at once:
+
+- ❌ **Two paragraphs making the same point in different words** — the classic symptom is a second paragraph that starts by conceding ("Different budgets, same physics…", "And it gets worse…") and then restates the first. Merge them. One idea per paragraph; if the price and the job belong together, put them in the same paragraph.
+- ❌ **A sentence that restates what the next section's first line says** — usually the last paragraph before a heading, written as a summary. Cut it and let the heading do the work.
+- ❌ **A caption that repeats the sentence above it** — figure captions must add a fact or a turn, never echo the prose.
+- ❌ **Chart axes and labels that name abstractions** — "Growth $ vs Efficiency" tells nobody anything. Label what the reader is watching compete: "Work to do" vs "What ships".
+- ❌ **A claim arriving before it's earned** — if a later section asserts "agents deliver it 24/7", something earlier has to establish why humans can't ("people don't scale. They sleep.").
+- ❌ **The same idea appearing three times across the piece** — "we lived inside agencies for years" belongs in exactly one place. Grep your own draft for the repeated credential.
+
+✅ **The test**: read the section aloud, start to finish, ignoring individual sentences. If you can't say what changed in the reader's head, restructure — don't polish.
 
 ---
 
@@ -582,6 +604,9 @@ When writing as or for Guilherme, verify:
 - [ ] **Connects to Brazil's future** where relevant
 - [ ] **Ends with invitation or grounded statement**, not slogans
 - [ ] **No hedging language**—commit to the position
+- [ ] **Every section passes the "what is this for?" test** (3.4)—say it in one line or restructure
+- [ ] **No idea stated twice**—grep the draft for the repeated credential, the conceding second paragraph, the caption that echoes the prose
+- [ ] **Every image survives one question**—no metaphor a reader can break by asking "how would that work?"
 
 ### 11.2 The Guilherme Voice Test
 
@@ -605,6 +630,9 @@ Read the draft aloud. Ask:
 | Bullet-point heavy | Convert to flowing paragraphs |
 | Too polished/corporate | Add conversational roughness |
 | Missing emotional stakes | Why does this matter personally? |
+| Abstraction as subject ("the grind compresses") | Name what shrinks, in something you can picture |
+| Section reads fine, says nothing | Answer "what is this section for?" then restructure (3.4) |
+| Sentence belongs in another section | Move it there—don't reword it in place |
 
 ### 11.4 Platform-Specific Notes
 
