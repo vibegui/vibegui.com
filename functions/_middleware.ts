@@ -257,23 +257,33 @@ export const onRequest = async (context: Contexto): Promise<Response> => {
 
   // Hashed client bundles must never SPA-fallback to index.html.
   // Pages serves 200 text/html for unknown paths; combined with immutable
-  // Cache-Control on /assets/* that once blanked vibegui.com (custom domain
-  // cache) while *.pages.dev still worked.
+  // Cache-Control that once blanked vibegui.com (custom-domain edge cache)
+  // while *.pages.dev still worked. See AGENTS.md / DEPLOY.md.
   if (url.pathname.startsWith("/assets/")) {
     const asset = await env.ASSETS.fetch(request);
-    const ct = asset.headers.get("content-type") || "";
-    if (!asset.ok || ct.includes("text/html")) {
+    const ct = (asset.headers.get("content-type") || "").toLowerCase();
+    const path = url.pathname;
+    const expectJs = /\.m?js$/i.test(path);
+    const expectCss = /\.css$/i.test(path);
+    const htmlish = ct.includes("text/html");
+    const mimeOk =
+      asset.ok &&
+      !htmlish &&
+      (!expectJs || ct.includes("javascript") || ct.includes("ecmascript")) &&
+      (!expectCss || ct.includes("text/css"));
+    if (!mimeOk) {
       return new Response("Not found\n", {
         status: 404,
         headers: {
           "content-type": "text/plain; charset=utf-8",
           "cache-control": "no-store",
+          "cdn-cache-control": "no-store",
           "x-robots-tag": "noindex",
         },
       });
     }
     const headers = new Headers(asset.headers);
-    if (/\.(?:js|css|woff2|map)$/i.test(url.pathname)) {
+    if (/\.(?:js|css|woff2|map)$/i.test(path)) {
       headers.set("cache-control", "public, max-age=31536000, immutable");
     }
     headers.set("x-content-type-options", "nosniff");

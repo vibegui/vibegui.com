@@ -22,14 +22,16 @@ These constraints define the fundamental rules of the project. They are not sugg
 
 ### 1.3 Asset Caching Strategy
 - **index.html**: `Cache-Control: public, max-age=30, stale-while-revalidate=3600, stale-if-error=10800`
-- **Static assets (JS/CSS)**: Content-hash filenames, `Cache-Control: public, max-age=31536000, immutable`
+- **Static assets (JS/CSS)**: Content-hash filenames, `Cache-Control: public, max-age=31536000, immutable` — only on real extensions (`/assets/*.{js,css,woff2,map}`), **never** on `/assets/*`
 - **Fonts**: Same as static assets
 - **Images**: Same as static assets
+- **MIME poison guard**: Pages SPA-falls back unknown paths to `index.html` (200). `/assets/*` must stay on the Functions middleware (`_routes.json` must not exclude it). Missing or non-JS/CSS MIME under `/assets/*` → `404` + `Cache-Control: no-store` (+ `cdn-cache-control: no-store`). Keep `public/assets/404.html`.
 
 ### 1.4 Cache Efficiency Between Deploys
 - Asset URLs change **only** when their content changes (content-hash based naming)
 - Deploys should produce minimal diffs—most files should retain their URLs
 - No deployment-id or timestamp-based cache busting
+- A deploy race that caches HTML at a hashed JS URL blanks the custom domain until purge; guards in 1.3 exist so that cannot recur
 
 ---
 

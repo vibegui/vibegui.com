@@ -83,6 +83,20 @@ Check that:
 ### Assets look broken
 The `dist/` directory with Vite-built assets needs to exist. Run `bun run build` locally before pushing.
 
+### Blank page on vibegui.com but `*.pages.dev` works
+**Root cause:** Cloudflare Pages SPA-falls back unknown paths to `index.html` (200). If HTML references a new hashed `/assets/*.js` before that file is available — or during a failed deploy — browsers/CDN can cache `text/html` under the JS URL with `Cache-Control: immutable` (1 year). Custom-domain edge cache then serves HTML-as-JS forever; preview hosts don't share that cache.
+
+**Guards already in place:**
+1. `public/assets/404.html` — missing `/assets/*` → real 404
+2. `public/_headers` — immutable only on `/assets/*.{js,css,woff2,map}` (not `/assets/*`)
+3. `functions/_middleware.ts` — rejects HTML/wrong MIME under `/assets/*` with `404` + `no-store`
+4. Hash rotation on the next successful Vite build (new filename busts browser cache)
+
+**If it happens again (poisoned edge HIT still serving HTML for an old hash):**
+1. Cloudflare Dashboard → vibegui.com zone → Caching → Configuration → **Purge Everything** (or purge the specific `https://vibegui.com/assets/<poisoned>.js` URLs)
+2. Confirm: `curl -sSI https://vibegui.com/assets/definitely-missing.js` → `404` + `cache-control: no-store`
+3. Hard-refresh the browser (or open a private window)
+
 ### Changes not appearing
 Cloudflare caches aggressively. Check:
 1. `index.html` has 30s max-age (should update quickly)

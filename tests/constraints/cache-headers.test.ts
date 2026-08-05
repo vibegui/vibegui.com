@@ -4,6 +4,7 @@
  * Verifies CONSTRAINTS.md Section 1.3 & 1.4: Asset Caching Strategy
  * - Content-hash based asset naming
  * - Proper _headers file configuration
+ * - SPA HTML must never be immutable-cached under /assets/*
  */
 
 import { describe, test, expect } from "bun:test";
@@ -34,38 +35,55 @@ function getAllFiles(dir: string, files: string[] = []): string[] {
   return files;
 }
 
+/** Strip comments so we don't match `/assets/*` mentioned only in prose. */
+function headersRules(content: string): string {
+  return content
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("#"))
+    .join("\n");
+}
+
 describe("Cache Strategy Constraints", () => {
   test("_headers file exists in public/", () => {
     const headersPath = join(PUBLIC_DIR, "_headers");
     expect(existsSync(headersPath)).toBe(true);
   });
 
-  test("_headers has correct cache rules", () => {
+  test("_headers immutable rules are extension-scoped (not /assets/*)", () => {
     const headersPath = join(PUBLIC_DIR, "_headers");
-    const content = readFileSync(headersPath, "utf-8");
+    const rules = headersRules(readFileSync(headersPath, "utf-8"));
 
-    // Check for immutable caching on assets
-    expect(content).toContain("/assets/*");
-    expect(content).toContain("immutable");
+    // Broad /assets/* + immutable is what poisoned vibegui.com: SPA HTML
+    // returned for a missing hashed URL got pinned for a year.
+    expect(rules).not.toMatch(
+      /\/assets\/\*\s*\n\s*Cache-Control:[^\n]*immutable/,
+    );
 
-    // Check for short cache on index.html
-    expect(content).toContain("stale-while-revalidate");
+    expect(rules).toContain("/assets/*.js");
+    expect(rules).toContain("/assets/*.css");
+    expect(rules).toContain("immutable");
+    expect(rules).toContain("stale-while-revalidate");
+  });
+
+  test("public/assets/404.html exists so Pages returns real 404s under /assets", () => {
+    expect(existsSync(join(PUBLIC_DIR, "assets", "404.html"))).toBe(true);
+    expect(existsSync(join(DIST_DIR, "assets", "404.html"))).toBe(true);
   });
 
   test("JS/CSS assets use content-hash naming", () => {
     const files = getAllFiles(DIST_DIR);
     const assetFiles = files.filter((f) => {
       const ext = extname(f);
+      const name = basename(f);
+      if (name === "404.html") return false;
       return [".js", ".css"].includes(ext) && f.includes("/assets/");
     });
 
+    expect(assetFiles.length).toBeGreaterThan(0);
+
     for (const file of assetFiles) {
       const filename = basename(file);
-
-      // Skip source maps
       if (filename.endsWith(".map")) continue;
-
-      console.log(`Checking hash pattern: ${filename}`);
       expect(HASH_PATTERN.test(filename)).toBe(true);
     }
   });
