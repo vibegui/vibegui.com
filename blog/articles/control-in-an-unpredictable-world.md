@@ -6,7 +6,7 @@ title: Control in an Unpredictable World
 originalUrl: https://www.youtube.com/watch?v=dh4VBSbgFkQ
 description: 'A Steve Zaffron pearl on what you can actually control — with an accurate transcript, because YouTube captions destroy the distinctions.'
 date: 2026-08-04
-status: draft
+status: published
 coverImage: null
 tags:
   - steve-zaffron
