@@ -2240,8 +2240,6 @@
   width: min(520px, 100%);
   aspect-ratio: 1;
   margin: 0;
-  /* keep node labels inside the square so the card hugs the diagram */
-  container-type: size;
 }
 
 .story-compound-ring {
