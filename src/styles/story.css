@@ -1610,7 +1610,7 @@
 .story-bridge-caps {
   display: grid;
   width: 100%;
-  gap: 1rem;
+  gap: 1.75rem;
 }
 
 .story-bridge-cap-group {
@@ -2081,11 +2081,16 @@
 }
 
 .story-cast-grid {
-  align-items: center;
+  align-items: stretch;
+}
+
+.story-cast-grid > b {
+  align-self: center;
 }
 
 .story-cast-side {
   display: grid;
+  align-content: space-between;
   gap: 0.75rem;
   padding: 1rem 1.1rem;
   border: 1px solid #e4e0d6;
@@ -2129,9 +2134,38 @@
   background: color-mix(in srgb, #78726e 55%, #d9d4c8);
 }
 
+.story-cast-coverage {
+  display: grid;
+  gap: 0.35rem;
+  color: #78726e;
+  font-size: 0.6875rem;
+}
+
+/* bar = 24h day; filled segment 9h–17h (37.5%–70.8%) */
+.story-cast-coverage::before {
+  content: "";
+  height: 0.25rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #ddd8cc 0 37.5%,
+    #78726e 37.5% 70.8%,
+    #ddd8cc 70.8% 100%
+  );
+}
+
+.story-cast-coverage-full::before {
+  background: #07401a;
+}
+
 .story-cast-after {
   border-color: color-mix(in srgb, #d0ec1a 45%, #e4e0d6);
   background: color-mix(in srgb, #d0ec1a 12%, #fff);
+}
+
+.story-cast-roles-rows {
+  display: grid;
+  gap: 0.4rem;
 }
 
 .story-cast-roles {

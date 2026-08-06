@@ -34,7 +34,7 @@ const HUB_EN: HubCopy = {
     { group: "Service", items: ["Content", "SEO", "CRO", "QA", "UX"] },
     {
       group: "Software",
-      items: ["CMS", "Analytics", "Personalization", "Integrations", "Infra"],
+      items: ["CMS", "Infra", "Analytics", "Personalization", "Integrations"],
     },
   ],
 };
@@ -50,7 +50,7 @@ const HUB_PT: HubCopy = {
     { group: "Serviço", items: ["Conteúdo", "SEO", "CRO", "QA", "UX"] },
     {
       group: "Software",
-      items: ["CMS", "Analytics", "Personalização", "Integrações", "Infra"],
+      items: ["CMS", "Infra", "Analytics", "Personalização", "Integrações"],
     },
   ],
 };
@@ -469,8 +469,13 @@ const CAST = {
     beforeLabel: "Legacy agency",
     afterLabel: "Software factory",
     beforeNote: "15 people · meetings · retainer",
-    afterNote: "same roles · chat rooms · 24/7 loop",
-    roles: ["PO", "SEO", "CRO", "Frontend", "QA", "Content"],
+    afterNote: "same roles · chat rooms",
+    beforeHours: "Mon–Fri, 9 to 5",
+    afterHours: "24/7",
+    roleRows: [
+      ["PO", "SEO", "CRO", "Frontend"],
+      ["QA", "UX", "Content"],
+    ],
     caption:
       "Same roles on the org chart. What disappears is the waiting between them.",
   },
@@ -478,8 +483,13 @@ const CAST = {
     beforeLabel: "Agência legada",
     afterLabel: "Fábrica de software",
     beforeNote: "15 pessoas · reunião · retainer",
-    afterNote: "mesmos papéis · chat rooms · loop 24/7",
-    roles: ["PO", "SEO", "CRO", "Frontend", "QA", "Conteúdo"],
+    afterNote: "mesmos papéis · chat rooms",
+    beforeHours: "seg–sex, 9h às 17h",
+    afterHours: "24/7",
+    roleRows: [
+      ["PO", "SEO", "CRO", "Frontend"],
+      ["QA", "UX", "Conteúdo"],
+    ],
     caption:
       "Mesmos papéis no organograma. O que desaparece é a espera entre eles.",
   },
@@ -498,16 +508,24 @@ export function StoryCast({ locale = "en" }: LocaleProp) {
             ))}
           </div>
           <small>{c.beforeNote}</small>
+          <small className="story-cast-coverage">{c.beforeHours}</small>
         </div>
         <b aria-hidden="true">→</b>
         <div className="story-cast-side story-cast-after">
           <span>{c.afterLabel}</span>
-          <ul className="story-cast-roles">
-            {c.roles.map((role) => (
-              <li key={role}>{role}</li>
+          <div className="story-cast-roles-rows">
+            {c.roleRows.map((row) => (
+              <ul className="story-cast-roles" key={row[0]}>
+                {row.map((role) => (
+                  <li key={role}>{role}</li>
+                ))}
+              </ul>
             ))}
-          </ul>
+          </div>
           <small>{c.afterNote}</small>
+          <small className="story-cast-coverage story-cast-coverage-full">
+            {c.afterHours}
+          </small>
         </div>
       </div>
       <figcaption id="cast-caption">{c.caption}</figcaption>
@@ -524,7 +542,11 @@ const ROOMS = {
         note: "one conversation surface per codebase",
       },
       { left: "Thread", right: "Branch", note: "the whole story of the work" },
-      { left: "Sandbox", right: "Desk", note: "where the agent runs tools" },
+      {
+        left: "Sandbox",
+        right: "Computer",
+        note: "where the agent runs tools",
+      },
       {
         left: "Agent",
         right: "Role",
@@ -551,7 +573,11 @@ const ROOMS = {
         right: "Branch",
         note: "a história inteira do trabalho",
       },
-      { left: "Sandbox", right: "Mesa", note: "onde o agent roda as tools" },
+      {
+        left: "Sandbox",
+        right: "Computador",
+        note: "onde o agent roda as tools",
+      },
       {
         left: "Agent",
         right: "Papel",
