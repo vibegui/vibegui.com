@@ -1,0 +1,21 @@
+-- Superseded before it was ever read.
+--
+-- This migration added a `serves` column to projects, so a project could name
+-- the strategic result it pursues. The relationship was right; the home was
+-- wrong. `serves` is a declaration about intent — what a project is *for* — and
+-- intent belongs in the instance's git alongside the strategic results it
+-- points at, not in the table that holds measurement.
+--
+-- It now lives in `projects/*.md` frontmatter, where it is also many-to-many,
+-- which a single TEXT column could not express and which is the common case:
+-- real work usually serves more than one result.
+--
+-- The body is emptied rather than the file deleted, and no DROP COLUMN is
+-- issued. Wrangler tracks migrations by filename, so a database that already
+-- applied this keeps its (unused, always-null) column and a fresh one never
+-- gets it. Dropping it would rewrite the table on live data to reclaim nothing.
+--
+-- See migrations/0008 for `position`, which stays in D1: order is state you
+-- flip week to week, not a declaration.
+
+SELECT 1;

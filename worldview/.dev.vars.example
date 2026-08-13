@@ -1,0 +1,18 @@
+# Local-only secrets. Copy to .dev.vars and never commit the real file.
+
+# Both the browser login password (GET /) and the Studio bearer token.
+# Rotating it invalidates every browser session.
+WORLDVIEW_PASSWORD=replace-with-a-long-random-value
+
+# Read-only GitHub evidence. Classic PAT with `repo` scope so it can read
+# repositories across accounts and orgs; the Worker only issues GETs.
+GITHUB_TOKEN=replace-with-a-classic-personal-access-token
+
+# Salt for hashing visitor IP ranges in first-party analytics.
+# Required when the `analytics` module is enabled.
+ANALYTICS_SALT=replace-with-another-long-random-value
+
+# Bookmark enrichment (ENRICH_BOOKMARK). Only needed when the `bookmarks`
+# module is enabled and you want automated enrichment.
+MESH_GATEWAY_URL=
+MESH_API_KEY=

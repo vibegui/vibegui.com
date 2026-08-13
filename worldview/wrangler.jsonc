@@ -1,0 +1,65 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+
+  // This instance deploys OVER the existing Worker that holds real data, and
+  // is served at https://mcp.vibegui.com (custom domain, configured in the
+  // Cloudflare dashboard — not in this file). The static site's analytics
+  // beacon posts to that hostname (functions/_middleware.ts), so the route
+  // must keep answering /e.
+  //
+  // Every identifier below is load-bearing. Renaming one is a migration, not
+  // a rename: it orphans the data or breaks the private Studio connection.
+  "name": "vibegui-personal-ai-os",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-12",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Instance configuration. The library reads these; none of them are baked
+  // into it.
+  "vars": {
+    "PUBLIC_SITE_ORIGIN": "https://vibegui.com",
+    "PUBLIC_REPO_RAW_ORIGIN": "https://raw.githubusercontent.com/vibegui/vibegui.com/main",
+    "GITHUB_USERNAME": "vibegui",
+    "AUTORAG_INSTANCE": "vibegui-writing"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "vibegui-personal-ai-os",
+      "database_id": "503776b2-1c54-481d-85a4-a99e8028c72d",
+      // Schema belongs to the library; `bun run schema:sync` copies its
+      // migrations here so a schema change shows up in this repo's diff
+      // before it is applied. See CONTRACT.md.
+      "migrations_dir": "migrations"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "binding": "CORPUS",
+      "bucket_name": "vibegui-corpus"
+    }
+  ],
+
+  "ai_search": [
+    {
+      "binding": "AUTORAG",
+      "instance_name": "vibegui-writing",
+      "remote": true
+    }
+  ],
+
+  // Hourly: refresh read-only GitHub evidence, mark the daily brief due.
+  "triggers": {
+    "crons": ["0 * * * *"]
+  },
+
+  // Prose lives in .md files and is imported as text, so the declared future
+  // is editable instead of an escaped JSON string.
+  "rules": [{ "type": "Text", "globs": ["**/*.md"], "fallthrough": true }],
+
+  "observability": {
+    "enabled": true
+  }
+}

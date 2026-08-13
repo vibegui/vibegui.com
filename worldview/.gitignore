@@ -1,0 +1,6 @@
+node_modules/
+.wrangler/
+.dev.vars
+*.log
+# Production snapshot for local mirroring. Real personal data — never commit.
+.snapshot.sql

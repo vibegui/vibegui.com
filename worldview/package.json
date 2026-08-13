@@ -1,0 +1,28 @@
+{
+  "name": "@vibegui/worldview-instance",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Guilherme's instance of Worldview: declaration, bindings, adapters. No behaviour.",
+  "scripts": {
+    "setup": "bun link worldview && bun install && bun run schema:sync",
+    "dev": "wrangler dev",
+    "check": "tsc --noEmit && bun run check:declaration",
+    "check:declaration": "bun -e 'const {worldviewErrors}=await import(\"worldview\");const e=worldviewErrors({declaration:(await import(\"./worldview.json\")).default,declaredFuture:await Bun.file(\"declared-future.md\").text()});if(e.length){console.error(e.join(\"\\n\"));process.exit(1)}console.log(\"declaration ok\")'",
+    "declaration": "bun -e 'console.log(await Bun.file(\"declared-future.md\").text())'",
+    "schema:sync": "rm -rf migrations && cp -R node_modules/worldview/migrations .",
+    "db:local": "wrangler d1 migrations apply vibegui-personal-ai-os --local",
+    "db:remote": "wrangler d1 migrations apply vibegui-personal-ai-os --remote",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "alignment": "bun scripts/alignment.ts"
+  },
+  "dependencies": {
+    "worldview": "link:worldview"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260712.1",
+    "typescript": "^7.0.2",
+    "wrangler": "^4.110.0"
+  }
+}

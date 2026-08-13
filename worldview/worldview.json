@@ -1,0 +1,285 @@
+{
+  "version": 1,
+  "instance": "vibegui",
+  "name": "vibegui",
+  "scores": {
+    "alignment": {
+      "label": "Alignment",
+      "question": "Does what I am doing serve the future I declared?",
+      "measure": "Share of active work traceable to a declared outcome.",
+      "kind": "percent"
+    },
+    "integrity": {
+      "label": "Integrity",
+      "question": "Is it whole and complete?",
+      "measure": "Count of word items currently unacknowledged. Target zero — integrity is a mountain with no top, so this is never a percentage.",
+      "kind": "count-to-zero",
+      "domains": {
+        "word": "What I said, what I know to do, what is expected of me, what I assert is true, what I stand for, and the standards I operate under. Kept, or honored when it cannot be kept.",
+        "systems": "Design, implementation, and use integrity. Secrets stay server-side, permissions are real, the reviewer is not the author.",
+        "objects": "Every claim has an artifact that opens. A green check nobody can open is a rumor."
+      }
+    }
+  },
+  "conditionsOfSatisfaction": [
+    "Human direction remains sovereign.",
+    "Private and public are separate by construction.",
+    "Personal data stays under personal control.",
+    "Trust beats confident enrichment.",
+    "The method is copyable.",
+    "Depth wins over content volume.",
+    "Spread curiosity is visible; execution is concentrated.",
+    "Sources remain visible.",
+    "Memory is accountable.",
+    "Nothing publishes itself.",
+    "The experience is elegant and inviting.",
+    "The system runs on itself."
+  ],
+  "strategicResults": [
+    {
+      "id": "agency",
+      "position": 1,
+      "stage": "ideas",
+      "title": "My projects move as one portfolio",
+      "narrative": "Every active personal project is visible in one map, connected to an explicit outcome and the evidence of whether it is moving. The gap between the declaration and the measurement is the work.",
+      "acceptanceCriteria": [
+        "Every active project has a goal, success criteria, state, and next review",
+        "A useful daily brief is reviewed at least five times per week",
+        "The system surfaces stale commitments and recommends concrete next steps"
+      ],
+      "metrics": [
+        {
+          "label": "Active projects with goals",
+          "target": 4,
+          "unit": "projects"
+        },
+        {
+          "label": "Daily briefs reviewed",
+          "target": 5,
+          "unit": "per week"
+        }
+      ]
+    },
+    {
+      "id": "research",
+      "position": 2,
+      "stage": "expansion",
+      "title": "Prior art is available before a branch exists",
+      "narrative": "What already exists — inside my own writing and outside it — is searchable at the moment an idea is shaped, so I stop rediscovering things I already said.",
+      "acceptanceCriteria": [
+        "The corpus answers \"have I already written this\" in one query",
+        "Bookmarks are enriched and searchable, not a dead list",
+        "A shaped proposal cites its prior art"
+      ],
+      "metrics": [
+        {
+          "label": "Enriched sources",
+          "target": 20,
+          "unit": "sources"
+        }
+      ]
+    },
+    {
+      "id": "validation",
+      "position": 3,
+      "stage": "expansion",
+      "title": "Ideas can die before they cost a week",
+      "narrative": "Between an idea and a branch there is work that is not code: the smallest test that could embarrass the idea. This stage prevents shipping the wrong thing faster.",
+      "acceptanceCriteria": [
+        "Work carries acceptance criteria written before the branch exists",
+        "At least one idea dies in this stage on purpose",
+        "Validation names who it was tested with"
+      ],
+      "metrics": [
+        {
+          "label": "Ideas killed in expansion",
+          "target": 1,
+          "unit": "on purpose"
+        }
+      ]
+    },
+    {
+      "id": "software-factory",
+      "position": 4,
+      "stage": "execution",
+      "title": "The factory is a connection, not a rebuild",
+      "narrative": "Execution belongs to a factory, never to this system: Worldview declares, measures, and scores, and never writes code, opens a pull request, or ships. Which factory is an open bet — deco Studio and Runtime are parallel attempts at the same function and one of them wins. What the outcome requires is the same either way: a queue derived from the gap rather than typed into a box.",
+      "acceptanceCriteria": [
+        "A work queue populates from the gap without anyone typing a task",
+        "Every work item names the declared outcome it serves and the measurement that exposed it",
+        "No work item completes without an artifact that opens",
+        "The Studio-versus-Runtime bet is decided on evidence rather than left running indefinitely"
+      ],
+      "metrics": [
+        {
+          "label": "Queue items derived from the gap",
+          "target": 1,
+          "unit": "working loop"
+        }
+      ]
+    },
+    {
+      "id": "understanding",
+      "position": 5,
+      "stage": "content",
+      "title": "Important distinctions can be gotten through conversation",
+      "narrative": "A navigable graph of distinctions across leadership, integrity, future-based language, software, AI, Brazil, and the other subjects I stand for — each with a clear essay, its sources, and a path that creates the possibility of a genuine change in perspective.",
+      "acceptanceCriteria": [
+        "Twelve distinctions have an essay, graph position, sources, and guided path",
+        "Readers complete real guided conversations",
+        "Repeatable paths that help people get a distinction are identified"
+      ],
+      "metrics": [
+        {
+          "label": "Structured distinctions",
+          "target": 12,
+          "unit": "distinctions"
+        },
+        {
+          "label": "Validated conversation paths",
+          "target": 12,
+          "unit": "paths"
+        }
+      ]
+    },
+    {
+      "id": "compounding",
+      "position": 6,
+      "stage": "content",
+      "title": "My library and conversations make each other better",
+      "narrative": "Books and source materials are mapped to concepts and distinctions. Conversations reveal where an idea remains unclear and what deserves development, and those signals enter a review pipeline that never turns model output into truth by default.",
+      "acceptanceCriteria": [
+        "Twenty books or primary sources are mapped",
+        "Conversation signals enter a private review pipeline",
+        "No model output becomes public truth without review"
+      ],
+      "metrics": [
+        {
+          "label": "Mapped sources",
+          "target": 20,
+          "unit": "sources"
+        },
+        {
+          "label": "Reviewed conversation signals",
+          "target": 1,
+          "unit": "working loop"
+        }
+      ]
+    },
+    {
+      "id": "expression",
+      "position": 7,
+      "stage": "distribution",
+      "title": "Conversations become artifacts worth sharing",
+      "narrative": "When a reader gets something important, it can become a beautiful, consented, cited artifact that brings another person into the conversation without exposing private detail.",
+      "acceptanceCriteria": [
+        "A conversation can produce a redacted and consented artifact",
+        "Every artifact cites its sources and map location",
+        "Organic sharing happens repeatedly and establishes a baseline"
+      ],
+      "metrics": [
+        {
+          "label": "Shareable artifact flow",
+          "target": 1,
+          "unit": "working flow"
+        },
+        {
+          "label": "Share-rate baseline",
+          "target": 1,
+          "unit": "measured baseline"
+        }
+      ]
+    },
+    {
+      "id": "multiplication",
+      "position": 8,
+      "stage": "distribution",
+      "title": "Anyone can keep their declared future in git",
+      "narrative": "The copyable thing is not a template of my tooling — it is the declaration itself. A person can fork this, write their own future, connect it to the factory they already use, and begin without becoming an infrastructure expert.",
+      "acceptanceCriteria": [
+        "A new person reaches a useful first gap report from the documentation alone",
+        "Ten independent declarations are running",
+        "Three independent maintainers contribute"
+      ],
+      "metrics": [
+        {
+          "label": "Independent declarations",
+          "target": 10,
+          "unit": "deployments"
+        },
+        {
+          "label": "Independent maintainers",
+          "target": 3,
+          "unit": "maintainers"
+        }
+      ]
+    },
+    {
+      "id": "relationships",
+      "position": 9,
+      "score": "alignment",
+      "title": "Important connections do not disappear",
+      "narrative": "A trustworthy map of the people who matter across the different chapters of my life, grounded in evidence from sources I control — because the people around you shape the future you are able to declare.",
+      "acceptanceCriteria": [
+        "The first trusted circle is mapped with provenance",
+        "Identity merges and relationship claims are reviewable",
+        "The system can explain why a person may help and where I can help first"
+      ],
+      "metrics": [
+        {
+          "label": "Trusted circle mapped",
+          "target": 1,
+          "unit": "complete circle"
+        },
+        {
+          "label": "Verified relationship records",
+          "target": 1,
+          "unit": "working set"
+        }
+      ]
+    },
+    {
+      "id": "word",
+      "position": 10,
+      "score": "integrity",
+      "title": "My word exists when it comes time to keep it",
+      "narrative": "The failure this system exists to defeat: not having your word exist at the moment it comes due. Commitments are tracked, and honoring one I cannot keep — acknowledge, say what happens instead and by when, clean up — is a first-class move rather than an apology.",
+      "acceptanceCriteria": [
+        "Every commitment has an owner and a by-when",
+        "A commitment that will not be kept can be honored in one step",
+        "The system can show, unprompted, a promise it did not keep"
+      ],
+      "metrics": [
+        {
+          "label": "Unacknowledged commitments",
+          "target": 0,
+          "unit": "items"
+        }
+      ]
+    },
+    {
+      "id": "order",
+      "position": 11,
+      "score": "integrity",
+      "title": "My personal files form a usable library",
+      "narrative": "Integrity of objects: files across Mac, iCloud, and Drive searchable as one private map, with a canonical copy that is knowable and reversible operations only.",
+      "acceptanceCriteria": [
+        "Mac, iCloud, and Google Drive are indexed",
+        "Canonical and duplicate candidates are visible",
+        "Every move or archive operation has a dry run, audit trail, and recovery path"
+      ],
+      "metrics": [
+        {
+          "label": "Storage sources indexed",
+          "target": 3,
+          "unit": "sources"
+        },
+        {
+          "label": "Reversible organization flow",
+          "target": 1,
+          "unit": "working flow"
+        }
+      ]
+    }
+  ]
+}
