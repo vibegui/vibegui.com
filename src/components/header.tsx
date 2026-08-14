@@ -9,7 +9,14 @@
 
 import { useState, useEffect } from "react";
 import { Link } from "../app";
-import { homePath, localeText, type Locale } from "../lib/manifest";
+import {
+  commitmentPath,
+  homePath,
+  localeSwitchPath,
+  localeText,
+  rememberLocale,
+  type Locale,
+} from "../lib/manifest";
 import { ThemeToggle } from "./theme-toggle";
 
 function useCurrentPath() {
@@ -24,27 +31,34 @@ function useCurrentPath() {
   return path;
 }
 
-function LanguageSwitch({ locale }: { locale: Locale }) {
+function LanguageSwitch({
+  locale,
+  currentPath,
+}: {
+  locale: Locale;
+  currentPath: string;
+}) {
+  // The Pages Function stores the choice on the redirect; writing the cookie
+  // here too keeps the switch working in dev, where no function runs.
+  const link = (target: Locale, label: string) => (
+    <a
+      href={`${localeSwitchPath(currentPath, target)}?lang=${target === "en" ? "en" : "pt"}`}
+      className={locale === target ? "is-active" : undefined}
+      aria-current={locale === target ? "page" : undefined}
+      onClick={() => rememberLocale(target)}
+    >
+      {label}
+    </a>
+  );
+
   return (
     <nav
       className="language-switch"
       aria-label={locale === "en" ? "Language" : "Idioma"}
     >
-      <a
-        href="/?lang=pt"
-        className={locale === "pt-BR" ? "is-active" : undefined}
-        aria-current={locale === "pt-BR" ? "page" : undefined}
-      >
-        PT
-      </a>
+      {link("pt-BR", "PT")}
       <span aria-hidden="true">/</span>
-      <a
-        href="/en/?lang=en"
-        className={locale === "en" ? "is-active" : undefined}
-        aria-current={locale === "en" ? "page" : undefined}
-      >
-        EN
-      </a>
+      {link("en", "EN")}
     </nav>
   );
 }
@@ -58,7 +72,7 @@ export function Header({ locale }: { locale: Locale }) {
     { href: writingPath, label: text.nav.writing },
     { href: "/bookmarks", label: text.nav.bookmarks },
     { href: "/context", label: text.nav.library },
-    { href: "/commitment", label: text.nav.about },
+    { href: commitmentPath(locale), label: text.nav.about },
   ];
 
   const isActive = (href: string) => {
@@ -111,13 +125,13 @@ export function Header({ locale }: { locale: Locale }) {
               {link.label}
             </Link>
           ))}
-          <LanguageSwitch locale={locale} />
+          <LanguageSwitch locale={locale} currentPath={currentPath} />
           <ThemeToggle />
         </nav>
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
-          <LanguageSwitch locale={locale} />
+          <LanguageSwitch locale={locale} currentPath={currentPath} />
           <ThemeToggle />
           <button
             type="button"

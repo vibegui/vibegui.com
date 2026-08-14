@@ -142,6 +142,59 @@ test.describe("Localized writing", () => {
     );
   });
 
+  test("commitment page and topbar share the same language", async ({
+    page,
+  }) => {
+    // The nav lives in the desktop bar and the mobile menu, so assert on the
+    // header markup instead of visibility (mobile hides it behind the burger).
+    const aboutLink = (path: string) =>
+      page.locator(`header a[href="${path}"]`).first();
+    const switchLink = (label: string) =>
+      page
+        .locator(".language-switch:visible")
+        .getByRole("link", { name: label });
+
+    await page.goto("/compromisso");
+    await expect(
+      page.getByRole("heading", { name: "Compromisso", level: 1 }),
+    ).toBeVisible();
+    await expect(aboutLink("/compromisso")).toHaveText("Sobre");
+    await expect(switchLink("EN")).toHaveAttribute(
+      "href",
+      "/commitment?lang=en",
+    );
+
+    await page.goto("/commitment");
+    await expect(
+      page.getByRole("heading", { name: "Commitment", level: 1 }),
+    ).toBeVisible();
+    await expect(aboutLink("/commitment")).toHaveText("About");
+    await expect(switchLink("PT")).toHaveAttribute(
+      "href",
+      "/compromisso?lang=pt",
+    );
+  });
+
+  test("pages without a translation keep the chosen interface language", async ({
+    page,
+  }) => {
+    await page.goto("/bookmarks");
+    const switcher = page.locator(".language-switch:visible");
+    await expect(switcher.getByRole("link", { name: "EN" })).toHaveAttribute(
+      "href",
+      "/bookmarks?lang=en",
+    );
+    await switcher.getByRole("link", { name: "EN" }).click();
+
+    await expect(page).toHaveURL(/\/bookmarks/);
+    await expect(page.locator('header a[href="/en/"]').last()).toHaveText(
+      "Writing",
+    );
+    await expect(
+      page.locator('header a[href="/commitment"]').first(),
+    ).toHaveText("About");
+  });
+
   test("visitor geolocation does not select a language", async ({
     browser,
   }) => {
@@ -218,6 +271,29 @@ test.describe("Locale middleware", () => {
     expect(explicit.headers.get("location")).toBe("https://vibegui.com/en/");
     expect(explicit.headers.get("set-cookie")).toContain(
       "vibegui_locale=en; Max-Age=31536000; Path=/; SameSite=Lax",
+    );
+  });
+
+  test("commitment slugs are known routes and switch across locales", async () => {
+    const portuguese = await middleware(
+      new Request("https://vibegui.com/compromisso"),
+    );
+    expect(portuguese.status).toBe(418);
+
+    const english = await middleware(
+      new Request("https://vibegui.com/compromisso?lang=en"),
+    );
+    expect(english.status).toBe(302);
+    expect(english.headers.get("location")).toBe(
+      "https://vibegui.com/commitment",
+    );
+    expect(english.headers.get("set-cookie")).toContain("vibegui_locale=en");
+
+    const back = await middleware(
+      new Request("https://vibegui.com/commitment?lang=pt"),
+    );
+    expect(back.headers.get("location")).toBe(
+      "https://vibegui.com/compromisso",
     );
   });
 

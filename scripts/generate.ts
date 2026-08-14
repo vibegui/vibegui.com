@@ -398,6 +398,18 @@ function generateSitemap(): void {
     <xhtml:link rel="alternate" hreflang="en" href="${BASE_URL}/en/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/" />
   </url>`,
+    `<url>
+    <loc>${BASE_URL}/compromisso</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="${BASE_URL}/compromisso" />
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE_URL}/commitment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/compromisso" />
+  </url>`,
+    `<url>
+    <loc>${BASE_URL}/commitment</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="${BASE_URL}/compromisso" />
+    <xhtml:link rel="alternate" hreflang="en" href="${BASE_URL}/commitment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/compromisso" />
+  </url>`,
     ...articles.map(
       (article) => `<url>
     <loc>${absoluteUrl(articlePath(article))}</loc>${sitemapAlternates(article)}

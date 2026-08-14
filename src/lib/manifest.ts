@@ -97,6 +97,45 @@ export function articlePath(locale: Locale, slug: string): string {
   return `${locale === "en" ? "/en" : ""}/article/${slug}/`;
 }
 
+/** Commitment page: translated slug per locale (EN keeps the original URL). */
+export function commitmentPath(locale: Locale): "/commitment" | "/compromisso" {
+  return locale === "en" ? "/commitment" : "/compromisso";
+}
+
+/** Where the PT/EN switch lands when the visitor is on `pathname`. */
+export function localeSwitchPath(pathname: string, locale: Locale): string {
+  const clean = pathname.replace(/\/$/, "") || "/";
+  if (clean === "/commitment" || clean === "/compromisso") {
+    return commitmentPath(locale);
+  }
+  // Home and articles go to the home of the target locale — articles carry
+  // their own alternate link to the exact translation.
+  if (clean === "/" || clean === "/en" || /^\/(en\/)?article\//.test(clean)) {
+    return homePath(locale);
+  }
+  // Pages without a locale variant (/bookmarks, /context, ...): stay put,
+  // only the interface language changes.
+  return pathname;
+}
+
+const LOCALE_COOKIE = "vibegui_locale";
+
+/** Locale remembered by the Pages Function (functions/_middleware.ts). */
+export function localeFromCookie(): Locale | null {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(
+    new RegExp(`(?:^|;\\s*)${LOCALE_COOKIE}=(pt|en)(?:;|$)`),
+  );
+  if (!match) return null;
+  return match[1] === "en" ? "en" : "pt-BR";
+}
+
+/** Mirrors the cookie the middleware sets, so the switch also works in dev. */
+export function rememberLocale(locale: Locale): void {
+  if (typeof document === "undefined") return;
+  document.cookie = `${LOCALE_COOKIE}=${locale === "en" ? "en" : "pt"}; Max-Age=31536000; Path=/; SameSite=Lax`;
+}
+
 export interface ArticleMeta {
   slug: string;
   locale: Locale;

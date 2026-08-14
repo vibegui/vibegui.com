@@ -134,6 +134,7 @@ const ROTAS = new Set([
   "/bookmarks",
   "/roadmap",
   "/commitment",
+  "/compromisso",
   "/context",
   "/demos/transformation",
 ]);
@@ -220,6 +221,17 @@ function destinoExplicito(url: URL, locale: LocalePreference): URL {
     destino.pathname === "/content"
   ) {
     destino.pathname = locale === "en" ? "/en/" : "/";
+    return destino;
+  }
+
+  // página de compromisso: slug traduzido, um URL por idioma
+  if (
+    destino.pathname === "/commitment" ||
+    destino.pathname === "/commitment/" ||
+    destino.pathname === "/compromisso" ||
+    destino.pathname === "/compromisso/"
+  ) {
+    destino.pathname = locale === "en" ? "/commitment" : "/compromisso";
     return destino;
   }
 
