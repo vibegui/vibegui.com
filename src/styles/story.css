@@ -2724,13 +2724,12 @@
 
 .story-factory-timeline li {
   display: grid;
-  align-items: baseline;
-  gap: 0.1rem 0.9rem;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0.35rem 1.25rem;
+  grid-template-columns: 5.25rem minmax(0, 11rem) minmax(0, 1.5fr);
   margin: 0;
-  padding: 0.6rem 0 0.6rem 0;
+  padding: 0.85rem 0 0.85rem 1rem;
   border-left: 2px solid color-mix(in srgb, #07401a 22%, transparent);
-  padding-left: 1rem;
   position: relative;
 }
 
@@ -2764,68 +2763,112 @@
   font-weight: 650;
 }
 
+.story-factory-term {
+  display: grid;
+  gap: 0.1rem;
+}
+
 .story-factory-timeline small {
-  grid-column: 2;
   color: #6f6b63;
   font-size: 0.8125rem;
 }
 
+.story-factory-timeline p {
+  margin: 0;
+  color: #4a4640;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+@media (max-width: 760px) {
+  .story-factory-timeline li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.25rem;
+  }
+}
+
 /* Gap bars */
 
-.story-factory-gap {
+.story-factory-versus {
   display: grid;
-  gap: 0.9rem;
+  gap: 1.1rem;
   margin: 0.5rem 0 0;
   padding: 0;
   list-style: none;
 }
 
-.story-factory-gap li {
+.story-factory-versus li {
   display: grid;
-  gap: 0.25rem 0.75rem;
-  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.15rem;
   margin: 0;
 }
 
-.story-factory-gap li::marker {
+.story-factory-versus li::marker {
   content: none;
 }
 
-.story-factory-gap b {
+.story-factory-versus b {
   color: #121310;
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 650;
 }
 
-.story-factory-gap em {
-  color: #07401a;
-  font-family: var(--font-mono);
+.story-factory-versus > li > small {
+  color: #78726e;
   font-size: 0.75rem;
+}
+
+.story-factory-versus-pair {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.35rem;
+}
+
+.story-factory-versus-side {
+  display: grid;
+  align-items: center;
+  gap: 0.6rem;
+  grid-template-columns: 3.5rem minmax(0, 1fr) 2.75rem;
+}
+
+.story-factory-versus-side i {
+  color: #78726e;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
   font-style: normal;
   font-weight: 650;
-  text-align: right;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.story-factory-gap-track {
+.story-factory-versus-track {
   display: block;
-  grid-column: 1 / -1;
-  height: 0.6rem;
+  height: 0.85rem;
   border-radius: 999px;
   background: color-mix(in srgb, #e4e0d6 70%, transparent);
 }
 
-.story-factory-gap-track i {
+.story-factory-versus-track em {
   display: block;
   height: 100%;
   border-radius: 999px;
+}
+
+.story-factory-versus-open {
   background: #8a5a3b;
 }
 
-.story-factory-gap small {
-  grid-column: 1 / -1;
-  color: #78726e;
+.story-factory-versus-closed {
+  background: #07401a;
+}
+
+.story-factory-versus-side > strong {
+  color: #121310;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  text-align: right;
 }
 
 /* The plant */

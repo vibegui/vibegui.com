@@ -763,15 +763,47 @@ const TIMELINE = {
     label: "One part per year",
     title: "What we named, and when",
     entries: [
-      { when: "Mar 2024", what: "Agentic workflows", who: "Andrew Ng" },
-      { when: "Feb 2025", what: "Vibe coding", who: "Karpathy" },
-      { when: "Jun 2025", what: "Context engineering", who: "Tobi Lütke" },
-      { when: "Nov 2025", what: "Harness", who: "nobody — it just stuck" },
-      { when: "Dec 2025", what: "Context graph", who: "Foundation Capital" },
+      {
+        when: "Mar 2024",
+        what: "Agentic workflows",
+        who: "Andrew Ng",
+        detail:
+          "The model stops answering and starts working: plan, call a tool, read the result, try again. Ng's bet was that the loop would matter more than the next generation of models. It did.",
+      },
+      {
+        when: "Feb 2025",
+        what: "Vibe coding",
+        who: "Karpathy",
+        detail:
+          "Say what you want, accept the diff without reading it. Meant for throwaway weekend projects — but a quarter of Y Combinator's Winter 2025 batch shipped codebases 95% written this way.",
+      },
+      {
+        when: "Jun 2025",
+        what: "Context engineering",
+        who: "Tobi Lütke",
+        detail:
+          "The bottleneck moved from how you ask to what the model can see. Your catalog rules, your postmortems, your one weird checkout exception. The pilot fails when the agent has none of it.",
+      },
+      {
+        when: "Nov 2025",
+        what: "Harness",
+        who: "nobody — it just stuck",
+        detail:
+          "What the agent is allowed to touch: terminal, repo, admin API, credentials, sandbox. The word arrived late and unclaimed because nobody set out to invent the category.",
+      },
+      {
+        when: "Dec 2025",
+        what: "Context graph",
+        who: "Foundation Capital",
+        detail:
+          "Context stops being a pile of files and becomes a structure — entities, decisions and history, connected, so an agent can look up precedent instead of re-reading everything.",
+      },
       {
         when: "Feb 2026",
         what: "Agentic engineering",
         who: "Karpathy, retiring his own word",
+        detail:
+          "One year after coining vibe coding he called it a throwaway tweet. The real practice: you are not writing the code 99% of the time, you are orchestrating agents who do — and answering for what they ship.",
       },
     ],
     caption:
@@ -781,15 +813,47 @@ const TIMELINE = {
     label: "Uma peça por ano",
     title: "O que a gente nomeou, e quando",
     entries: [
-      { when: "mar 2024", what: "Agentic workflows", who: "Andrew Ng" },
-      { when: "fev 2025", what: "Vibe coding", who: "Karpathy" },
-      { when: "jun 2025", what: "Context engineering", who: "Tobi Lütke" },
-      { when: "nov 2025", what: "Harness", who: "ninguém — pegou sozinho" },
-      { when: "dez 2025", what: "Context graph", who: "Foundation Capital" },
+      {
+        when: "mar 2024",
+        what: "Agentic workflows",
+        who: "Andrew Ng",
+        detail:
+          "O modelo para de responder e começa a trabalhar: planeja, chama uma ferramenta, lê o resultado, tenta de novo. A aposta do Ng era que o loop pesaria mais que a próxima geração de modelos. Pesou.",
+      },
+      {
+        when: "fev 2025",
+        what: "Vibe coding",
+        who: "Karpathy",
+        detail:
+          "Fala o que você quer e aceita o diff sem ler. Era pra projeto de fim de semana — mas um quarto do batch de inverno da Y Combinator subiu código 95% escrito assim.",
+      },
+      {
+        when: "jun 2025",
+        what: "Context engineering",
+        who: "Tobi Lütke",
+        detail:
+          "O gargalo saiu de como você pergunta e foi pra o que o modelo enxerga. Suas regras de catálogo, seus post-mortems, aquela exceção esquisita do checkout. O piloto falha quando o agente não tem nada disso.",
+      },
+      {
+        when: "nov 2025",
+        what: "Harness",
+        who: "ninguém — pegou sozinho",
+        detail:
+          "O que o agente pode tocar: terminal, repositório, admin API, credencial, sandbox. A palavra chegou tarde e sem dono porque ninguém saiu pra inventar a categoria.",
+      },
+      {
+        when: "dez 2025",
+        what: "Context graph",
+        who: "Foundation Capital",
+        detail:
+          "O contexto deixa de ser um monte de arquivo e vira estrutura — entidades, decisões e histórico, conectados, pro agente consultar precedente em vez de reler tudo.",
+      },
       {
         when: "fev 2026",
         what: "Agentic engineering",
         who: "Karpathy, aposentando a própria palavra",
+        detail:
+          "Um ano depois de cunhar vibe coding, ele chamou aquilo de tweet jogado fora. A prática de verdade: você não escreve o código em 99% das vezes, você orquestra os agentes que escrevem — e responde pelo que eles sobem.",
       },
     ],
     caption:
@@ -810,8 +874,11 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
         {c.entries.map((e) => (
           <li key={e.what}>
             <time>{e.when}</time>
-            <b>{e.what}</b>
-            <small>{e.who}</small>
+            <div className="story-factory-term">
+              <b>{e.what}</b>
+              <small>{e.who}</small>
+            </div>
+            <p>{e.detail}</p>
           </li>
         ))}
       </ol>
@@ -822,64 +889,59 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
 
 const GAP = {
   en: {
-    label: "Open weights vs closed, August 2026",
-    title: "The gap depends on who built the machine around the model",
-    bars: [
+    label: "Best open model vs best closed model, August 2026",
+    title: "Tied on smarts. Not close on doing the job.",
+    rows: [
       {
-        name: "Intelligence index",
-        gap: 3,
-        of: 63,
-        note: "Kimi K3 60 · Opus 5 63",
+        name: "How smart it is",
+        sub: "Artificial Analysis intelligence index",
+        open: 60,
+        closed: 63,
+        max: 100,
       },
       {
-        name: "SWE-bench Verified",
-        gap: 0.6,
-        of: 97,
-        note: "DeepSeek V4 Pro 96.4 · Opus 5 97.0",
-      },
-      {
-        name: "Terminal-Bench 2.1",
-        gap: 25.1,
-        of: 83.8,
-        note: "GLM-5.1 58.7 · Fable 5 83.8",
+        name: "Doing a real job",
+        sub: "Terminal-Bench: multi-step work in a terminal",
+        open: 58.7,
+        closed: 83.8,
+        max: 100,
       },
     ],
-    unit: "points behind",
+    openLabel: "Open",
+    closedLabel: "Closed",
     caption:
-      "Terminal-Bench measures an agent doing multi-step work. That is the one the closed labs ship a harness for.",
+      "Same models in both rows. The closed labs ship the machine around the model. Open weights arrive as just a model.",
   },
   pt: {
-    label: "Peso aberto vs fechado, agosto de 2026",
-    title: "A distância depende de quem montou a máquina em volta do modelo",
-    bars: [
+    label: "Melhor modelo aberto vs melhor fechado, agosto de 2026",
+    title: "Empatados em inteligência. Longe disso no trabalho.",
+    rows: [
       {
-        name: "Índice de inteligência",
-        gap: 3,
-        of: 63,
-        note: "Kimi K3 60 · Opus 5 63",
+        name: "Quão inteligente é",
+        sub: "Índice de inteligência da Artificial Analysis",
+        open: 60,
+        closed: 63,
+        max: 100,
       },
       {
-        name: "SWE-bench Verified",
-        gap: 0.6,
-        of: 97,
-        note: "DeepSeek V4 Pro 96,4 · Opus 5 97,0",
-      },
-      {
-        name: "Terminal-Bench 2.1",
-        gap: 25.1,
-        of: 83.8,
-        note: "GLM-5.1 58,7 · Fable 5 83,8",
+        name: "Fazendo trabalho de verdade",
+        sub: "Terminal-Bench: várias etapas num terminal",
+        open: 58.7,
+        closed: 83.8,
+        max: 100,
       },
     ],
-    unit: "pontos atrás",
+    openLabel: "Aberto",
+    closedLabel: "Fechado",
     caption:
-      "Terminal-Bench mede agente fazendo trabalho de vários passos. É justamente onde os labs fechados entregam o harness.",
+      "Os mesmos modelos nas duas linhas. Os labs fechados entregam a máquina em volta do modelo. O peso aberto chega só como modelo.",
   },
 } as const;
 
 export function FactoryGap({ locale = "en" }: LocaleProp) {
   const c = GAP[locale];
-  const decimal = locale === "pt" ? "," : ".";
+  const fmt = (n: number) =>
+    locale === "pt" ? String(n).replace(".", ",") : String(n);
   return (
     <figure
       className="story-factory"
@@ -887,17 +949,33 @@ export function FactoryGap({ locale = "en" }: LocaleProp) {
     >
       <span className="story-factory-label">{c.label}</span>
       <strong className="story-factory-title">{c.title}</strong>
-      <ul className="story-factory-gap">
-        {c.bars.map((b) => (
-          <li key={b.name}>
-            <b>{b.name}</b>
-            <span className="story-factory-gap-track">
-              <i style={{ width: `${Math.max((b.gap / 26) * 100, 1.5)}%` }} />
-            </span>
-            <em>
-              {String(b.gap).replace(".", decimal)} {c.unit}
-            </em>
-            <small>{b.note}</small>
+      <ul className="story-factory-versus">
+        {c.rows.map((r) => (
+          <li key={r.name}>
+            <b>{r.name}</b>
+            <small>{r.sub}</small>
+            <div className="story-factory-versus-pair">
+              <span className="story-factory-versus-side">
+                <i>{c.openLabel}</i>
+                <span className="story-factory-versus-track">
+                  <em
+                    className="story-factory-versus-open"
+                    style={{ width: `${(r.open / r.max) * 100}%` }}
+                  />
+                </span>
+                <strong>{fmt(r.open)}</strong>
+              </span>
+              <span className="story-factory-versus-side">
+                <i>{c.closedLabel}</i>
+                <span className="story-factory-versus-track">
+                  <em
+                    className="story-factory-versus-closed"
+                    style={{ width: `${(r.closed / r.max) * 100}%` }}
+                  />
+                </span>
+                <strong>{fmt(r.closed)}</strong>
+              </span>
+            </div>
           </li>
         ))}
       </ul>
