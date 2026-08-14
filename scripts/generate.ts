@@ -24,6 +24,7 @@ import { getAllContent, type Article } from "../lib/articles-reader.ts";
 import { renderMdx } from "../lib/mdx-renderer.ts";
 import { generateIrene } from "./generate-irene.ts";
 import { generateMalvados } from "./generate-malvados.ts";
+import { generateImprescindivel } from "./generate-imprescindivel.ts";
 
 const startTime = performance.now();
 
@@ -660,6 +661,7 @@ const contextCount = processContextDir(CONTEXT_SRC_DIR);
 const CONTENT_SRC_DIR = join(PROJECT_ROOT, "content");
 const ireneCount = generateIrene(CONTENT_SRC_DIR, BUILD_DIR);
 const malvadosCount = generateMalvados(CONTENT_SRC_DIR, BUILD_DIR);
+const imprescindivelCount = generateImprescindivel(CONTENT_SRC_DIR, BUILD_DIR);
 
 const draftCount = allArticles.filter((c) => c.status === "draft").length;
 const publishedCount = allArticles.filter(
@@ -672,5 +674,6 @@ const exportInfo = isProduction
 const elapsed = (performance.now() - startTime).toFixed(0);
 console.log(
   `📚 Built: ${exportInfo}, ${contextCount} context pages, ` +
-    `${ireneCount} poesias (/irene), ${malvadosCount} tirinhas (/malvados) (${elapsed}ms)`,
+    `${ireneCount} poesias (/irene), ${malvadosCount} tirinhas (/malvados), ` +
+    `${imprescindivelCount} seções (/imprescindivel) (${elapsed}ms)`,
 );

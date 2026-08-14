@@ -24,9 +24,11 @@ function ssgDevPlugin() {
           const url = req.url || "";
           const pathname = url.split("?")[0]?.replace(/\/$/, "") || "/";
 
-          // Standalone static mini-sites (/irene, /malvados): serve the
-          // complete HTML/JSON from .build/ verbatim (no SPA injection).
-          const staticSite = url.match(/^\/(irene|malvados)(\/[^?]*)?(\?.*)?$/);
+          // Standalone static mini-sites (/irene, /malvados, /imprescindivel):
+          // serve the complete HTML/JSON from .build/ verbatim (no SPA injection).
+          const staticSite = url.match(
+            /^\/(irene|malvados|imprescindivel)(\/[^?]*)?(\?.*)?$/,
+          );
           if (staticSite) {
             const rest = (staticSite[2] || "").replace(/\/$/, "");
             const base = resolve(__dirname, ".build", staticSite[1] + rest);

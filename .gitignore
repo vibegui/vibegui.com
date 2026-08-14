@@ -48,8 +48,10 @@ dist/en/index.html
 dist/en/feed.xml
 dist/irene/
 dist/malvados/
+dist/imprescindivel/
 dist/_dominio-irene/
 dist/_dominio-malvados/
+dist/_dominio-imprescindivel/
 dist/.vite/
 dist/assets/404.html
 dist/sitemap.xml

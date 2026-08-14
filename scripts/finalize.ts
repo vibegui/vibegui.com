@@ -253,18 +253,23 @@ async function main() {
   console.log("\n📁 Copying static mini-sites...");
   copyDir(resolve(BUILD, "irene"), resolve(DIST, "irene"));
   copyDir(resolve(BUILD, "malvados"), resolve(DIST, "malvados"));
+  copyDir(resolve(BUILD, "imprescindivel"), resolve(DIST, "imprescindivel"));
   // builds dos domínios dedicados (servidos por functions/_middleware.ts)
   copyDir(resolve(BUILD, "_dominio-irene"), resolve(DIST, "_dominio-irene"));
   copyDir(
     resolve(BUILD, "_dominio-malvados"),
     resolve(DIST, "_dominio-malvados"),
   );
+  copyDir(
+    resolve(BUILD, "_dominio-imprescindivel"),
+    resolve(DIST, "_dominio-imprescindivel"),
+  );
   // In pages mode (no Vite) the strip images must come straight from public/
   const mediaDest = resolve(DIST, "malvados", "tirinhas");
   if (!existsSync(mediaDest)) {
     copyDir(resolve(PUBLIC, "malvados", "tirinhas"), mediaDest);
   }
-  console.log("  ✅ /irene, /malvados");
+  console.log("  ✅ /irene, /malvados, /imprescindivel");
 
   // Read manifest for embedding
   const manifestPath = resolve(DIST, "content", "manifest.json");
