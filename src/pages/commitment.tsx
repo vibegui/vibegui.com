@@ -3,9 +3,396 @@
  *
  * Explains Guilherme's top-level commitment:
  * Making Brazil a global technology protagonist.
+ *
+ * Two locales, one shell: /compromisso (PT) and /commitment (EN).
  */
 
-export function Commitment() {
+import type { Locale } from "../lib/manifest";
+
+function AuthorBioEn() {
+  return (
+    <>
+      <strong>Guilherme Rodrigues</strong> is a software engineer and
+      entrepreneur from Rio de Janeiro, Brazil. Co-founder and CEO of{" "}
+      <a
+        href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        deco CMS
+      </a>
+      , a digital agency that implements AI agents to monitor and evolve the
+      digital channels of large commerce operations. Former Staff Engineer at
+      VTEX (9 years), where he helped build the platform from early stage to
+      NYSE IPO. Founding donor of{" "}
+      <a
+        href="https://www.rioendowment.com"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        RIO Endowment
+      </a>
+      . PUC-Rio alumni. <em>Alis Grave Nil.</em>
+    </>
+  );
+}
+
+function AuthorBioPt() {
+  return (
+    <>
+      <strong>Guilherme Rodrigues</strong> é engenheiro de software e
+      empreendedor, do Rio de Janeiro. Cofundador e CEO da{" "}
+      <a
+        href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        deco CMS
+      </a>
+      , uma agência digital que implementa agentes de IA para monitorar e
+      evoluir canais digitais de grandes operações de commerce. Foi Staff
+      Engineer na VTEX (9 anos), onde ajudou a construir a plataforma desde o
+      início até o IPO na NYSE. Doador fundador do{" "}
+      <a
+        href="https://www.rioendowment.com"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        RIO Endowment
+      </a>
+      . Ex-aluno da PUC-Rio. <em>Alis Grave Nil.</em>
+    </>
+  );
+}
+
+function BodyEn() {
+  return (
+    <>
+      <p>
+        At 25, I was living in Sweden — one of the most organized, stable, and
+        predictable countries in the world. I worked at Tictail (later acquired
+        by Shopify), a Swedish e-commerce startup, surrounded by cutting-edge
+        technology, mature institutions, and an almost absolute sense of
+        security.
+      </p>
+
+      <p>
+        And it was precisely there, in the perfect center of the "first world,"
+        that I discovered this wasn't the game I wanted to play.
+      </p>
+
+      <p>
+        While everything seemed to work perfectly, something in me didn't. I
+        realized that, as much as that environment offered comfort and
+        predictability, it didn't offer the kind of purpose I was seeking. I
+        wanted to be where there was still much to be built. Where talent wasn't
+        just another brick in a ready-made structure, but a real force of
+        transformation.
+      </p>
+
+      <p>
+        <strong>
+          I wanted to return to Brazil — not because it was easier, but because
+          it was more important.
+        </strong>
+      </p>
+
+      <h2>From Sweden to Brazil: Building Where It Matters</h2>
+
+      <p>
+        When I returned, I rejoined VTEX as a software engineer. There, I
+        experienced firsthand what it means to build technology at scale from
+        Brazil. We helped create an e-commerce platform that today processes
+        billions in transactions and competes globally with the largest players
+        in the market. It was a long journey to the IPO on the New York Stock
+        Exchange, but it was worth every drop of sweat.
+      </p>
+
+      <p>
+        It was at VTEX that I understood something fundamental: Brazil doesn't
+        just need to consume technology from abroad — we can create technology
+        that the whole world uses.
+      </p>
+
+      <p>
+        But it also became clear that no one changes a country alone. The
+        transformation I sought didn't depend only on a successful company, but
+        on creating technological capacity at scale — training people, opening
+        opportunities, democratizing access to the knowledge that transforms
+        careers.
+      </p>
+
+      <h2>Building deco CMS</h2>
+
+      <p>
+        Over the past years, I understood that my purpose was not just creating
+        technology — but helping unlock Brazil's full creative potential through
+        technology.
+      </p>
+
+      <p>
+        That's a main goal of{" "}
+        <a
+          href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment-body"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          deco CMS
+        </a>{" "}
+        — a digital agency that implements AI agents to monitor and evolve the
+        digital channels of large commerce operations.
+      </p>
+
+      <p>
+        We operate the sites, apps, and conversations through which big brands
+        sell. Our agents watch every store day and night: they find what's
+        broken, fix it, test what could be better on real traffic, and ship what
+        wins. We're not talking about prototypes or demos that never go to
+        production. We're talking about software that runs in production, on
+        someone else's revenue, with governance, security, and scale.
+      </p>
+
+      <h3>deco is based on principles I believe are fundamental:</h3>
+
+      <ul className="green-bullets">
+        <li>
+          <strong>Autopilot first.</strong> The agents monitor the channel and
+          auto-fix what a person should never have to touch — the broken link,
+          the slow page, the copy that stopped converting. Human attention is
+          too expensive to spend on what a loop can handle.
+        </li>
+        <li>
+          <strong>Inside your sprint.</strong> The agents plug into the team's
+          own Kanban and make a two-week sprint run in days, with people
+          approving what goes live. Ultra-senior engineers cover the edge cases
+          the agents shouldn't decide alone.
+        </li>
+        <li>
+          <strong>Paid for results.</strong> One contract instead of six
+          agencies: a low fixed fee plus a variable tied to the results we
+          produce. The upside is shared and the downside is ours — which is the
+          only honest way to promise a result.
+        </li>
+      </ul>
+
+      <h2>The Game Worth Playing</h2>
+
+      <p>
+        When I look back — from Tictail in Sweden to VTEX in Brazil to deco CMS
+        — I see a common thread:
+      </p>
+
+      <p>
+        <strong>
+          I want to be where I can contribute so that Brazil realizes its
+          technological potential.
+        </strong>
+      </p>
+
+      <p>
+        Not because it's easy. Not because it's guaranteed. But because it's
+        possible.
+      </p>
+
+      <p>
+        And this goes far beyond me. It's a movement involving founders,
+        engineers, designers, educators, investors, communities, and
+        institutions — all seeking to transform Brazil into a global
+        protagonist, not a supporting actor.
+      </p>
+
+      <p>
+        Brazil has everything to be a global technological power — we have
+        talent, creativity, scale. What's often missing is opportunity and
+        infrastructure.
+      </p>
+
+      <p>
+        That's what we're building, together, and I couldn't be in a better
+        place to make a difference.
+      </p>
+
+      <p>
+        <strong>
+          It's a long-term game. A country-building game. And it's exactly the
+          kind of game worth playing.
+        </strong>
+      </p>
+
+      <small>
+        <em>
+          If you want to build this future together, email us at{" "}
+          <a href="mailto:builders@decocms.com">builders@decocms.com</a>
+        </em>
+      </small>
+    </>
+  );
+}
+
+function BodyPt() {
+  return (
+    <>
+      <p>
+        Aos 25 anos, eu morava na Suécia — um dos países mais organizados,
+        estáveis e previsíveis do mundo. Trabalhava na Tictail (depois adquirida
+        pela Shopify), uma startup sueca de e-commerce, cercado de tecnologia de
+        ponta, instituições maduras e uma sensação de segurança quase absoluta.
+      </p>
+
+      <p>
+        E foi exatamente ali, no centro perfeito do "primeiro mundo", que eu
+        descobri que aquele não era o jogo que eu queria jogar.
+      </p>
+
+      <p>
+        Enquanto tudo parecia funcionar perfeitamente, algo em mim não
+        funcionava. Percebi que, por mais que aquele ambiente oferecesse
+        conforto e previsibilidade, ele não oferecia o tipo de propósito que eu
+        procurava. Eu queria estar onde ainda havia muito a ser construído. Onde
+        talento não fosse mais um tijolo numa estrutura pronta, mas uma força
+        real de transformação.
+      </p>
+
+      <p>
+        <strong>
+          Eu queria voltar para o Brasil — não porque era mais fácil, mas porque
+          era mais importante.
+        </strong>
+      </p>
+
+      <h2>Da Suécia para o Brasil: construir onde importa</h2>
+
+      <p>
+        Quando voltei, reingressei na VTEX como engenheiro de software. Ali vivi
+        na prática o que significa construir tecnologia em escala a partir do
+        Brasil. Ajudamos a criar uma plataforma de e-commerce que hoje processa
+        bilhões em transações e compete globalmente com os maiores players do
+        mercado. Foi uma jornada longa até o IPO na Bolsa de Nova York, mas
+        valeu cada gota de suor.
+      </p>
+
+      <p>
+        Foi na VTEX que entendi algo fundamental: o Brasil não precisa apenas
+        consumir tecnologia de fora — nós podemos criar tecnologia que o mundo
+        inteiro usa.
+      </p>
+
+      <p>
+        Mas também ficou claro que ninguém muda um país sozinho. A transformação
+        que eu buscava não dependia só de uma empresa bem-sucedida, e sim de
+        criar capacidade tecnológica em escala — formar pessoas, abrir
+        oportunidades, democratizar o acesso ao conhecimento que transforma
+        carreiras.
+      </p>
+
+      <h2>Construindo a deco CMS</h2>
+
+      <p>
+        Nos últimos anos, entendi que meu propósito não era apenas criar
+        tecnologia — mas ajudar a destravar todo o potencial criativo do Brasil
+        através da tecnologia.
+      </p>
+
+      <p>
+        Esse é um objetivo central da{" "}
+        <a
+          href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment-body"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          deco CMS
+        </a>{" "}
+        — uma agência digital que implementa agentes de IA para monitorar e
+        evoluir canais digitais de grandes operações de commerce.
+      </p>
+
+      <p>
+        A gente opera os sites, apps e conversas por onde as grandes marcas
+        vendem. Nossos agentes acompanham cada loja dia e noite: encontram o que
+        está quebrado, consertam, testam o que pode ficar melhor no tráfego real
+        e sobem o que vence. Não estamos falando de protótipos ou demos que
+        nunca vão para produção. Estamos falando de software rodando em
+        produção, em cima da receita de outra empresa, com governança, segurança
+        e escala.
+      </p>
+
+      <h3>A deco é baseada em princípios que considero fundamentais:</h3>
+
+      <ul className="green-bullets">
+        <li>
+          <strong>Autopilot primeiro.</strong> Os agentes monitoram o canal e
+          consertam sozinhos o que uma pessoa nem deveria precisar tocar — o
+          link quebrado, a página lenta, o texto que parou de converter. Atenção
+          humana é cara demais para gastar no que um loop resolve.
+        </li>
+        <li>
+          <strong>Dentro do seu sprint.</strong> Os agentes entram no Kanban do
+          próprio time e fazem um sprint de duas semanas rodar em dias, com
+          gente aprovando o que vai para o ar. Engenheiros ultra sênior cobrem
+          os edge cases que os agentes não devem decidir sozinhos.
+        </li>
+        <li>
+          <strong>Pago por resultado.</strong> Um contrato no lugar de seis
+          agências: um fixo baixo mais um variável atrelado ao resultado que a
+          gente produz. O ganho é dividido e o risco é nosso — que é o único
+          jeito honesto de prometer resultado.
+        </li>
+      </ul>
+
+      <h2>O jogo que vale a pena jogar</h2>
+
+      <p>
+        Quando olho para trás — da Tictail na Suécia à VTEX no Brasil, até a
+        deco CMS — vejo um fio condutor:
+      </p>
+
+      <p>
+        <strong>
+          Eu quero estar onde posso contribuir para que o Brasil realize seu
+          potencial tecnológico.
+        </strong>
+      </p>
+
+      <p>Não porque é fácil. Não porque é garantido. Mas porque é possível.</p>
+
+      <p>
+        E isso vai muito além de mim. É um movimento que envolve fundadores,
+        engenheiros, designers, educadores, investidores, comunidades e
+        instituições — todos buscando transformar o Brasil em protagonista
+        global, não em coadjuvante.
+      </p>
+
+      <p>
+        O Brasil tem tudo para ser uma potência tecnológica global — temos
+        talento, criatividade, escala. O que costuma faltar é oportunidade e
+        infraestrutura.
+      </p>
+
+      <p>
+        É isso que estamos construindo, juntos, e eu não poderia estar em lugar
+        melhor para fazer diferença.
+      </p>
+
+      <p>
+        <strong>
+          É um jogo de longo prazo. Um jogo de construir país. E é exatamente o
+          tipo de jogo que vale a pena jogar.
+        </strong>
+      </p>
+
+      <small>
+        <em>
+          Se você quer construir esse futuro junto, escreva para{" "}
+          <a href="mailto:builders@decocms.com">builders@decocms.com</a>
+        </em>
+      </small>
+    </>
+  );
+}
+
+export function Commitment({ locale }: { locale: Locale }) {
+  const english = locale === "en";
+
   return (
     <article className="container py-4 md:py-6">
       <div>
@@ -14,7 +401,9 @@ export function Commitment() {
           className="mb-6 p-6 rounded-lg"
           style={{ backgroundColor: "var(--color-bg-secondary)" }}
         >
-          <h2 className="text-2xl font-semibold mb-4">About the author</h2>
+          <h2 className="text-2xl font-semibold mb-4">
+            {english ? "About the author" : "Sobre o autor"}
+          </h2>
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             <img
               src="/images/guilherme-rodrigues.jpeg"
@@ -26,36 +415,8 @@ export function Commitment() {
               className="prose pl-2"
               style={{ color: "var(--color-fg-muted)" }}
             >
-              <strong>Guilherme Rodrigues</strong> is a software engineer and
-              entrepreneur from Rio de Janeiro, Brazil. Co-founder and CEO of{" "}
-              <a
-                href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                deco CMS
-              </a>
-              , an open-source MCP Mesh platform. Former Staff Engineer at VTEX
-              (9 years), where he helped build the platform from early stage to
-              NYSE IPO. Co-founder of{" "}
-              <a
-                href="https://www.movtech.org"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Movimento Tech 2030
-              </a>
-              , a coalition that has impacted 3M+ students and created 7,000+
-              tech jobs in Brazil. Founding donor of{" "}
-              <a
-                href="https://www.rioendowment.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                RIO Endowment
-              </a>
-              . PUC-Rio alumni. <br /> <em>Alis Grave Nil.</em>
-              <div className="flex gap-3 mt-3">
+              {english ? <AuthorBioEn /> : <AuthorBioPt />}
+              <div className="flex gap-3 mt-6">
                 <a
                   href="https://www.linkedin.com/in/vibegui/"
                   target="_blank"
@@ -110,230 +471,20 @@ export function Commitment() {
         </section>
 
         <header className="mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold">Commitment</h1>
+          <h1 className="text-3xl md:text-4xl font-bold">
+            {english ? "Commitment" : "Compromisso"}
+          </h1>
           <p
             className="mt-4 text-xl"
             style={{ color: "var(--color-fg-muted)" }}
           >
-            Brazil as a global technology protagonist
+            {english
+              ? "Brazil as a global technology protagonist"
+              : "O Brasil como protagonista global de tecnologia"}
           </p>
         </header>
 
-        <div className="prose">
-          <p>
-            At 25, I was living in Sweden — one of the most organized, stable,
-            and predictable countries in the world. I worked at Tictail (later
-            acquired by Shopify), a Swedish e-commerce startup, surrounded by
-            cutting-edge technology, mature institutions, and an almost absolute
-            sense of security.
-          </p>
-
-          <p>
-            And it was precisely there, in the perfect center of the "first
-            world," that I discovered this wasn't the game I wanted to play.
-          </p>
-
-          <p>
-            While everything seemed to work perfectly, something in me didn't. I
-            realized that, as much as that environment offered comfort and
-            predictability, it didn't offer the kind of purpose I was seeking. I
-            wanted to be where there was still much to be built. Where talent
-            wasn't just another brick in a ready-made structure, but a real
-            force of transformation.
-          </p>
-
-          <p>
-            <strong>
-              I wanted to return to Brazil — not because it was easier, but
-              because it was more important.
-            </strong>
-          </p>
-
-          <h2>From Sweden to Brazil: Building Where It Matters</h2>
-
-          <p>
-            When I returned, I rejoined VTEX as a software engineer. There, I
-            experienced firsthand what it means to build technology at scale
-            from Brazil. We helped create an e-commerce platform that today
-            processes billions in transactions and competes globally with the
-            largest players in the market. It was a long journey to the IPO on
-            the New York Stock Exchange, but it was worth every drop of sweat.
-          </p>
-
-          <p>
-            It was at VTEX that I understood something fundamental: Brazil
-            doesn't just need to consume technology from abroad — we can create
-            technology that the whole world uses.
-          </p>
-
-          <p>
-            But it also became clear that no one changes a country alone. The
-            transformation I sought didn't depend only on a successful company,
-            but on creating technological capacity at scale — training people,
-            opening opportunities, democratizing access to the knowledge that
-            transforms careers.
-          </p>
-
-          <h2>Understanding That Purpose Is Collective</h2>
-
-          <p>
-            This realization led me and a team of similarly-committed people to
-            found{" "}
-            <a
-              href="https://www.movtech.org"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Movimento Tech
-            </a>{" "}
-            in 2022, where we united for a future worth building: making
-            technology a lever for productive inclusion in Brazil.
-          </p>
-
-          <p>
-            Movimento Tech 2030 was born with a clear mission: to create real
-            opportunities for those who never had access to this type of
-            trajectory. Today, we are a coalition that has already impacted more
-            than 3 million young people, generated more than 7,000 jobs in the
-            tech sector, and moves hundreds of millions of reais in salaries and
-            investments.
-          </p>
-
-          <p>
-            One of our main projects is Maratona Tech — Brazil's largest
-            technology olympiad, created to spark students' interest in
-            technology. It's not just a competition, it's a gateway to a
-            universe of possibilities that previously seemed unattainable for
-            millions of young Brazilians.
-          </p>
-
-          <blockquote>
-            <p>
-              Talent is equally distributed; opportunity is not. And technology
-              is the most powerful bridge to correct this asymmetry.
-            </p>
-          </blockquote>
-
-          <h2>Building deco CMS</h2>
-
-          <p>
-            Over the past years, I understood that my purpose was not just
-            creating technology — but helping unlock Brazil's full creative
-            potential through technology.
-          </p>
-
-          <p>
-            That's a main goal of{" "}
-            <a
-              href="https://decocms.com/?utm_source=vibegui.com&utm_campaign=commitment-body"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              deco CMS
-            </a>{" "}
-            — a platform that democratizes software creation through artificial
-            intelligence, in Brazil and everywhere else.
-          </p>
-
-          <p>
-            We're building the AI application platform that allows anyone —
-            developers, operators, entrepreneurs — to build complete LLM-powered
-            applications quickly and professionally. We're not talking about
-            prototypes or demos that never go to production. We're talking about
-            autonomous companies created with real AI software, running in
-            production, with governance, security, and scalability.
-          </p>
-
-          <h3>deco is based on principles I believe are fundamental:</h3>
-
-          <ul className="green-bullets">
-            <li>
-              <strong>Agent-first, MCP-native.</strong> Built from the ground up
-              for autonomous companies. Every feature is designed to optimize
-              the context and tools available to AI agents — because your agents
-              are only as good as the context and tools they have.
-            </li>
-            <li>
-              <strong>Deploy anywhere.</strong> Our platform runs on the
-              infrastructure you choose — cloud, edge, on-premise. You bring
-              your own keys, your own AI models. Own your code, your data and
-              your Context.
-            </li>
-            <li>
-              <strong>Open source.</strong> We're starting by{" "}
-              <a
-                href="https://decocms.com/mesh?utm_source=vibegui.com&utm_campaign=commitment-mesh"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                open-sourcing our MCP Mesh
-              </a>{" "}
-              — a secure control plane to manage all your MCPs and optimize your
-              production agents. It handles auth, policy, observability, and
-              traffic routing so you can deploy AI agents with enterprise-grade
-              governance. Interested? Star us on{" "}
-              <a
-                href="https://github.com/decocms/mesh"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                GitHub
-              </a>{" "}
-              and deploy your own MCP Mesh in 5 minutes.
-            </li>
-          </ul>
-
-          <h2>The Game Worth Playing</h2>
-
-          <p>
-            When I look back — from Tictail in Sweden to VTEX in Brazil, from
-            Movimento Tech to deco CMS — I see a common thread:
-          </p>
-
-          <p>
-            <strong>
-              I want to be where I can contribute so that Brazil realizes its
-              technological potential.
-            </strong>
-          </p>
-
-          <p>
-            Not because it's easy. Not because it's guaranteed. But because it's
-            possible.
-          </p>
-
-          <p>
-            And this goes far beyond me. It's a movement involving founders,
-            engineers, designers, educators, investors, communities, and
-            institutions — all seeking to transform Brazil into a global
-            protagonist, not a supporting actor.
-          </p>
-
-          <p>
-            Brazil has everything to be a global technological power — we have
-            talent, creativity, scale. What's often missing is opportunity and
-            infrastructure.
-          </p>
-
-          <p>
-            That's what we're building, together, and I couldn't be in a better
-            place to make a difference.
-          </p>
-
-          <p>
-            <strong>
-              It's a long-term game. A country-building game. And it's exactly
-              the kind of game worth playing.
-            </strong>
-          </p>
-
-          <small>
-            <em>
-              If you want to build this future together, email us at{" "}
-              <a href="mailto:builders@decocms.com">builders@decocms.com</a>
-            </em>
-          </small>
-        </div>
+        <div className="prose">{english ? <BodyEn /> : <BodyPt />}</div>
       </div>
     </article>
   );

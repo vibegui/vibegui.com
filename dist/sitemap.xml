@@ -13,6 +13,18 @@
     <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/" />
   </url>
   <url>
+    <loc>https://vibegui.com/compromisso</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/compromisso" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/commitment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/compromisso" />
+  </url>
+  <url>
+    <loc>https://vibegui.com/commitment</loc>
+    <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/compromisso" />
+    <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/commitment" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://vibegui.com/compromisso" />
+  </url>
+  <url>
     <loc>https://vibegui.com/en/article/honey-i-shrunk-the-agency/</loc>
     <xhtml:link rel="alternate" hreflang="pt-BR" href="https://vibegui.com/article/querida-encolhi-a-agencia/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://vibegui.com/en/article/honey-i-shrunk-the-agency/" />

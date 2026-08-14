@@ -15,6 +15,7 @@ import { updateCanonical } from "./hooks/use-canonical";
 import {
   DEFAULT_LOCALE,
   homePath,
+  localeFromCookie,
   localeText,
   type Locale,
 } from "./lib/manifest";
@@ -37,7 +38,7 @@ type Route =
   | { type: "article"; locale: Locale; slug: string }
   | { type: "bookmarks" }
   | { type: "roadmap" }
-  | { type: "commitment" }
+  | { type: "commitment"; locale: Locale }
   | { type: "context" }
   | { type: "context-doc"; path: string }
   | { type: "transformation" }
@@ -62,8 +63,11 @@ function parseRoute(pathname: string): Route {
   ) {
     return { type: "transformation" };
   }
-  if (pathname === "/commitment") {
-    return { type: "commitment" };
+  if (pathname === "/commitment" || pathname === "/commitment/") {
+    return { type: "commitment", locale: "en" };
+  }
+  if (pathname === "/compromisso" || pathname === "/compromisso/") {
+    return { type: "commitment", locale: "pt-BR" };
   }
   if (pathname === "/context") {
     return { type: "context" };
@@ -192,7 +196,7 @@ function RouteContent({ route, locale }: { route: Route; locale: Locale }) {
         </Suspense>
       );
     case "commitment":
-      return <Commitment />;
+      return <Commitment locale={route.locale} />;
     case "context":
       return <Context />;
     case "context-doc":
@@ -220,8 +224,12 @@ function RouteContent({ route, locale }: { route: Route; locale: Locale }) {
 
 export function App() {
   const route = useRoute();
+  // Routes without a locale variant (/bookmarks, /context, ...) follow the
+  // language the visitor last chose instead of snapping the topbar back to PT.
   const locale =
-    "locale" in route && route.locale ? route.locale : DEFAULT_LOCALE;
+    "locale" in route && route.locale
+      ? route.locale
+      : (localeFromCookie() ?? DEFAULT_LOCALE);
   const isStandaloneDemo = route.type === "transformation";
 
   useEffect(() => {
