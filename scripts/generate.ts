@@ -42,11 +42,20 @@ const ARTICLE_DIR = join(BUILD_DIR, "article");
 const EN_ARTICLE_DIR = join(BUILD_DIR, "en", "article");
 const CONTEXT_DIR = join(BUILD_DIR, "context");
 
+// Cloudflare Pages sets CF_PAGES_BRANCH on every build, including previews, and
+// sets CI=true on all of them. Without this check a branch preview would hide
+// drafts exactly like production and there would be no way to share one.
+const PRODUCTION_BRANCH = "main";
+const pagesBranch = process.env.CF_PAGES_BRANCH;
+const isPagesPreview =
+  pagesBranch !== undefined && pagesBranch !== PRODUCTION_BRANCH;
+
 // In CI or production build, don't include drafts
 const isProduction =
-  process.env.CI === "true" ||
-  process.env.NODE_ENV === "production" ||
-  process.env.VIBEGUI_BUILD_MODE === "production";
+  !isPagesPreview &&
+  (process.env.CI === "true" ||
+    process.env.NODE_ENV === "production" ||
+    process.env.VIBEGUI_BUILD_MODE === "production");
 
 // Ensure directories exist. Article output is rebuilt to avoid stale locale paths.
 mkdirSync(CONTENT_DIR, { recursive: true });
@@ -92,6 +101,11 @@ validateArticles(allArticles);
 const articles = isProduction
   ? allArticles.filter((c) => c.status === "published")
   : allArticles;
+
+// Drafts may get a page, but they never get advertised. The sitemap, the feeds
+// and the redirect table are built from this list only, so a draft is reachable
+// by its URL and by nothing else — no crawler, no reader, no RSS client.
+const publishedArticles = allArticles.filter((c) => c.status === "published");
 
 interface OgManifest {
   version: number;
@@ -302,7 +316,11 @@ function generateArticleHtml(article: Article, html: string): string {
     <!-- SEO -->
     <title>${escapeHtml(title)}</title>
     <meta name="description" content="${escapeHtml(description)}" />
-    <link rel="canonical" href="${url}" />
+    <link rel="canonical" href="${url}" />${
+      article.status === "draft"
+        ? `\n    <meta name="robots" content="noindex, nofollow" />`
+        : ""
+    }
     ${alternateLinks}
     
     <!-- Open Graph -->
@@ -411,7 +429,7 @@ function generateSitemap(): void {
     <xhtml:link rel="alternate" hreflang="en" href="${BASE_URL}/commitment" />
     <xhtml:link rel="alternate" hreflang="x-default" href="${BASE_URL}/compromisso" />
   </url>`,
-    ...articles.map(
+    ...publishedArticles.map(
       (article) => `<url>
     <loc>${absoluteUrl(articlePath(article))}</loc>${sitemapAlternates(article)}
     <lastmod>${article.date}</lastmod>
@@ -439,7 +457,7 @@ Sitemap: ${BASE_URL}/sitemap.xml
 
 function generateFeed(locale: Article["locale"]): void {
   const isEnglish = locale === "en";
-  const localeArticles = articles.filter(
+  const localeArticles = publishedArticles.filter(
     (article) => article.locale === locale,
   );
   const feedPath = isEnglish ? "/en/feed.xml" : "/feed.xml";
@@ -492,11 +510,11 @@ function generateRedirects(): void {
     .replace(new RegExp(`${markerStart}[\\s\\S]*?${markerEnd}\\s*`, "g"), "")
     .trimEnd();
   const ptSlugs = new Set(
-    articles
+    publishedArticles
       .filter((article) => article.locale === "pt-BR")
       .map((article) => article.slug),
   );
-  const generated = articles
+  const generated = publishedArticles
     .filter((article) => article.locale === "en" && !ptSlugs.has(article.slug))
     .flatMap((article) => [
       `/article/${article.slug} /en/article/${article.slug}/ 301`,

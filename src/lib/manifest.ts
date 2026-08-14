@@ -39,7 +39,7 @@ export const localeText = {
       loadError: "Não foi possível carregar o texto. Tente ",
       refresh: "atualizar a página",
       back: "← Voltar aos textos",
-      draft: "📝 Rascunho — apenas prévia local",
+      draft: "📝 Rascunho — não indexado, não listado",
       alternate: "Read in English",
     },
     notFound: {
@@ -78,7 +78,7 @@ export const localeText = {
       loadError: "Could not load article data. Try ",
       refresh: "refreshing the page",
       back: "← Back to writing",
-      draft: "📝 Draft — local preview only",
+      draft: "📝 Draft — not indexed, not listed",
       alternate: "Ler em português",
     },
     notFound: {

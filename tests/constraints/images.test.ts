@@ -158,4 +158,29 @@ describe("Image Constraints", () => {
       );
     }
   });
+
+  test("every OG card renders distinct pixels", () => {
+    // The filename hash is content-addressed, so two articles sharing a hash
+    // means their cards are byte-identical. That happens when sharp renders the
+    // SVG with no usable font: the text vanishes, every card collapses to the
+    // bare background, and the dimension and size checks above still pass.
+    const ogManifest = JSON.parse(
+      readFileSync(OG_MANIFEST_PATH, "utf-8"),
+    ) as OgManifest;
+
+    const keysByHash = new Map<string, string[]>();
+    for (const [key, webPath] of Object.entries(ogManifest.images)) {
+      const hash = webPath.match(/\.([a-f0-9]{8})\.png$/)?.[1];
+      expect(hash).toBeDefined();
+      keysByHash.set(hash as string, [
+        ...(keysByHash.get(hash as string) ?? []),
+        key,
+      ]);
+    }
+
+    const collisions = [...keysByHash.values()].filter(
+      (keys) => keys.length > 1,
+    );
+    expect(collisions).toEqual([]);
+  });
 });
