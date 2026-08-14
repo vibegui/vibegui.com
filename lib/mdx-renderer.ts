@@ -5,6 +5,9 @@ import * as runtime from "react/jsx-runtime";
 import {
   BridgeHub,
   BridgeLoop,
+  FactoryGap,
+  FactoryPlant,
+  FactoryTimeline,
   StoryCast,
   StoryCompound,
   StoryDecay,
@@ -14,6 +17,9 @@ import {
 const mdxComponents = {
   BridgeHub,
   BridgeLoop,
+  FactoryGap,
+  FactoryPlant,
+  FactoryTimeline,
   StoryCast,
   StoryCompound,
   StoryDecay,

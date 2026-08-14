@@ -755,3 +755,282 @@ export function StoryCompound({ locale = "en" }: LocaleProp) {
     </figure>
   );
 }
+
+/* ─── "The State of Applied AI": timeline, gap, factory ─── */
+
+const TIMELINE = {
+  en: {
+    label: "One part per year",
+    title: "What we named, and when",
+    entries: [
+      { when: "Mar 2024", what: "Agentic workflows", who: "Andrew Ng" },
+      { when: "Feb 2025", what: "Vibe coding", who: "Karpathy" },
+      { when: "Jun 2025", what: "Context engineering", who: "Tobi Lütke" },
+      { when: "Nov 2025", what: "Harness", who: "nobody — it just stuck" },
+      { when: "Dec 2025", what: "Context graph", who: "Foundation Capital" },
+      {
+        when: "Feb 2026",
+        what: "Agentic engineering",
+        who: "Karpathy, retiring his own word",
+      },
+    ],
+    caption:
+      "Bemer proposed the software factory at General Electric in 1968. He had only people to put in it.",
+  },
+  pt: {
+    label: "Uma peça por ano",
+    title: "O que a gente nomeou, e quando",
+    entries: [
+      { when: "mar 2024", what: "Agentic workflows", who: "Andrew Ng" },
+      { when: "fev 2025", what: "Vibe coding", who: "Karpathy" },
+      { when: "jun 2025", what: "Context engineering", who: "Tobi Lütke" },
+      { when: "nov 2025", what: "Harness", who: "ninguém — pegou sozinho" },
+      { when: "dez 2025", what: "Context graph", who: "Foundation Capital" },
+      {
+        when: "fev 2026",
+        what: "Agentic engineering",
+        who: "Karpathy, aposentando a própria palavra",
+      },
+    ],
+    caption:
+      "Bemer propôs a fábrica de software na General Electric em 1968. Só tinha gente pra botar dentro dela.",
+  },
+} as const;
+
+export function FactoryTimeline({ locale = "en" }: LocaleProp) {
+  const c = TIMELINE[locale];
+  return (
+    <figure
+      className="story-factory"
+      aria-labelledby={`factory-timeline-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+      <ol className="story-factory-timeline">
+        {c.entries.map((e) => (
+          <li key={e.what}>
+            <time>{e.when}</time>
+            <b>{e.what}</b>
+            <small>{e.who}</small>
+          </li>
+        ))}
+      </ol>
+      <figcaption id={`factory-timeline-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}
+
+const GAP = {
+  en: {
+    label: "Open weights vs closed, August 2026",
+    title: "The gap depends on who built the machine around the model",
+    bars: [
+      {
+        name: "Intelligence index",
+        gap: 3,
+        of: 63,
+        note: "Kimi K3 60 · Opus 5 63",
+      },
+      {
+        name: "SWE-bench Verified",
+        gap: 0.6,
+        of: 97,
+        note: "DeepSeek V4 Pro 96.4 · Opus 5 97.0",
+      },
+      {
+        name: "Terminal-Bench 2.1",
+        gap: 25.1,
+        of: 83.8,
+        note: "GLM-5.1 58.7 · Fable 5 83.8",
+      },
+    ],
+    unit: "points behind",
+    caption:
+      "Terminal-Bench measures an agent doing multi-step work. That is the one the closed labs ship a harness for.",
+  },
+  pt: {
+    label: "Peso aberto vs fechado, agosto de 2026",
+    title: "A distância depende de quem montou a máquina em volta do modelo",
+    bars: [
+      {
+        name: "Índice de inteligência",
+        gap: 3,
+        of: 63,
+        note: "Kimi K3 60 · Opus 5 63",
+      },
+      {
+        name: "SWE-bench Verified",
+        gap: 0.6,
+        of: 97,
+        note: "DeepSeek V4 Pro 96,4 · Opus 5 97,0",
+      },
+      {
+        name: "Terminal-Bench 2.1",
+        gap: 25.1,
+        of: 83.8,
+        note: "GLM-5.1 58,7 · Fable 5 83,8",
+      },
+    ],
+    unit: "pontos atrás",
+    caption:
+      "Terminal-Bench mede agente fazendo trabalho de vários passos. É justamente onde os labs fechados entregam o harness.",
+  },
+} as const;
+
+export function FactoryGap({ locale = "en" }: LocaleProp) {
+  const c = GAP[locale];
+  const decimal = locale === "pt" ? "," : ".";
+  return (
+    <figure
+      className="story-factory"
+      aria-labelledby={`factory-gap-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+      <ul className="story-factory-gap">
+        {c.bars.map((b) => (
+          <li key={b.name}>
+            <b>{b.name}</b>
+            <span className="story-factory-gap-track">
+              <i style={{ width: `${Math.max((b.gap / 26) * 100, 1.5)}%` }} />
+            </span>
+            <em>
+              {String(b.gap).replace(".", decimal)} {c.unit}
+            </em>
+            <small>{b.note}</small>
+          </li>
+        ))}
+      </ul>
+      <figcaption id={`factory-gap-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}
+
+const PLANT = {
+  en: {
+    label: "The software factory",
+    title: "Five names, one machine",
+    goal: {
+      head: "Goal and constraints",
+      body: "written by a human, argued in a room",
+    },
+    inputs: {
+      head: "Inputs",
+      body: "Signals, not tickets",
+      items: ["Conversion", "Catalog", "Vitals", "Competitors", "Incidents"],
+    },
+    inside: {
+      head: "Inside",
+      items: [
+        { k: "Loops", v: "the process that runs unattended" },
+        { k: "Context graph", v: "the memory it decides from" },
+        { k: "Agents", v: "the workers, each with a harness" },
+      ],
+    },
+    outputs: {
+      head: "Outputs",
+      body: "Actions in the world",
+      items: ["Pull request", "Deploy", "Price", "Page"],
+    },
+    feedback:
+      "Watches what the action did to the numbers, keeps the answer, goes again",
+    caption:
+      "The parts were being discovered one at a time. This is what they were parts of.",
+  },
+  pt: {
+    label: "A fábrica de software",
+    title: "Cinco nomes, uma máquina",
+    goal: {
+      head: "Meta e restrições",
+      body: "escritas por gente, discutidas numa sala",
+    },
+    inputs: {
+      head: "Entradas",
+      body: "Sinais, não cards",
+      items: ["Conversão", "Catálogo", "Vitals", "Concorrente", "Incidente"],
+    },
+    inside: {
+      head: "Dentro",
+      items: [
+        { k: "Loops", v: "o processo que roda sozinho" },
+        { k: "Context graph", v: "a memória de onde ele decide" },
+        { k: "Agentes", v: "os trabalhadores, cada um com seu harness" },
+      ],
+    },
+    outputs: {
+      head: "Saídas",
+      body: "Ações no mundo",
+      items: ["Pull request", "Deploy", "Preço", "Página"],
+    },
+    feedback: "Olha o que a ação fez com o número, guarda a resposta, recomeça",
+    caption:
+      "As peças foram sendo descobertas uma por uma. Isso aqui é do que elas eram peça.",
+  },
+} as const;
+
+export function FactoryPlant({ locale = "en" }: LocaleProp) {
+  const c = PLANT[locale];
+  return (
+    <figure
+      className="story-factory story-factory-plant"
+      aria-labelledby={`factory-plant-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+
+      <div className="story-factory-goal">
+        <b>{c.goal.head}</b>
+        <small>{c.goal.body}</small>
+      </div>
+
+      <div className="story-factory-floor">
+        <div className="story-factory-col">
+          <span>{c.inputs.head}</span>
+          <small>{c.inputs.body}</small>
+          <ul>
+            {c.inputs.items.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+
+        <b className="story-factory-arrow" aria-hidden="true">
+          →
+        </b>
+
+        <div className="story-factory-col story-factory-inside">
+          <span>{c.inside.head}</span>
+          <dl>
+            {c.inside.items.map((i) => (
+              <div key={i.k}>
+                <dt>{i.k}</dt>
+                <dd>{i.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <b className="story-factory-arrow" aria-hidden="true">
+          →
+        </b>
+
+        <div className="story-factory-col">
+          <span>{c.outputs.head}</span>
+          <small>{c.outputs.body}</small>
+          <ul>
+            {c.outputs.items.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="story-factory-feedback">
+        <span aria-hidden="true">↺</span>
+        {c.feedback}
+      </div>
+
+      <figcaption id={`factory-plant-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}

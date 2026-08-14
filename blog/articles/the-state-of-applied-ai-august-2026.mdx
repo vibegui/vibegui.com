@@ -1,0 +1,94 @@
+---
+slug: the-state-of-applied-ai-august-2026
+title: 'The State of Applied AI, August 2026'
+description: 'The race stopped being about which model you use. It is about who builds the factory around it.'
+date: 2026-08-13
+status: draft
+locale: "en"
+translationKey: "article:the-state-of-applied-ai-august-2026"
+coverImage: null
+layout: story
+tags:
+  - agents
+  - ai
+  - ecommerce
+  - product
+  - startup
+---
+The race stopped being about which model you use. It is about who builds the factory around it.
+
+I want to show you how we got here, because the last three years look like fashion and they are not. Each new term was somebody discovering another part of the same machine, without knowing yet what the machine was.
+
+## We named one part per year, and we are almost done
+
+Andrew Ng named the first part in March 2024: ["I think AI agentic workflows will drive massive AI progress this year — perhaps even more than the next generation of foundation models."](https://x.com/AndrewYNg/status/1770897666702233815) A model that answers is one thing. A model that loops is another.
+
+Then Karpathy, February 2025, on a Sunday night: ["There's a new kind of coding I call 'vibe coding', where you fully give in to the vibes, embrace exponentials, and forget that the code even exists."](https://x.com/karpathy/status/1886192184808149383) Collins made it word of the year. A quarter of Y Combinator's Winter 2025 batch had [95% of their codebase written by AI](https://techcrunch.com/2025/03/06/a-quarter-of-startups-in-ycs-current-cohort-have-codebases-that-are-almost-entirely-ai-generated/).
+
+<FactoryTimeline locale="en" />
+
+June 2025 gave us the second part, and it came from a merchant, not a lab. Tobi Lütke: ["the art of providing all the context for the task to be plausibly solvable by the LLM."](https://x.com/tobi/status/1935533422589399127) Context engineering. Anthropic formalised it that September with the sentence that matters most: ["context must be treated as a finite resource with diminishing marginal returns."](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+
+November 2025, the third part got a name nobody coined on purpose. The harness — the tools, the permissions, the sandbox, everything the model is allowed to touch. December brought the fourth: [context graphs](https://foundationcapital.com/ideas/context-graphs-ais-trillion-dollar-opportunity), which is what you call your context when it stops being a pile of files and becomes a structure with entities, decisions and history in it.
+
+And in February this year Karpathy retired his own word. Vibe coding was ["a shower of thoughts throwaway tweet"](https://x.com/karpathy/status/2019137879310836075); the real thing is agentic engineering, where "you are not writing the code directly 99% of the time, you are orchestrating agents who do."
+
+Five names in three years. Each one a part. Nobody had drawn the whole machine yet.
+
+## The model stopped being the differentiator this year
+
+Here is the state of play as of this month. Anthropic's Opus 5 landed on 24 July at $5 per million input tokens, half of what Fable 5 costs and close to the same intelligence. OpenAI's GPT-5.6 family arrived on 9 July. Grok 4.6 shipped two days ago. Google still has no stable Gemini 3 Pro. Llama is gone — Meta replaced it with the closed Muse Spark line, then released a 30B Apache-2.0 model three days ago.
+
+Now the part that should change your planning. On the Artificial Analysis intelligence index, the best open-weights model in the world — Kimi K3, from Moonshot — scores 60. The best closed model, Opus 5, scores 63. On independently-run SWE-bench Verified the gap is [six tenths of a point](https://www.vals.ai/benchmarks/swebench).
+
+<FactoryGap locale="en" />
+
+But on Terminal-Bench, which measures an agent doing real multi-step work in a terminal, the best open entry sits [25 points behind the leader](https://www.tbench.ai/leaderboard/terminal-bench/2.1). Same models. The difference is that the closed labs ship the harness — Claude Code, Codex — and the open weights arrive naked.
+
+Read that twice, because it is the whole argument. Open models close the gap fastest on the benchmarks where somebody else built the machine around them.
+
+Meanwhile the price of a fixed level of capability is falling [five to ten times a year](https://arxiv.org/abs/2511.23455), while the price of running the newest frontier model is *rising*. Intelligence is getting cheap. Frontier intelligence is getting expensive. Both are true, and only one of them is on your P&L.
+
+## The honest scoreboard on money
+
+You have been promised a lot. Let me give you what is actually measured, including the parts I would rather not.
+
+Measured US total factor productivity moved [0.07% over the four quarters to March](https://www.frbsf.org/research-and-insights/data-and-indicators/total-factor-productivity-tfp/). The St. Louis Fed read 490,000 earnings calls and found that [95% of AI productivity talk is in the future tense](https://www.stlouisfed.org/on-the-economy/2026/jul/ai-productivity-what-firms-say-earnings-calls). The Atlanta Fed asked 750 CFOs what AI did for their productivity, then computed it from their own reported numbers: they [said 1.8% and their figures implied 0.6%](https://www.atlantafed.org/-/media/Project/Atlanta/FRBA/Documents/research/publication/working-paper/2026/03/25/04-artificial-intelligence-productivity-and-the-workforce-evidence-from-corporate-executives.pdf).
+
+Three times more felt than measured. Hold onto that number when a vendor shows you a case study.
+
+Now the part that surprised me. The same Atlanta Fed study found that the firms with real productivity gains did not get them from cutting costs. Cutting labour costs and cutting non-labour costs were the two *lowest*-rated motives on the list. The gains correlated with developing new products and serving customers better. And where MIT did find measurable savings, they came from [eliminating BPO contracts and cutting external creative and agency spend by 30%](https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf) — "without material workforce reduction."
+
+So the money is not in firing your team. It is in the invoices you send outside, and in revenue you could not reach before.
+
+On your side of the business the demand signal is already visible. Adobe measured AI-referred retail visits converting [54% higher than everything else](https://business.adobe.com/resources/sdk/.q3-ai-traffic-trends-report/q3-2026-ai-sourced-traffic-insights.pdf), worth 53% more per visit, growing 138% year on year. A year earlier those same visits were worth less than half a normal one. Shopify sees AI-referred orders converting about 50% higher with 14% higher basket.
+
+The denominator keeps everyone honest: that traffic is still a fraction of a percent of sessions. And retail is the *laggard* on adoption — [14% of retail firms use AI](https://www.census.gov/library/stories/2026/05/ai-use-businesses.html), against 19.8% across the economy and 39.7% in information. The demand arrived before the operation did.
+
+## It was a factory all along
+
+Here is the machine those five names were describing.
+
+<FactoryPlant locale="en" />
+
+It has a **goal**, and constraints, which someone in this room has to write down.
+
+It has **inputs**, and they are not tickets. They are signals: a supplier feed lands with broken images, a competitor drops price on your top SKUs, a deploy on Tuesday costs you conversion by Thursday.
+
+Inside there are **processes** — the loops — and there is **memory**, which is what the context graph is for. There are **workers**, the agents, each with a harness that says what it may touch.
+
+The **outputs** are actions in the real world: a pull request, a deploy, a price, a page. It watches what those actions did to the numbers, keeps the answer, and goes again.
+
+I should say plainly that "software factory" is not my term. Bemer proposed it at General Electric in 1968; Hitachi built the first one in 1969. Back then it meant industrialising human programmers — standard tools, reuse, variance control. If you are over forty-five you may remember it as a bad memory.
+
+The word is being reused now because the shape finally fits. Bemer wanted a factory and only had people to put in it.
+
+## Setting one up is the new race
+
+You are not going to win this on model choice. That decision has a shelf life of about six weeks and everyone in this room will make roughly the same one.
+
+You win it on how fast you can stand up a loop that watches your own operation, decides what is worth building, ships it, proves it on live traffic, and remembers the answer. Everything before this year was parts. This is the assembly.
+
+We are building exactly that for digital experience, at [decocms.com](https://decocms.com/?utm_source=vibegui.com&utm_medium=article&utm_campaign=state-of-applied-ai) — a factory that watches a storefront, argues with you about the goal in a chat room, and ships against it.
+
+The people who spend the next year comparing models will have a spreadsheet. The people who spend it building the factory will have a factory.
