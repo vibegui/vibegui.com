@@ -1,6 +1,6 @@
-# Brief: The State of Applied AI, August 2026
+# Brief: Two Years of Applied AI
 
-**Slug**: the-state-of-applied-ai-august-2026
+**Slug**: two-years-of-applied-ai
 **Type**: long (MDX, `layout: story`)
 **Created**: 2026-08-13
 **Occasion**: talk at deco House, Monday 2026-08-17, 50+ ecommerce and technology executives

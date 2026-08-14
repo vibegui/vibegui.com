@@ -1,4 +1,4 @@
-# Research: The State of Applied AI, August 2026
+# Research: Two Years of Applied AI
 
 **Researched**: 2026-08-13 · **Method**: WebSearch + WebFetch (Perplexity not connected in this workspace)
 
