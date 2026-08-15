@@ -91,16 +91,15 @@ function unescapeXml(s: string): string {
 interface Run {
   text: string;
   bold: boolean;
+  italic: boolean;
   sz: number;
 }
 interface Para {
   sz: number;
   bold: boolean;
   italic: boolean;
-  num: boolean;
   runs: Run[];
   text: string;
-  xml: string;
 }
 type Node =
   | { kind: "p"; p: Para }
@@ -126,6 +125,7 @@ function parsePara(xml: string): Para {
     runs.push({
       text,
       bold: /<w:b w:val="1"\/>/.test(rx),
+      italic: /<w:i w:val="1"\/>/.test(rx),
       sz: sz ? Number(sz[1]) : 0,
     });
   }
@@ -135,15 +135,13 @@ function parsePara(xml: string): Para {
   return {
     sz: primeiro?.sz ?? 0,
     bold: primeiro?.bold ?? false,
-    italic: primeiro ? /<w:i w:val="1"\/>/.test(xml) : false,
-    num: xml.includes("<w:numPr>"),
+    italic: primeiro?.italic ?? false,
     runs,
     text: runs
       .map((r) => r.text)
       .join("")
       .replace(/\s+/g, " ")
       .trim(),
-    xml,
   };
 }
 

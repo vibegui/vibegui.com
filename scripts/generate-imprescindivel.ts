@@ -469,7 +469,9 @@ function corpoHtml(corpo: string): string {
   const [prosa, ...caixas] = corpo.split(/\n## /);
   let out = md(prosa);
   for (const bruto of caixas) {
-    const quebra = bruto.indexOf("\n");
+    // sem "\n" = caixa sem corpo (heading no fim do arquivo, ou dois "## "
+    // seguidos); sem isso quebra=-1 e slice(0,-1)/slice(-1) cortam a caixa
+    const quebra = bruto.includes("\n") ? bruto.indexOf("\n") : bruto.length;
     const kicker = bruto.slice(0, quebra).trim();
     const tipo = kicker.startsWith("RÉGUA")
       ? "regua"

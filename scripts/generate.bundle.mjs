@@ -1196,8 +1196,9 @@ Sitemap: ${Y.origin}/sitemap.xml
     .sumario-inner { padding-top: 0; }
     .leitura { padding: 0 2rem 5rem clamp(2.5rem, 5vw, 4.5rem); }
   }
-`,DA=/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;function CA(Z){if(!_A(Z))return[];return VA(Z).filter((Q)=>Q.endsWith(".md")).sort().map((Q,Y)=>{let G=NA(_4(Z,Q),"utf-8").match(DA);if(!G)throw Error(`frontmatter inválido em ${Q}`);let K={};for(let B of G[1].split(/\r?\n/)){let z=B.match(/^(\w+):\s*(.*)$/);if(z)K[z[1]]=z[2].replace(/^"(.*)"$/,"$1").trim()}return{ordem:Y+1,slug:K.slug||Q.replace(/^\d+-|\.md$/g,""),titulo:K.title||"",kicker:K.kicker||"",subtitulo:K.subtitle||"",numeral:K.numeral||"",corpo:G[2].trim()}})}var SR=(Z)=>k1(Z,{async:!1});function TA(Z){let[Q,...Y]=Z.split(/\n## /),G=SR(Q);for(let K of Y){let B=K.indexOf(`
-`),z=K.slice(0,B).trim(),M=z.startsWith("RÉGUA")?"regua":z.startsWith("HISTÓRIA")?"historia":"quadro";G+=`
+`,DA=/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;function CA(Z){if(!_A(Z))return[];return VA(Z).filter((Q)=>Q.endsWith(".md")).sort().map((Q,Y)=>{let G=NA(_4(Z,Q),"utf-8").match(DA);if(!G)throw Error(`frontmatter inválido em ${Q}`);let K={};for(let B of G[1].split(/\r?\n/)){let z=B.match(/^(\w+):\s*(.*)$/);if(z)K[z[1]]=z[2].replace(/^"(.*)"$/,"$1").trim()}return{ordem:Y+1,slug:K.slug||Q.replace(/^\d+-|\.md$/g,""),titulo:K.title||"",kicker:K.kicker||"",subtitulo:K.subtitle||"",numeral:K.numeral||"",corpo:G[2].trim()}})}var SR=(Z)=>k1(Z,{async:!1});function TA(Z){let[Q,...Y]=Z.split(/\n## /),G=SR(Q);for(let K of Y){let B=K.includes(`
+`)?K.indexOf(`
+`):K.length,z=K.slice(0,B).trim(),M=z.startsWith("RÉGUA")?"regua":z.startsWith("HISTÓRIA")?"historia":"quadro";G+=`
 <aside class="caixa" data-tipo="${M}">
 <p class="caixa-kicker">${w5(z)}</p>
 ${SR(K.slice(B))}</aside>
