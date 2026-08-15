@@ -1,0 +1,166 @@
+---
+slug: integrantes
+title: "Integrantes"
+kicker: "DERRUBANDO MUROS"
+---
+
+O Derrubando Muros é uma iniciativa da sociedade civil construída sobre um princípio simples: grandes projetos nacionais exigem pluralidade de experiências, diversidade de perspectivas e compromisso permanente com o interesse público.
+
+Seus integrantes atuam em diferentes áreas do conhecimento e da vida nacional — empreendedorismo, ciência, educação, economia, tecnologia, segurança pública, saúde, meio ambiente, cultura, comunicação, direito, gestão pública e terceiro setor — unidos pela convicção de que o Brasil pode construir um novo ciclo de prosperidade com igualdade de oportunidades.
+
+A diversidade de trajetórias não reduz a coesão do grupo. Ao contrário, amplia sua capacidade de compreender problemas complexos e formular propostas que dialogam com diferentes setores da sociedade brasileira.
+
+A Agenda Imprescindível 2026 é fruto desse esforço coletivo.
+
+Mais do que representar posições individuais, ela expressa uma construção colaborativa orientada pelo interesse público, pela democracia liberal, pela responsabilidade institucional e pela confiança na capacidade da sociedade brasileira de transformar potencial em realização.
+
+- Adalberto Luis Val
+- Alberto Kopittke
+- Alessandra Petraglia
+- Ana Toni
+- André Neves
+- Andrea Aguiar Azevedo
+- Andrei Netto
+- Antônio Britto
+- Antonio Lavareda
+- Antonio Prata
+- Aod Cunha
+- Armínio Fraga
+- Baeta Neves
+- Benjamin Sicsú
+- Beto Veríssimo
+- Bia Saldanha
+- Caio Bianchi
+- Carlos Melo
+- Carô Evangelista
+- Carolina Ricardo
+- Christian Kieling
+- Christian Lynch
+- Claudinei Biazoli
+- Conrado Hübner
+- Cristovam Buarque
+- Dalvani Lima
+- Daniel Bramatti
+- Daniel Pinheiro
+- David Zylbersztajn
+- Eduardo Jorge
+- Eduardo Wurzmann
+- Estevão Ciavatta
+- Fabio Alperowitch
+- Fábio Bernardi
+- Felipe Feldens
+- Felipe Pimentel
+- Felipe Seligman
+- Fernando Abrucio
+- Fernando Gabeira
+- Fernando Brigidi
+- Fernando Lottenberg
+- Fernando Mello
+- Fersen Lambranho
+- Flavio Bartmann
+- Gabriel Goldmeier
+- Germano Rigotto
+- Guilherme Melles
+- Guilherme Setúbal
+- Helena Backes
+- Helio Mattar
+- Helio Santos
+- Horácio Lafer Piva
+- Hussein Kalout
+- Igor Marchesini
+- Ilona Szabó
+- Irina Bullara
+- Israel Gottschalk
+- Izabella Teixeira
+- Jerson Kelman
+- Joana Monteiro
+- João Amoêdo
+- João Carlos Brum Torres
+- João Jornada
+- João Tavares
+- Jorge Polydoro
+- José Cesar (Zeca) Martins
+- José Eduardo Martins
+- José Pedro Goulart
+- Juan Carlos Castilla-Rubio
+- Julia Cruz
+- Julia Marisa Sekula
+- Juliano Assunção
+- Juliano Seabra
+- Laura Machado
+- Lourdes Sola
+- Luana Génot
+- Lucas Fucci Amato
+- Lucia Hauptman
+- Luciana Guimarães
+- Luiz Augusto Barroso
+- Marcello Brito
+- Marcelo Madureira
+- Marcelo Trindade
+- Márcio Fortes
+- Marco Ruediger
+- Marcos Jank
+- Marcos Wortmann
+- Marcus Barão
+- Maria Cristina Nascimento
+- Marina Slhessarenko Barreto
+- Marisa Moreira Salles
+- Marluce Dias
+- Marta Arretche
+- Matheus Drummond
+- Matheus Marlisson
+- Maurício Moura
+- Maurício Rands
+- Mauro Calliari
+- Mauro Dorfman
+- Mauro Dutra
+- Melina Risso
+- Miguel Lago
+- Miguel Reale Júnior
+- Milton Seligman
+- Mônica Sodré
+- Natalie Unterstell
+- Nelson Jobim
+- Nelson Proença (em memória)
+- Octavio Amorim
+- Orlando Thomé
+- Patrícia Villela Marino
+- Paulo Knapp (em memória)
+- Pedro de Camargo Neto
+- Pedro Doria
+- Pedro Hallal
+- Pedro Simões
+- Philip Yang
+- Priscila Cruz
+- Rafael Parente
+- Ramiro Severo
+- Raul Jungmann (em memória)
+- Raul Juste Lores
+- Renata Piazzon
+- Ricardo Matsumura Araujo
+- Ricardo Chaves
+- Ricardo Henriques
+- Ricardo Monte Rosa
+- Ricardo Piquet
+- Ricardo Rangel
+- Roberto Alvarez
+- Roberto Freire
+- Roberto Pedote
+- Roberto Waack
+- Robson Capasso
+- Rodrigo Tavares
+- Rogério Studart
+- Samuel Pessôa
+- Sérgio Besserman Vianna
+- Sergio Fausto
+- Sergio Wulff Gobetti
+- Silvio Meira
+- Simão Jatene
+- Tabata Amaral
+- Tasso Azevedo
+- Teka Vendramini
+- Tom Rebello
+- Tomas Alvim
+- Vinícius Wu
+- Vitor Knijnik
+- Yacoff Sarkovas

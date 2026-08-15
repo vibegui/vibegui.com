@@ -28,6 +28,7 @@ import {
 } from "node:fs";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
+import { normalize, slugify } from "../lib/slugify.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const OUT_DIR = join(ROOT, "content/irene");
@@ -51,25 +52,6 @@ interface Poem {
 
 const DATE_RE = /(\d{1,2})[./](\d{1,2})[.,/](\d{4})/;
 const SIGNATURE_RE = /^\s*Irene\s+Diaz\s+Rodrigues\.?\s*$/i;
-
-function normalize(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-function slugify(s: string): string {
-  return (
-    normalize(s)
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60)
-      .replace(/-+$/, "") || "sem-titulo"
-  );
-}
 
 function isoDate(m: RegExpMatchArray): string {
   const [, d, mo, y] = m;

@@ -27,6 +27,11 @@ const SITES = [
     caminho: "/malvados",
     build: "/_dominio-malvados",
   },
+  {
+    dominio: "agendaimprescindivel.com.br",
+    caminho: "/imprescindivel",
+    build: "/_dominio-imprescindivel",
+  },
 ];
 
 // Beacon de analytics first-party: o worker do Personal AI OS grava o evento
@@ -144,6 +149,7 @@ const PREFIXOS = [
   "/context/",
   "/irene",
   "/malvados",
+  "/imprescindivel",
   "/_dominio-",
 ];
 
