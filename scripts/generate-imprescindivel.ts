@@ -76,13 +76,15 @@ const CSS = `
     --verde: #1e8a3c;
     --verde-claro: #8fbf2e;
     --linha: #d8d1bf;
+    --font-display: "Archivo", system-ui, sans-serif;
+    --font-leitura: "Newsreader", Georgia, serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   [hidden] { display: none !important; }
   body {
     background: var(--papel);
     color: var(--tinta);
-    font-family: "Newsreader", Georgia, serif;
+    font-family: var(--font-leitura);
     font-size: 1.09rem;
     line-height: 1.62;
     -webkit-font-smoothing: antialiased;
@@ -93,7 +95,7 @@ const CSS = `
 
   /* ---------- índice ---------- */
   .sumario {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     background: var(--navy);
     color: var(--papel);
     padding: 1.25rem 1.5rem;
@@ -107,7 +109,7 @@ const CSS = `
     letter-spacing: .08em;
     text-transform: uppercase;
     color: var(--papel);
-    border: 1px solid rgba(247,244,236,.35);
+    border: 1px solid color-mix(in srgb, var(--papel) 35%, transparent);
     border-radius: 999px;
     padding: .5rem 1.1rem;
     user-select: none;
@@ -123,7 +125,7 @@ const CSS = `
     color: var(--papel);
     padding-bottom: 1.4rem;
     margin-bottom: 1.4rem;
-    border-bottom: 1px solid rgba(247,244,236,.18);
+    border-bottom: 1px solid color-mix(in srgb, var(--papel) 18%, transparent);
   }
   .marca b {
     display: block;
@@ -141,7 +143,7 @@ const CSS = `
     font-weight: 600;
     letter-spacing: .16em;
     text-transform: uppercase;
-    color: rgba(247,244,236,.6);
+    color: color-mix(in srgb, var(--papel) 60%, transparent);
   }
   .no-js .busca-area { display: none; }
   .busca {
@@ -149,14 +151,14 @@ const CSS = `
     font: inherit;
     font-size: .95rem;
     color: var(--papel);
-    background: rgba(247,244,236,.07);
-    border: 1px solid rgba(247,244,236,.22);
+    background: color-mix(in srgb, var(--papel) 7%, transparent);
+    border: 1px solid color-mix(in srgb, var(--papel) 22%, transparent);
     border-radius: .4rem;
     padding: .6rem .8rem;
   }
-  .busca::placeholder { color: rgba(247,244,236,.45); }
+  .busca::placeholder { color: color-mix(in srgb, var(--papel) 45%, transparent); }
   .busca:focus { outline: 2px solid var(--verde-claro); outline-offset: 1px; border-color: transparent; }
-  .contagem { padding-top: .4rem; font-size: .75rem; color: rgba(247,244,236,.55); min-height: 1.4em; }
+  .contagem { padding-top: .4rem; font-size: .75rem; color: color-mix(in srgb, var(--papel) 55%, transparent); min-height: 1.4em; }
   .parte { margin-top: 1.6rem; }
   .parte > h3 {
     font-size: .68rem;
@@ -165,7 +167,7 @@ const CSS = `
     text-transform: uppercase;
     color: var(--verde-claro);
     padding-bottom: .5rem;
-    border-bottom: 1px solid rgba(247,244,236,.18);
+    border-bottom: 1px solid color-mix(in srgb, var(--papel) 18%, transparent);
   }
   .parte ol { list-style: none; margin-top: .5rem; counter-reset: none; }
   .parte a {
@@ -176,7 +178,7 @@ const CSS = `
     padding: .45rem .6rem;
     margin-inline: -.6rem;
     border-radius: .35rem;
-    color: rgba(247,244,236,.88);
+    color: color-mix(in srgb, var(--papel) 88%, transparent);
     text-decoration: none;
     font-size: .92rem;
     line-height: 1.35;
@@ -186,21 +188,21 @@ const CSS = `
     font-size: .72rem;
     font-weight: 700;
     letter-spacing: .04em;
-    color: rgba(247,244,236,.45);
+    color: color-mix(in srgb, var(--papel) 45%, transparent);
     font-variant-numeric: tabular-nums;
   }
   .parte a:hover { background: var(--navy-2); color: #fff; }
   .parte a:hover em { color: var(--verde-claro); }
   .parte a[aria-current="page"] { background: var(--verde); color: #fff; font-weight: 600; }
   .parte a[aria-current="page"] em { color: rgba(255,255,255,.75); }
-  .vazio { padding: 1.25rem 0; font-size: .85rem; color: rgba(247,244,236,.55); }
+  .vazio { padding: 1.25rem 0; font-size: .85rem; color: color-mix(in srgb, var(--papel) 55%, transparent); }
 
   /* ---------- capítulo ---------- */
   .cabecalho { padding: clamp(2rem, 6vh, 3.75rem) 0 0; }
   /* Numeral romano em serifa: em Archivo (grotesca) "I", "II" e "III" viram
      barras sem leitura. As serifas dão a travessa que identifica o numeral. */
   .numeral {
-    font-family: "Newsreader", Georgia, serif;
+    font-family: var(--font-leitura);
     font-size: clamp(4rem, 13vw, 7rem);
     font-weight: 600;
     line-height: .85;
@@ -210,7 +212,7 @@ const CSS = `
     user-select: none;
   }
   .kicker {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .72rem;
     font-weight: 700;
     letter-spacing: .2em;
@@ -218,7 +220,7 @@ const CSS = `
     color: var(--verde);
   }
   .cabecalho h2 {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: clamp(2.1rem, 6.5vw, 3.4rem);
     font-weight: 800;
     line-height: 1.02;
@@ -251,7 +253,7 @@ const CSS = `
     margin: 2.1rem 0;
     padding-left: 1.4rem;
     border-left: 4px solid var(--verde-claro);
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: 1.22rem;
     font-weight: 600;
     line-height: 1.3;
@@ -262,7 +264,7 @@ const CSS = `
   .texto > ul { list-style: none; margin: 1.6rem 0; }
   .texto > ul > li { margin-block: 1em; }
   .texto > ul > li > strong {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .78rem;
     font-weight: 700;
     letter-spacing: .12em;
@@ -275,7 +277,7 @@ const CSS = `
     content: counter(n, decimal-leading-zero);
     position: absolute;
     left: 0;
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: 1.05rem;
     font-weight: 800;
     color: var(--verde-claro);
@@ -285,7 +287,7 @@ const CSS = `
   /* ---------- caixas ---------- */
   .caixa { margin: 2.75rem 0; }
   .caixa-kicker {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .68rem;
     font-weight: 700;
     letter-spacing: .2em;
@@ -300,7 +302,7 @@ const CSS = `
   .caixa[data-tipo="historia"] .caixa-kicker { color: var(--verde); }
   .caixa[data-tipo="quadro"] p, .caixa[data-tipo="historia"] p { font-size: 1rem; margin-top: .9em; }
   .caixa h3 {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: 1.35rem;
     font-weight: 700;
     letter-spacing: -.02em;
@@ -320,12 +322,12 @@ const CSS = `
   .caixa[data-tipo="regua"] > p:nth-of-type(2) {
     margin-top: .9rem;
     padding-bottom: 1.3rem;
-    border-bottom: 1px solid rgba(247,244,236,.2);
+    border-bottom: 1px solid color-mix(in srgb, var(--papel) 20%, transparent);
     font-size: 1.16rem;
     line-height: 1.45;
   }
   .caixa[data-tipo="regua"] strong {
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .72rem;
     font-weight: 700;
     letter-spacing: .14em;
@@ -346,7 +348,7 @@ const CSS = `
     position: absolute;
     left: 0;
     top: .05em;
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: 1.15rem;
     font-weight: 800;
     color: var(--verde-claro);
@@ -356,16 +358,16 @@ const CSS = `
   .caixa[data-tipo="regua"] ol li strong { color: #fff; }
   .caixa[data-tipo="regua"] > p:last-child {
     padding-top: 1.2rem;
-    border-top: 1px solid rgba(247,244,236,.2);
+    border-top: 1px solid color-mix(in srgb, var(--papel) 20%, transparent);
     font-size: .93rem;
-    color: rgba(247,244,236,.8);
+    color: color-mix(in srgb, var(--papel) 80%, transparent);
   }
 
   /* ---------- integrantes ---------- */
   .texto.nomes > ul {
     columns: 3 13rem;
     column-gap: 2rem;
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .92rem;
     border-top: 1px solid var(--linha);
     padding-top: 1.4rem;
@@ -384,7 +386,7 @@ const CSS = `
     margin-top: 3.5rem;
     padding-top: 1.3rem;
     border-top: 1px solid var(--linha);
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .88rem;
     font-weight: 600;
   }
@@ -392,7 +394,7 @@ const CSS = `
   .navegacao a:hover { text-decoration: underline; }
   footer {
     margin-top: 3rem;
-    font-family: "Archivo", system-ui, sans-serif;
+    font-family: var(--font-display);
     font-size: .78rem;
     letter-spacing: .04em;
     color: var(--tinta-suave);
@@ -558,18 +560,14 @@ function resumo(s: Secao): string {
   );
 }
 
-function pagina(
-  secoes: Secao[],
-  i: number,
-  opts: { canonicalRoot: boolean },
-  site: Site,
-): string {
+/** HTML do artigo — igual para a raiz e para a própria página da seção 0, só o metadata (title/url/jsonLd) muda entre as duas. */
+function corpoDaPagina(secoes: Secao[], i: number, site: Site): string {
   const s = secoes[i];
   const anterior = secoes[i - 1] ?? null;
   const proximo = secoes[i + 1] ?? null;
   const home = site.base || "/";
 
-  const body = `<div class="layout">
+  return `<div class="layout">
 ${sumarioHtml(secoes, s.slug, site.base)}
 
   <main class="leitura">
@@ -593,6 +591,16 @@ ${corpoHtml(s.corpo)}
   </main>
 </div>
 <script>${searchScript(`${site.base}/busca.json`)}${SCRIPT_EXTRA}</script>`;
+}
+
+function pagina(
+  secoes: Secao[],
+  i: number,
+  opts: { canonicalRoot: boolean },
+  site: Site,
+  body = corpoDaPagina(secoes, i, site),
+): string {
+  const s = secoes[i];
 
   const jsonLd = JSON.stringify(
     opts.canonicalRoot
@@ -641,10 +649,12 @@ function buildSite(secoes: Secao[], buildDir: string, site: Site): void {
   const outDir = join(buildDir, site.out);
   mkdirSync(outDir, { recursive: true });
 
-  // raiz = seção de abertura, com o sumário do lado
+  // raiz = seção de abertura, com o sumário do lado; corpo idêntico ao da
+  // própria página da seção (só o metadata muda), computa uma vez só
+  const corpoAbertura = corpoDaPagina(secoes, 0, site);
   writeFileSync(
     join(outDir, "index.html"),
-    pagina(secoes, 0, { canonicalRoot: true }, site),
+    pagina(secoes, 0, { canonicalRoot: true }, site, corpoAbertura),
   );
 
   writeFileSync(
@@ -662,7 +672,13 @@ function buildSite(secoes: Secao[], buildDir: string, site: Site): void {
     mkdirSync(dir, { recursive: true });
     writeFileSync(
       join(dir, "index.html"),
-      pagina(secoes, i, { canonicalRoot: false }, site),
+      pagina(
+        secoes,
+        i,
+        { canonicalRoot: false },
+        site,
+        i === 0 ? corpoAbertura : undefined,
+      ),
     );
   }
 

@@ -23,6 +23,7 @@ import { spawnSync } from "node:child_process";
 import { writeFileSync, mkdirSync, rmSync, readdirSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { normalize, slugify } from "../lib/slugify.ts";
 
 const PROJECT_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT_DIR = join(PROJECT_ROOT, "content/imprescindivel");
@@ -237,25 +238,6 @@ interface Secao {
   subtitulo: string;
   numeral: string | null;
   blocos: Bloco[];
-}
-
-function normalize(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-}
-
-function slugify(s: string): string {
-  return (
-    normalize(s)
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 60)
-      .replace(/-+$/, "") || "sem-titulo"
-  );
 }
 
 function tabelaParaBloco(node: Extract<Node, { kind: "tbl" }>): Bloco {
