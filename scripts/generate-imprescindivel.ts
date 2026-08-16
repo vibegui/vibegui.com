@@ -417,6 +417,10 @@ const CSS = `
     .sumario-inner { padding-top: 0; }
     .leitura { padding: 0 2rem 5rem clamp(2.5rem, 5vw, 4.5rem); }
   }
+
+  @media (min-width: 74rem) {
+    .cabecalho h2 { width: calc(100% + 4rem); }
+  }
 `;
 
 interface Secao {
