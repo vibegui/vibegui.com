@@ -775,6 +775,15 @@ const TIMELINE = {
           "Every step it took showed it knew nothing about your business.",
       },
       {
+        when: "Nov 2024",
+        what: "MCP",
+        who: "Anthropic",
+        gained:
+          "One way to plug an agent into any system, instead of a custom integration per data source.",
+        missing:
+          "It could reach your systems and still had no idea what mattered inside them.",
+      },
+      {
         when: "Feb 2025",
         what: "Vibe coding",
         who: "Karpathy",
@@ -793,7 +802,7 @@ const TIMELINE = {
       {
         when: "Nov 2025",
         what: "Harness",
-        who: "nobody — it just stuck",
+        who: "Anthropic",
         gained:
           "Terminal, repo, admin API, credentials. Now it could act, and MCP made that access standard.",
         missing: "Every run started from zero and re-learned the same things.",
@@ -833,6 +842,15 @@ const TIMELINE = {
         missing: "Cada passo mostrava que ele não sabia nada do seu negócio.",
       },
       {
+        when: "nov 2024",
+        what: "MCP",
+        who: "Anthropic",
+        gained:
+          "Um jeito só de plugar agente em qualquer sistema, em vez de uma integração sob medida por fonte de dado.",
+        missing:
+          "Alcançava seus sistemas e continuava sem saber o que importava dentro deles.",
+      },
+      {
         when: "fev 2025",
         what: "Vibe coding",
         who: "Karpathy",
@@ -851,7 +869,7 @@ const TIMELINE = {
       {
         when: "nov 2025",
         what: "Harness",
-        who: "ninguém — pegou sozinho",
+        who: "Anthropic",
         gained:
           "Terminal, repositório, admin API, credencial. Agora ele agia, e o MCP padronizou esse acesso.",
         missing: "Toda execução começava do zero e reaprendia a mesma coisa.",

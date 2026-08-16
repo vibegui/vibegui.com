@@ -51,7 +51,9 @@ By late 2025 the missing piece was not knowledge. It was permission.
 
 A harness is what the agent is allowed to touch: the terminal, the repository, your admin API, your analytics, your error tracker. An agent with those can do work. An agent without them is an expensive colleague who may only give advice.
 
-Nobody coined the word — it arrived unclaimed, and it is already finished as a differentiator. Anthropic published MCP in November 2024; thirteen months later it was [handed to the Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation) with AWS, Google, Microsoft and OpenAI on the board. Ten thousand servers. It is plumbing.
+Anthropic shipped the plumbing for this in November 2024, before anyone had a name for it: MCP, one way to plug an agent into any system instead of a custom integration per tool. Thirteen months later it was [handed to the Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation) with AWS, Google, Microsoft and OpenAI on the board. Ten thousand servers exist today.
+
+So this part is already finished as a differentiator. You still have to lay the pipes. Nobody wins on it.
 
 So it could think and it could act. And every morning it started from zero and worked out the same things again.
 
@@ -73,7 +75,7 @@ And it still sat there waiting to be told what to work on.
 
 Everything above makes the machine better at doing what it was told. A factory changes who tells it.
 
-I did not invent the term. Bemer proposed a software factory at General Electric in 1968 and Hitachi built one in 1969, and it meant industrialising human programmers — standard tools, reuse, variance control. If you are over forty-five you may remember it as a bad memory. The word is being reused because the shape finally fits: Bemer wanted a factory and only had people to put in it.
+I am not the only one calling it that. Factory.ai described the same thing in June: ["The software factory starts with signals from the outside world: bug reports, internal conversations, customer feedback, business requirements. Monitoring that deployed software generates more signals. The entire system is a continuous feedback loop."](https://factory.ai/news/software-factory) BCG put it in a report in March: agents build, test and ship around the clock, humans define the business intent and review the outcomes.
 
 <FactoryPlant locale="en" />
 
@@ -83,13 +85,13 @@ Someone still writes the goal and the constraints. That part did not move.
 
 ## One missing part is enough to get nothing
 
-Read that chain again and notice what it is not. It is not a menu.
+That chain is not a menu.
 
 Context with no harness is advice you execute by hand. A harness with no context is an agent confidently changing the wrong thing. Memory with no loop is a database nobody reads. A goal with none of the above is a slide.
 
 Fix the model and change only the machine around it, and a controlled test found a [28-point swing](https://arxiv.org/html/2606.08529) between the best and worst scaffold on identical weights. Strip the tools from a coding agent and it loses [up to 45% of its performance](https://arxiv.org/pdf/2509.25873). A weaker model with a better machine around it now beats a stronger model with a worse one, on two separate benchmarks.
 
-So when you read that 95% of AI pilots produce no measurable result, do not read it as a verdict on AI. Read it as what happens when you buy one part and wait.
+This is why 95% of AI pilots produce no measurable result. Most of them bought one part.
 
 I will not tell you the parts multiply — someone tested that this year and the interaction runs both ways depending on the task. The zero is what holds: leave one part out today and you get nothing out. And **today** is doing work in that sentence, because Anthropic's own guidance says to ["find the simplest solution possible"](https://www.anthropic.com/engineering/building-effective-agents), and a serious line of research expects this advantage to shrink as models improve. It may. It has not yet.
 
