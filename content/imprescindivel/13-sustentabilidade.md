@@ -4,6 +4,7 @@ title: "Sustentabilidade"
 kicker: "CAPÍTULO IX"
 subtitle: "Bioeconomia, Transição Energética e Prosperidade"
 numeral: IX
+idea: "Sustentabilidade é vantagem estratégica."
 ---
 
 *A sustentabilidade deixou de ser apenas um compromisso ambiental. Tornou-se uma das maiores vantagens competitivas do Brasil no século XXI. O desafio nacional já não consiste em escolher entre desenvolvimento e preservação. O desenvolvimento brasileiro passa pela sustentabilidade.*

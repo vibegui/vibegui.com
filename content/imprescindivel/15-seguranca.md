@@ -4,6 +4,7 @@ title: "Segurança"
 kicker: "CAPÍTULO XI"
 subtitle: "Segurança Pública e Estado de Direito"
 numeral: XI
+idea: "Segurança é condição da liberdade."
 ---
 
 *Nenhuma sociedade é plenamente livre quando seus cidadãos vivem condicionados pelo medo. A segurança pública deixa de ser apenas uma política de enfrentamento da criminalidade para assumir uma função mais ampla: proteger a liberdade, preservar o Estado Democrático de Direito e criar as condições indispensáveis para a prosperidade e a igualdade de oportunidades.*

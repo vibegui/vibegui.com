@@ -4,6 +4,7 @@ title: "Tecnologia e Inovação"
 kicker: "CAPÍTULO VIII"
 subtitle: "Inteligência Artificial, Inovação e Soberania"
 numeral: VIII
+idea: "Inovação determina competitividade."
 ---
 
 *A inteligência artificial não constitui apenas mais uma tecnologia. Ela inaugura uma nova infraestrutura de desenvolvimento. Assim como a eletricidade transformou a economia industrial e a internet redefiniu a economia da informação, a inteligência artificial passa a reorganizar produtividade, inovação, ciência, educação, saúde, segurança e competitividade.*

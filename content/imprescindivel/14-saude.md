@@ -4,6 +4,7 @@ title: "Saúde"
 kicker: "CAPÍTULO X"
 subtitle: "Saúde e Longevidade"
 numeral: X
+idea: "Saúde amplia capacidades humanas."
 ---
 
 *Uma sociedade desenvolvida não é apenas aquela que vive mais. É aquela que vive mais tempo com saúde, autonomia e qualidade de vida. A saúde deixa de ser apenas uma política pública. Passa a constituir uma das principais infraestruturas do desenvolvimento humano.*

@@ -4,6 +4,7 @@ title: "Visão de País"
 kicker: "CAPÍTULO I"
 subtitle: "Um País que Escolhe o Seu Destino"
 numeral: I
+idea: "O destino do Brasil é maior do que sua realidade."
 ---
 
 *A inação tem um preço. Cada ano de baixo crescimento, baixa produtividade e oportunidades desperdiçadas reduz a capacidade do Brasil de construir um futuro compatível com seus ativos. O futuro não é um lugar para onde os países caminham; é o resultado das escolhas que fazem — e das escolhas que deixam de fazer.*

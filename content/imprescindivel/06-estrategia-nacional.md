@@ -4,6 +4,7 @@ title: "Estratégia Nacional"
 kicker: "CAPÍTULO II"
 subtitle: "O Brasil que Queremos Construir"
 numeral: II
+idea: "Prosperidade e igualdade de oportunidades fortalecem-se mutuamente."
 ---
 
 *O Brasil é rico em ativos e ainda pobre em realização. A pergunta estratégica deixou de ser quanto potencial o país possui. Passou a ser quanto custa continuar deixando esse potencial sem realização.*

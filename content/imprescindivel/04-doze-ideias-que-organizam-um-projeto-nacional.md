@@ -10,15 +10,15 @@ As doze ideias a seguir não constituem uma coleção de propostas setoriais. Fo
 
 1. O destino do Brasil é maior do que sua realidade.
 1. Prosperidade e igualdade de oportunidades fortalecem-se mutuamente.
-1. O Estado existe para entregar resultados.
-1. Educação é a principal infraestrutura do desenvolvimento.
 1. Democracia depende de confiança institucional.
+1. O Estado existe para entregar resultados.
+1. Projetos nacionais transformam potencial em realização.
+1. O futuro pertence às sociedades que desenvolvem capacidades mais rapidamente.
+1. Educação é a principal infraestrutura do desenvolvimento.
 1. Inovação determina competitividade.
 1. Sustentabilidade é vantagem estratégica.
 1. Saúde amplia capacidades humanas.
 1. Segurança é condição da liberdade.
 1. O Brasil deve ocupar posição compatível com seus ativos e responsabilidades.
-1. O futuro pertence às sociedades que desenvolvem capacidades mais rapidamente.
-1. Projetos nacionais transformam potencial em realização.
 
 Dobrar a renda real dos brasileiros em quinze anos permanece a meta-síntese desta Agenda. Essa meta não foi escolhida por ser simples, mas por representar a ambição compatível com os recursos, os talentos e as oportunidades que o Brasil possui. Ela somente será alcançada se prosperidade e igualdade de oportunidades avançarem juntas, sustentadas por instituições capazes de transformar potencial em realização.

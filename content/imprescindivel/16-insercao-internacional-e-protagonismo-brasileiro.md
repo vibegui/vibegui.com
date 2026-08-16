@@ -4,6 +4,7 @@ title: "Inserção Internacional e Protagonismo Brasileiro"
 kicker: "CAPÍTULO XII"
 subtitle: "O Brasil na Nova Ordem Internacional"
 numeral: XII
+idea: "O Brasil deve ocupar posição compatível com seus ativos e responsabilidades."
 ---
 
 *O Brasil deixou de atuar em um ambiente internacional relativamente estável. A reorganização geopolítica, a competição tecnológica, a disputa por cadeias produtivas estratégicas, a segurança energética, a inteligência artificial e a crescente rivalidade entre grandes potências alteraram profundamente o contexto em que o país buscará prosperidade nas próximas décadas.*
