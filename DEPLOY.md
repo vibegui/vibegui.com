@@ -28,6 +28,11 @@ This works because:
 | `prod` | `bun run build` | Generate + Vite build + Finalize |
 | `pages` | `npm run pages:build` | Generate + Finalize (no Vite) |
 
+Cloudflare Pages branch previews include draft articles so reviewers can open
+their direct URLs. Builds from `main`, including `vibegui.com` and the
+production `pages.dev` alias, continue to include published articles only. The
+build uses Cloudflare's `CF_PAGES_BRANCH` variable to make that distinction.
+
 ### What Each Step Does
 
 1. **Generate** (`scripts/generate.ts`)
@@ -71,7 +76,7 @@ The `pages:build` script should use `--mode=pages`.
 ### Articles not showing in production
 Check that:
 1. `blog/articles/*.md` files are committed
-2. Articles have `status: published` in frontmatter (drafts are hidden when `CI=true`)
+2. Articles have `status: published` in frontmatter (drafts only appear in local development and Pages branch previews)
 3. `generate.ts` ran successfully (check build logs for article count)
 4. The article slug matches (trailing slashes are stripped)
 

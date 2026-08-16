@@ -25,6 +25,7 @@ import { renderMdx } from "../lib/mdx-renderer.ts";
 import { generateIrene } from "./generate-irene.ts";
 import { generateMalvados } from "./generate-malvados.ts";
 import { generateImprescindivel } from "./generate-imprescindivel.ts";
+import { isProductionContentBuild } from "../lib/build-mode.ts";
 
 const startTime = performance.now();
 
@@ -42,11 +43,9 @@ const ARTICLE_DIR = join(BUILD_DIR, "article");
 const EN_ARTICLE_DIR = join(BUILD_DIR, "en", "article");
 const CONTEXT_DIR = join(BUILD_DIR, "context");
 
-// In CI or production build, don't include drafts
-const isProduction =
-  process.env.CI === "true" ||
-  process.env.NODE_ENV === "production" ||
-  process.env.VIBEGUI_BUILD_MODE === "production";
+// Production hides drafts. Cloudflare branch previews opt in explicitly even
+// though Pages sets CI=true and runs Node in production mode.
+const isProduction = isProductionContentBuild(process.env);
 
 // Ensure directories exist. Article output is rebuilt to avoid stale locale paths.
 mkdirSync(CONTENT_DIR, { recursive: true });

@@ -15,6 +15,7 @@
 
 import { spawn } from "node:child_process";
 import { resolve } from "node:path";
+import { resolvePagesContentBuildMode } from "../lib/build-mode.ts";
 
 const ROOT = resolve(import.meta.dirname, "..");
 const args = process.argv.slice(2);
@@ -67,10 +68,15 @@ async function generate() {
   // Cloudflare skips dependency installation, so it runs the compiler bundle
   // generated and committed by the local production build.
   if (mode === "pages") {
+    const contentBuildMode = resolvePagesContentBuildMode(process.env);
+    const branch = process.env.CF_PAGES_BRANCH || "local";
+    console.log(
+      `Cloudflare Pages branch: ${branch} (${contentBuildMode} content)`,
+    );
     await run("node", ["scripts/generate.bundle.mjs"], {
       env: {
         NODE_ENV: "production",
-        VIBEGUI_BUILD_MODE: "production",
+        VIBEGUI_BUILD_MODE: contentBuildMode,
       },
     });
   } else {
