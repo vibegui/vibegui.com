@@ -1064,6 +1064,21 @@ Sitemap: ${Y.origin}/sitemap.xml
     color: var(--verde-claro);
     font-variant-numeric: tabular-nums;
   }
+  .texto > ol > li > a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-color: transparent;
+    text-decoration-thickness: .06em;
+    text-underline-offset: .18em;
+  }
+  .texto > ol > li > a:hover {
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  }
+  .texto > ol > li > a:focus-visible {
+    outline: 2px solid var(--verde-claro);
+    outline-offset: .2rem;
+    text-decoration-color: currentColor;
+  }
 
   /* ---------- caixas ---------- */
   .caixa { margin: 2.75rem 0; }
