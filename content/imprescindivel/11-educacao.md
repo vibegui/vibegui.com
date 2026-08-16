@@ -4,6 +4,7 @@ title: "Educação"
 kicker: "CAPÍTULO VII"
 subtitle: "Educação para a Sociedade do Conhecimento"
 numeral: VII
+idea: "Educação é a principal infraestrutura do desenvolvimento."
 ---
 
 *Nenhuma política pública produz efeitos tão amplos sobre produtividade, mobilidade social, inovação e cidadania quanto a educação. O Brasil que pretende dobrar a renda de seus cidadãos em quinze anos precisa tratá-la como a principal infraestrutura do desenvolvimento nacional.*

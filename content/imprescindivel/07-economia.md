@@ -4,6 +4,7 @@ title: "Economia"
 kicker: "CAPÍTULO III"
 subtitle: "Política Econômica para a Prosperidade"
 numeral: III
+idea: "Democracia depende de confiança institucional."
 ---
 
 *A política econômica não produz prosperidade sozinha. Ela cria as condições para que trabalhadores, empreendedores, empresas, universidades, cientistas e investidores a produzam. Uma economia saudável é condição habilitadora de um projeto nacional de desenvolvimento.*

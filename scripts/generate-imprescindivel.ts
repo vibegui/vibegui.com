@@ -91,7 +91,7 @@ const CSS = `
   }
   a { color: var(--navy-2); }
   .layout { min-height: 100dvh; }
-  .leitura { min-width: 0; max-width: 46rem; padding: 0 1.5rem 5rem; }
+  .leitura { min-width: 0; max-width: 48rem; padding: 0 1.5rem 5rem; }
 
   /* ---------- índice ---------- */
   .sumario {
@@ -426,6 +426,8 @@ interface Secao {
   kicker: string;
   subtitulo: string;
   numeral: string;
+  /** frase-síntese do capítulo (SÍNTESE EXECUTIVA); vira a manchete quando presente */
+  ideia: string;
   corpo: string;
 }
 
@@ -456,6 +458,7 @@ function lerSecoes(dir: string): Secao[] {
         kicker: campos.kicker || "",
         subtitulo: campos.subtitle || "",
         numeral: campos.numeral || "",
+        ideia: campos.idea || "",
         corpo: m[2].trim(),
       };
     });
@@ -574,8 +577,8 @@ ${sumarioHtml(secoes, s.slug, site.base)}
     <article>
       <header class="cabecalho">
         ${s.numeral ? `<p class="numeral" aria-hidden="true">${s.numeral}</p>` : ""}
-        <p class="kicker">${escapeHtml(s.kicker)}</p>
-        <h2>${escapeHtml(s.titulo)}</h2>
+        <p class="kicker">${escapeHtml(s.ideia ? `${s.kicker} · ${s.titulo}` : s.kicker)}</p>
+        <h2>${escapeHtml(s.ideia || s.titulo)}</h2>
         ${s.subtitulo ? `<p class="subtitulo">${escapeHtml(s.subtitulo)}</p>` : ""}
       </header>
       <hr class="regra">

@@ -4,6 +4,7 @@ title: "Inclusão Social"
 kicker: "CAPÍTULO V"
 subtitle: "Prosperidade com Igualdade de Oportunidades"
 numeral: V
+idea: "Projetos nacionais transformam potencial em realização."
 ---
 
 *A igualdade de oportunidades é uma das maiores forças produtivas de uma sociedade. Cada talento que permanece sem acesso à educação, ao trabalho, ao crédito, à saúde ou ao empreendedorismo representa uma perda para a própria pessoa e para o país. A melhor política social é aquela que amplia capacidades e transforma potencial em realização.*

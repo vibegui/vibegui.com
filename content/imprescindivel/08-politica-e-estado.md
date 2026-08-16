@@ -4,6 +4,7 @@ title: "Política e Estado"
 kicker: "CAPÍTULO IV"
 subtitle: "Reforma Política e o Estado que Entrega"
 numeral: IV
+idea: "O Estado existe para entregar resultados."
 ---
 
 *O maior gargalo nacional deixou de ser o diagnóstico. Passou a ser a capacidade de realização. O Brasil conhece boa parte das mudanças necessárias para acelerar seu desenvolvimento. O que ainda não construiu foi a capacidade institucional para realizá-las de forma consistente.*

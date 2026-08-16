@@ -4,6 +4,7 @@ title: "Indústria e Competitividade"
 kicker: "CAPÍTULO VI"
 subtitle: "Pré-condições para a Execução"
 numeral: VI
+idea: "O futuro pertence às sociedades que desenvolvem capacidades mais rapidamente."
 ---
 
 *Nenhum país sustenta prosperidade apenas por boas intenções. Toda estratégia nacional depende de condições concretas de execução. Competitividade, produtividade, infraestrutura, energia, logística, segurança jurídica e capital humano formam o ambiente que transforma conhecimento em riqueza, inovação em desenvolvimento e potencial em realização.*
