@@ -49,13 +49,13 @@ Then every step it took made something else obvious: it knew nothing about your 
 
 ## Context engineering: we showed it our business
 
-June 2025, and the name came from a merchant rather than a lab. Tobi Lütke: ["the art of providing all the context for the task to be plausibly solvable by the LLM."](https://x.com/tobi/status/1935533422589399127)
+November 2024, Anthropic published the Model Context Protocol. It opened on a plumbing problem: ["Every new data source requires its own custom implementation, making truly connected systems difficult to scale."](https://www.anthropic.com/news/model-context-protocol)
 
-Anthropic had shipped the answer seven months before that phrase existed, and put the word in the name: the Model Context Protocol, November 2024, opening on a context problem — ["Every new data source requires its own custom implementation, making truly connected systems difficult to scale."](https://www.anthropic.com/news/model-context-protocol)
+That is what finally made tool calling catch. Function calling had been available since June 2023, and for the next year and a half every connection was hand-built — one integration per tool, per vendor, per customer. MCP made it one protocol, and it spread.
 
-That is what finally made tool calling catch. Function calling had been available since June 2023, and for the next year and a half every connection was hand-built: one integration per tool, per vendor, per customer. MCP made it one protocol, and it spread.
+Seven months later the practice got its name, and it came from a merchant rather than a lab. Tobi Lütke: ["the art of providing all the context for the task to be plausibly solvable by the LLM."](https://x.com/tobi/status/1935533422589399127)
 
-This is where most companies still are, and it is why your pilot underwhelmed. The vendor's demo worked because their agent knew their situation. Yours does not know your catalog rules, your merchandising logic, or the one checkout exception for the São Paulo warehouse. Documentation debt stopped being untidy and became a line item.
+The context is the specific stuff. Your catalog rules. Your merchandising logic. The one checkout exception for the São Paulo warehouse, and why it exists. Documentation debt stopped being untidy and became a line item.
 
 That gave the factory two things: pipes into your systems, and some idea of what matters inside them.
 
