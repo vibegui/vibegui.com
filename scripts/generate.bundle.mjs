@@ -872,7 +872,7 @@ Sitemap: ${Y.origin}/sitemap.xml
   }
   a { color: var(--navy-2); }
   .layout { min-height: 100dvh; }
-  .leitura { min-width: 0; max-width: 46rem; padding: 0 1.5rem 5rem; }
+  .leitura { min-width: 0; max-width: 48rem; padding: 0 1.5rem 5rem; }
 
   /* ---------- índice ---------- */
   .sumario {
