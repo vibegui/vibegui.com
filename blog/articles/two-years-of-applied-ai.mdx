@@ -17,7 +17,7 @@ tags:
 ---
 The race stopped being about which model you use. It is about who builds the factory around it.
 
-The last two years look like fashion. They are not. Each year we learned to hand the machine one more thing, and each thing got a name. Here they are in order, and what each one actually changed.
+The last two years look like a parade of buzzwords. They are not. Each one solved the thing the previous one broke, and none of them was worth much on its own. Here is the chain.
 
 <FactoryTimeline locale="en" />
 
@@ -25,33 +25,25 @@ The last two years look like fashion. They are not. Each year we learned to hand
 
 You type a question, you get an answer. If the answer is bad, you rewrite the question.
 
-This was the whole job in 2023. People were hired for it. Anthropic advertised a Prompt Engineer role in January that year at [$250k to $335k](https://web.archive.org/web/20230118233623/https://jobs.lever.co/Anthropic/e3cde481-d446-460f-b576-93cab67bd1ed).
+That was the whole job in 2023. Anthropic advertised a Prompt Engineer role in January that year at [$250k to $335k](https://web.archive.org/web/20230118233623/https://jobs.lever.co/Anthropic/e3cde481-d446-460f-b576-93cab67bd1ed); eight weeks later the same posting said $175k. It stopped being a job when the models stopped needing the trick — OpenAI's documentation now tells you that ["prompting them to 'think step by step' or 'explain your reasoning' is unnecessary."](https://developers.openai.com/api/docs/guides/reasoning-best-practices)
 
-It stopped being the job when the models got good enough to not need the trick. OpenAI's own documentation now tells you to stop: ["Avoid chain-of-thought prompts: Since these models perform reasoning internally, prompting them to 'think step by step' or 'explain your reasoning' is unnecessary."](https://developers.openai.com/api/docs/guides/reasoning-best-practices)
+But you were still there for every single answer.
 
 ## Agentic workflows: it stopped answering and started working
 
 March 2024, Andrew Ng: ["I think AI agentic workflows will drive massive AI progress this year — perhaps even more than the next generation of foundation models."](https://x.com/AndrewYNg/status/1770897666702233815)
 
-The change is small to describe and large in practice. Instead of answering once, the model plans, calls a tool, reads the result, and tries again. It loops.
+Small to describe, large in practice. Instead of answering once, the model plans, calls a tool, reads the result, and tries again. It loops.
 
-Ng was right that the loop mattered more than the next model. That is the first time anyone said the machine around the model was the point.
-
-## Vibe coding: we stopped reading the output
-
-February 2025, Karpathy: ["you fully give in to the vibes, embrace exponentials, and forget that the code even exists."](https://x.com/karpathy/status/1886192184808149383) He meant it for weekend projects.
-
-It did not stay there. A month later a quarter of Y Combinator's Winter 2025 batch had [95% of their code written by AI](https://techcrunch.com/2025/03/06/a-quarter-of-startups-in-ycs-current-cohort-have-codebases-that-are-almost-entirely-ai-generated/). Collins made it word of the year.
-
-What changed: output volume stopped being the constraint. What broke: nobody was reading it.
+He was right, and it was the first time anyone said out loud that the machine around the model was the point. Then every step it took made something else obvious: it knew nothing about your business.
 
 ## Context engineering: we showed it our business
 
-June 2025, and it came from a merchant rather than a lab. Tobi Lütke: ["the art of providing all the context for the task to be plausibly solvable by the LLM."](https://x.com/tobi/status/1935533422589399127)
+June 2025, and the name came from a merchant rather than a lab. Tobi Lütke: ["the art of providing all the context for the task to be plausibly solvable by the LLM."](https://x.com/tobi/status/1935533422589399127)
 
-This is where most companies still are, and it is why your pilot underwhelmed. The vendor's demo worked because their agent knew their situation. Yours does not know your catalog rules, your merchandising logic, or the one checkout exception for the São Paulo warehouse.
+This is where most companies still are, and it is why your pilot underwhelmed. The vendor's demo worked because their agent knew their situation. Yours does not know your catalog rules, your merchandising logic, or the one checkout exception for the São Paulo warehouse. Documentation debt stopped being untidy and became a line item.
 
-Your documentation debt stopped being untidy and became a line item.
+Now it could tell you exactly what to do. It still could not do it.
 
 ## Harness engineering: we let it act
 
@@ -59,23 +51,29 @@ By late 2025 the missing piece was not knowledge. It was permission.
 
 A harness is what the agent is allowed to touch: the terminal, the repository, your admin API, your analytics, your error tracker. An agent with those can do work. An agent without them is an expensive colleague who may only give advice.
 
-Nobody coined this word. It arrived unclaimed because nobody set out to invent the category. And it is already finished as a differentiator — Anthropic published MCP in November 2024, and thirteen months later it was [handed to the Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation) with AWS, Google, Microsoft and OpenAI on the board. Ten thousand servers. It is plumbing now.
+Nobody coined the word — it arrived unclaimed, and it is already finished as a differentiator. Anthropic published MCP in November 2024; thirteen months later it was [handed to the Linux Foundation](https://www.linuxfoundation.org/press/linux-foundation-announces-the-formation-of-the-agentic-ai-foundation) with AWS, Google, Microsoft and OpenAI on the board. Ten thousand servers. It is plumbing.
 
-## Context graphs: we let it remember
+So it could think and it could act. And every morning it started from zero and worked out the same things again.
 
-December 2025. Context stops being a pile of files and becomes a structure — entities, decisions, history, connected.
+## Memory: we let it keep the answer
 
-The difference is practical. A pile of files has to be re-read. A graph can be searched for precedent: what did we try on this category last quarter, and what happened.
+This is the part that turns a loop that repeats into a loop that improves, and it is the one most companies are missing right now.
 
-Without this, every agent starts from zero every morning.
+MIT went looking for why enterprise AI pilots stall, and the answer was not compute or regulation or talent: ["The core barrier to scaling is not infrastructure, regulation, or talent. It is learning. Most GenAI systems do not retain feedback, adapt to context, or improve over time."](https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf) The most frequent complaint they recorded, ahead of everything else, was "it doesn't learn from our feedback." A lawyer in that study described a $50,000 contract tool that repeats the same mistakes and needs the whole context typed in again every session.
+
+Fixing that works. In a paper accepted to ICLR this year, an agent that writes down what worked and carries the playbook forward went from [42.4 to 59.4 on AppWorld](https://arxiv.org/abs/2510.04618) — with 75% fewer trial runs and 83% less spend. A smaller open model with an accumulating playbook matched the top production agent.
+
+The industry is selling this as "context graphs." Be careful. The category is barely a year old, the firm that named it concedes the capability does not fully exist yet, and on plain fact lookup a knowledge graph [loses to ordinary retrieval](https://arxiv.org/abs/2506.05690) at up to forty times the tokens. In one benchmark a filesystem and `grep` beat a purpose-built graph memory product.
+
+The data structure is not the point. Keeping the answer is the point, so the thousandth run starts where the nine hundred and ninety-ninth finished.
+
+And it still sat there waiting to be told what to work on.
 
 ## The software factory: we gave it a goal
 
-And this is the one that is happening now. Everything above makes the machine better at doing what it was told. A factory changes who tells it.
+Everything above makes the machine better at doing what it was told. A factory changes who tells it.
 
-I should say plainly that I did not invent the term. Bemer proposed a software factory at General Electric in 1968 and Hitachi built one in 1969. It meant industrialising human programmers — standard tools, reuse, variance control. If you are over forty-five you may remember it as a bad memory.
-
-The word is being reused because the shape finally fits. Bemer wanted a factory and only had people to put in it.
+I did not invent the term. Bemer proposed a software factory at General Electric in 1968 and Hitachi built one in 1969, and it meant industrialising human programmers — standard tools, reuse, variance control. If you are over forty-five you may remember it as a bad memory. The word is being reused because the shape finally fits: Bemer wanted a factory and only had people to put in it.
 
 <FactoryPlant locale="en" />
 
@@ -83,11 +81,21 @@ The inputs are not tickets. They are signals: a supplier feed lands with broken 
 
 Someone still writes the goal and the constraints. That part did not move.
 
+## One missing part is enough to get nothing
+
+Read that chain again and notice what it is not. It is not a menu.
+
+Context with no harness is advice you execute by hand. A harness with no context is an agent confidently changing the wrong thing. Memory with no loop is a database nobody reads. A goal with none of the above is a slide.
+
+Fix the model and change only the machine around it, and a controlled test found a [28-point swing](https://arxiv.org/html/2606.08529) between the best and worst scaffold on identical weights. Strip the tools from a coding agent and it loses [up to 45% of its performance](https://arxiv.org/pdf/2509.25873). A weaker model with a better machine around it now beats a stronger model with a worse one, on two separate benchmarks.
+
+So when you read that 95% of AI pilots produce no measurable result, do not read it as a verdict on AI. Read it as what happens when you buy one part and wait.
+
+I will not tell you the parts multiply — someone tested that this year and the interaction runs both ways depending on the task. The zero is what holds: leave one part out today and you get nothing out. And **today** is doing work in that sentence, because Anthropic's own guidance says to ["find the simplest solution possible"](https://www.anthropic.com/engineering/building-effective-agents), and a serious line of research expects this advantage to shrink as models improve. It may. It has not yet.
+
 ## The model is not the differentiator anymore
 
-Here is the state of play this month. Anthropic's Opus 5 landed on 24 July at half the price of its own flagship. OpenAI's GPT-5.6 family arrived on 9 July. Grok 4.6 shipped two days ago. Llama is gone — Meta replaced it with a closed line, then released a small open model three days ago.
-
-Now the two numbers that matter.
+The state of play this month: Opus 5 landed on 24 July at half the price of Anthropic's own flagship, OpenAI's GPT-5.6 family arrived on 9 July, Grok 4.6 shipped two days ago, and Llama is gone. Two numbers matter more than any of it.
 
 <FactoryGap locale="en" />
 
@@ -95,7 +103,7 @@ On raw intelligence, the best open model and the best closed model are basically
 
 Give them an actual job — multi-step work in a terminal, the kind an agent does all day — and it is 58.7 against 83.8.
 
-Same models. The closed labs ship the machine around the model. The open weights arrive as just a model.
+Same models. The closed labs ship the machine around the model. The open weights arrive as just a model. You can buy the intelligence for almost nothing now. The machine is the part you have to build.
 
 ## What the numbers say about money
 
@@ -105,20 +113,20 @@ US productivity has barely moved: [0.07% over the four quarters to March](https:
 
 Three times more felt than measured. Remember that when a vendor shows you a case study.
 
-Now the part I did not expect. That same study found the firms with real gains did not get them by cutting costs — cutting labour and cutting other costs were the two lowest-ranked motives on the list. The gains came from new products and serving customers better. And where MIT found real savings, they came from [cancelling BPO contracts and cutting agency spend by 30%](https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf), "without material workforce reduction."
+Now the part I did not expect. That same study found the firms with real gains did not get them by cutting costs — cutting labour and cutting other costs were the two lowest-ranked motives on the list. The gains came from new products and serving customers better. And where MIT found real savings, they came from cancelling BPO contracts and cutting agency spend by 30%, "without material workforce reduction."
 
 So the money is not in firing your team. It is in the invoices you send outside, and in revenue you could not reach before.
 
 On revenue, the signal is already in your data. Adobe measured AI-referred retail visits converting [54% higher](https://business.adobe.com/resources/sdk/.q3-ai-traffic-trends-report/q3-2026-ai-sourced-traffic-insights.pdf) than everything else, growing 138% a year. A year ago those visits were worth less than half a normal one.
 
-Two honest caveats. That traffic is still a fraction of a percent of sessions. And retail is the slowest sector to adopt any of this — [14% of retail firms use AI](https://www.census.gov/library/stories/2026/05/ai-use-businesses.html) against 19.8% across the economy. The demand arrived before the operation did.
+Two caveats. That traffic is still a fraction of a percent of sessions, and retail is the slowest sector to adopt any of this — [14% of retail firms use AI](https://www.census.gov/library/stories/2026/05/ai-use-businesses.html) against 19.8% across the economy. The demand arrived before the operation did.
 
 ## Building one is the new race
 
 You will not win this on model choice. That decision has a shelf life of about six weeks and everyone in this room will make roughly the same one.
 
-You win it on how fast you can stand up a loop that watches your operation, decides what is worth building, ships it, proves it on live traffic, and remembers the answer.
+You win it on how fast you can assemble the whole chain: something that watches your operation, knows your business, is allowed to act, keeps what it learns, and runs against a goal you set.
 
 We are building exactly that for digital experience, at [decocms.com](https://decocms.com/?utm_source=vibegui.com&utm_medium=article&utm_campaign=two-years-of-applied-ai).
 
-The people who spend the next year comparing models will have a spreadsheet. The people who spend it building the factory will have a factory.
+The people who spend the next year comparing models will have a spreadsheet. The people who spend it assembling the chain will have a factory.

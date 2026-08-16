@@ -2773,12 +2773,47 @@
   font-size: 0.8125rem;
 }
 
-.story-factory-timeline p {
+.story-factory-chain {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.story-factory-chain p {
   margin: 0;
   color: #4a4640;
   font-size: 0.8125rem;
   line-height: 1.5;
   text-wrap: pretty;
+}
+
+.story-factory-chain i {
+  display: block;
+  margin-bottom: 0.1rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  font-style: normal;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.story-factory-gained {
+  padding-left: 0.65rem;
+  border-left: 2px solid color-mix(in srgb, #07401a 35%, transparent);
+}
+
+.story-factory-gained i {
+  color: #07401a;
+}
+
+.story-factory-missing {
+  padding-left: 0.65rem;
+  border-left: 2px solid color-mix(in srgb, #8a5a3b 35%, transparent);
+  color: #6f6b63;
+}
+
+.story-factory-missing i {
+  color: #8a5a3b;
 }
 
 @media (max-width: 760px) {

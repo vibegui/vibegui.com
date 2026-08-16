@@ -760,104 +760,121 @@ export function StoryCompound({ locale = "en" }: LocaleProp) {
 
 const TIMELINE = {
   en: {
-    label: "One part per year",
-    title: "What we named, and when",
+    label: "Each part broke the next thing",
+    title: "Two years, one chain",
+    gainedLabel: "Gained",
+    missingLabel: "Still broken",
     entries: [
       {
         when: "Mar 2024",
         what: "Agentic workflows",
         who: "Andrew Ng",
-        detail:
-          "The model stops answering and starts working: plan, call a tool, read the result, try again. Ng's bet was that the loop would matter more than the next generation of models. It did.",
+        gained:
+          "It stopped answering and started working: plan, call a tool, read the result, try again.",
+        missing:
+          "Every step it took showed it knew nothing about your business.",
       },
       {
         when: "Feb 2025",
         what: "Vibe coding",
         who: "Karpathy",
-        detail:
-          "Say what you want, accept the diff without reading it. Meant for throwaway weekend projects — but a quarter of Y Combinator's Winter 2025 batch shipped codebases 95% written this way.",
+        gained:
+          "Output volume stopped being the constraint. A quarter of YC's winter batch shipped code 95% written this way.",
+        missing: "Nobody was reading the volume.",
       },
       {
         when: "Jun 2025",
         what: "Context engineering",
         who: "Tobi Lütke",
-        detail:
-          "The bottleneck moved from how you ask to what the model can see. Your catalog rules, your postmortems, your one weird checkout exception. The pilot fails when the agent has none of it.",
+        gained:
+          "Your catalog rules, your postmortems, your one weird checkout exception — now the agent could see them.",
+        missing: "It could tell you what to do. It could not do it.",
       },
       {
         when: "Nov 2025",
         what: "Harness",
         who: "nobody — it just stuck",
-        detail:
-          "What the agent is allowed to touch: terminal, repo, admin API, credentials, sandbox. The word arrived late and unclaimed because nobody set out to invent the category.",
+        gained:
+          "Terminal, repo, admin API, credentials. Now it could act, and MCP made that access standard.",
+        missing: "Every run started from zero and re-learned the same things.",
       },
       {
         when: "Dec 2025",
-        what: "Context graph",
-        who: "Foundation Capital",
-        detail:
-          "Context stops being a pile of files and becomes a structure — entities, decisions and history, connected, so an agent can look up precedent instead of re-reading everything.",
+        what: "Memory",
+        who: "sold as “context graphs”",
+        gained:
+          "Keep what worked. An agent that accumulates its own playbook goes from 42 to 59 on AppWorld and costs 75% less to adapt.",
+        missing: "It still waited to be told what to work on.",
       },
       {
         when: "Feb 2026",
-        what: "Agentic engineering",
-        who: "Karpathy, retiring his own word",
-        detail:
-          "One year after coining vibe coding he called it a throwaway tweet. The real practice: you are not writing the code 99% of the time, you are orchestrating agents who do — and answering for what they ship.",
+        what: "The factory",
+        who: "the parts, assembled",
+        gained:
+          "Hand over the goal instead of the task. It finds its own work in the signals and keeps the answers.",
+        missing: "Someone still has to say what the goal is.",
       },
     ],
     caption:
-      "Bemer proposed the software factory at General Electric in 1968. He had only people to put in it.",
+      "Nothing here was optional. Each part was worth roughly nothing until the one after it arrived.",
   },
   pt: {
-    label: "Uma peça por ano",
-    title: "O que a gente nomeou, e quando",
+    label: "Cada peça quebrava a próxima",
+    title: "Dois anos, uma corrente",
+    gainedLabel: "Ganhou",
+    missingLabel: "Ainda quebrado",
     entries: [
       {
         when: "mar 2024",
         what: "Agentic workflows",
         who: "Andrew Ng",
-        detail:
-          "O modelo para de responder e começa a trabalhar: planeja, chama uma ferramenta, lê o resultado, tenta de novo. A aposta do Ng era que o loop pesaria mais que a próxima geração de modelos. Pesou.",
+        gained:
+          "Parou de responder e começou a trabalhar: planeja, chama ferramenta, lê o resultado, tenta de novo.",
+        missing: "Cada passo mostrava que ele não sabia nada do seu negócio.",
       },
       {
         when: "fev 2025",
         what: "Vibe coding",
         who: "Karpathy",
-        detail:
-          "Fala o que você quer e aceita o diff sem ler. Era pra projeto de fim de semana — mas um quarto do batch de inverno da Y Combinator subiu código 95% escrito assim.",
+        gained:
+          "Volume de código deixou de ser o limite. Um quarto do batch da YC subiu código 95% escrito assim.",
+        missing: "Ninguém estava lendo esse volume.",
       },
       {
         when: "jun 2025",
         what: "Context engineering",
         who: "Tobi Lütke",
-        detail:
-          "O gargalo saiu de como você pergunta e foi pra o que o modelo enxerga. Suas regras de catálogo, seus post-mortems, aquela exceção esquisita do checkout. O piloto falha quando o agente não tem nada disso.",
+        gained:
+          "Suas regras de catálogo, seus post-mortems, aquela exceção do checkout — agora o agente enxergava.",
+        missing: "Ele sabia dizer o que fazer. Não sabia fazer.",
       },
       {
         when: "nov 2025",
         what: "Harness",
         who: "ninguém — pegou sozinho",
-        detail:
-          "O que o agente pode tocar: terminal, repositório, admin API, credencial, sandbox. A palavra chegou tarde e sem dono porque ninguém saiu pra inventar a categoria.",
+        gained:
+          "Terminal, repositório, admin API, credencial. Agora ele agia, e o MCP padronizou esse acesso.",
+        missing: "Toda execução começava do zero e reaprendia a mesma coisa.",
       },
       {
         when: "dez 2025",
-        what: "Context graph",
-        who: "Foundation Capital",
-        detail:
-          "O contexto deixa de ser um monte de arquivo e vira estrutura — entidades, decisões e histórico, conectados, pro agente consultar precedente em vez de reler tudo.",
+        what: "Memória",
+        who: "vendida como “context graph”",
+        gained:
+          "Guardar o que funcionou. Um agente que acumula o próprio manual vai de 42 para 59 no AppWorld e custa 75% menos pra adaptar.",
+        missing: "Ele ainda esperava alguém dizer no que trabalhar.",
       },
       {
         when: "fev 2026",
-        what: "Agentic engineering",
-        who: "Karpathy, aposentando a própria palavra",
-        detail:
-          "Um ano depois de cunhar vibe coding, ele chamou aquilo de tweet jogado fora. A prática de verdade: você não escreve o código em 99% das vezes, você orquestra os agentes que escrevem — e responde pelo que eles sobem.",
+        what: "A fábrica",
+        who: "as peças, montadas",
+        gained:
+          "Entrega a meta em vez da tarefa. Ele acha o próprio trabalho nos sinais e guarda as respostas.",
+        missing: "Alguém ainda tem que dizer qual é a meta.",
       },
     ],
     caption:
-      "Bemer propôs a fábrica de software na General Electric em 1968. Só tinha gente pra botar dentro dela.",
+      "Nada aqui era opcional. Cada peça valia quase nada até a seguinte chegar.",
   },
 } as const;
 
@@ -878,7 +895,16 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
               <b>{e.what}</b>
               <small>{e.who}</small>
             </div>
-            <p>{e.detail}</p>
+            <div className="story-factory-chain">
+              <p className="story-factory-gained">
+                <i>{c.gainedLabel}</i>
+                {e.gained}
+              </p>
+              <p className="story-factory-missing">
+                <i>{c.missingLabel}</i>
+                {e.missing}
+              </p>
+            </div>
           </li>
         ))}
       </ol>
