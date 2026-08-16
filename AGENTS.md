@@ -71,8 +71,11 @@ Saving the markdown regenerates `.build/` and full-reloads the browser automatic
 
 ### Bookmarks
 
-The public site reads bookmarks from `https://mcp.vibegui.com`. Use the MCP App
-for bookmark CRUD operations; the website is read-only.
+The public site reads bookmarks from the Worldview worker
+(`https://mcp.vibegui.com` today, `worldview.vibegui.com` once the domain is
+cut over). Writing them happens in
+[vibegui/worldview](https://github.com/vibegui/worldview); the website is
+read-only.
 
 ## Code Style
 
