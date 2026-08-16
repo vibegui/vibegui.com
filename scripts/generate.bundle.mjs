@@ -1198,6 +1198,10 @@ Sitemap: ${Y.origin}/sitemap.xml
     .sumario-inner { padding-top: 0; }
     .leitura { padding: 0 2rem 5rem clamp(2.5rem, 5vw, 4.5rem); }
   }
+
+  @media (min-width: 74rem) {
+    .cabecalho h2 { width: calc(100% + 4rem); }
+  }
 `,CA=/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/;function TA(Z){if(!OA(Z))return[];return NA(Z).filter((Q)=>Q.endsWith(".md")).sort().map((Q,Y)=>{let G=_A(_4(Z,Q),"utf-8").match(CA);if(!G)throw Error(`frontmatter inválido em ${Q}`);let K={};for(let B of G[1].split(/\r?\n/)){let z=B.match(/^(\w+):\s*(.*)$/);if(z)K[z[1]]=z[2].replace(/^"(.*)"$/,"$1").trim()}return{ordem:Y+1,slug:K.slug||Q.replace(/^\d+-|\.md$/g,""),titulo:K.title||"",kicker:K.kicker||"",subtitulo:K.subtitle||"",numeral:K.numeral||"",ideia:K.idea||"",corpo:G[2].trim()}})}var SR=(Z)=>k1(Z,{async:!1});function IA(Z){let[Q,...Y]=Z.split(/\n## /),G=SR(Q);for(let K of Y){let B=K.includes(`
 `)?K.indexOf(`
 `):K.length,z=K.slice(0,B).trim(),M=z.startsWith("RÉGUA")?"regua":z.startsWith("HISTÓRIA")?"historia":"quadro";G+=`
