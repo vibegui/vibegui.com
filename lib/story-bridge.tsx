@@ -830,6 +830,7 @@ const TIMELINE = {
 export function FactoryTimeline({ locale = "en" }: LocaleProp) {
   const c = TIMELINE[locale];
   return (
+    // The visible title names the figure now that the redundant footer is gone.
     <figure
       className="story-factory"
       aria-labelledby={`factory-timeline-title-${locale}`}
