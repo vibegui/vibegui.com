@@ -2663,7 +2663,7 @@
   }
 }
 
-/* ─── "The State of Applied AI": timeline, gap, factory ─── */
+/* ─── "AI Learned to Work": responsibility timeline and factory ─── */
 
 .story-factory {
   display: grid;
@@ -2684,7 +2684,7 @@
 }
 
 .story-factory-label {
-  color: #78726e;
+  color: #625d57;
   font-size: 0.6875rem;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -2728,28 +2728,21 @@
   gap: 0.35rem 1.25rem;
   grid-template-columns: 5.25rem minmax(0, 11rem) minmax(0, 1.5fr);
   margin: 0;
-  padding: 0.85rem 0 0.85rem 1rem;
-  border-left: 2px solid color-mix(in srgb, #07401a 22%, transparent);
+  padding: 1rem 0;
+  border-top: 1px solid color-mix(in srgb, #07401a 18%, #e4e0d6);
   position: relative;
+}
+
+.story-factory-timeline li:first-child {
+  border-top-color: color-mix(in srgb, #07401a 42%, #e4e0d6);
 }
 
 .story-factory-timeline li::marker {
   content: none;
 }
 
-.story-factory-timeline li::before {
-  content: "";
-  position: absolute;
-  left: -5px;
-  top: 0.95rem;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: #07401a;
-}
-
 .story-factory-timeline time {
-  color: #78726e;
+  color: #625d57;
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   font-weight: 650;
@@ -2769,13 +2762,14 @@
 }
 
 .story-factory-timeline small {
-  color: #6f6b63;
+  color: #625d57;
   font-size: 0.8125rem;
 }
 
 .story-factory-chain {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.45rem 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .story-factory-chain p {
@@ -2788,7 +2782,7 @@
 
 .story-factory-chain i {
   display: block;
-  margin-bottom: 0.1rem;
+  margin-bottom: 0.15rem;
   font-family: var(--font-mono);
   font-size: 0.625rem;
   font-style: normal;
@@ -2798,8 +2792,9 @@
 }
 
 .story-factory-gained {
-  padding-left: 0.65rem;
-  border-left: 2px solid color-mix(in srgb, #07401a 35%, transparent);
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, #d0ec1a 11%, #fff);
 }
 
 .story-factory-gained i {
@@ -2807,8 +2802,9 @@
 }
 
 .story-factory-missing {
-  padding-left: 0.65rem;
-  border-left: 2px solid color-mix(in srgb, #8a5a3b 35%, transparent);
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.45rem;
+  background: color-mix(in srgb, #8a5a3b 7%, #fff);
   color: #6f6b63;
 }
 
@@ -2821,89 +2817,11 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 0.25rem;
   }
-}
 
-/* Gap bars */
-
-.story-factory-versus {
-  display: grid;
-  gap: 1.1rem;
-  margin: 0.5rem 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.story-factory-versus li {
-  display: grid;
-  gap: 0.15rem;
-  margin: 0;
-}
-
-.story-factory-versus li::marker {
-  content: none;
-}
-
-.story-factory-versus b {
-  color: #121310;
-  font-size: 0.9375rem;
-  font-weight: 650;
-}
-
-.story-factory-versus > li > small {
-  color: #78726e;
-  font-size: 0.75rem;
-}
-
-.story-factory-versus-pair {
-  display: grid;
-  gap: 0.3rem;
-  margin-top: 0.35rem;
-}
-
-.story-factory-versus-side {
-  display: grid;
-  align-items: center;
-  gap: 0.6rem;
-  grid-template-columns: 3.5rem minmax(0, 1fr) 2.75rem;
-}
-
-.story-factory-versus-side i {
-  color: #78726e;
-  font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-style: normal;
-  font-weight: 650;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.story-factory-versus-track {
-  display: block;
-  height: 0.85rem;
-  border-radius: 999px;
-  background: color-mix(in srgb, #e4e0d6 70%, transparent);
-}
-
-.story-factory-versus-track em {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
-
-.story-factory-versus-open {
-  background: #8a5a3b;
-}
-
-.story-factory-versus-closed {
-  background: #07401a;
-}
-
-.story-factory-versus-side > strong {
-  color: #121310;
-  font-family: var(--font-mono);
-  font-size: 0.8125rem;
-  font-weight: 650;
-  text-align: right;
+  .story-factory-chain {
+    grid-template-columns: minmax(0, 1fr);
+    margin-top: 0.35rem;
+  }
 }
 
 /* The plant */
@@ -2926,7 +2844,7 @@
 }
 
 .story-factory-goal small {
-  color: #6f6b63;
+  color: #5f5a53;
   font-size: 0.75rem;
 }
 
@@ -2960,7 +2878,7 @@
 }
 
 .story-factory-col > small {
-  color: #6f6b63;
+  color: #5f5a53;
   font-size: 0.75rem;
 }
 
@@ -3000,7 +2918,7 @@
 
 .story-factory-inside dd {
   margin: 0;
-  color: #6f6b63;
+  color: #5f5a53;
   font-size: 0.75rem;
   line-height: 1.35;
 }

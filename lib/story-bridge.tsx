@@ -756,143 +756,78 @@ export function StoryCompound({ locale = "en" }: LocaleProp) {
   );
 }
 
-/* ─── "The State of Applied AI": timeline, gap, factory ─── */
+/* ─── "AI Learned to Work": responsibility timeline and factory ─── */
 
 const TIMELINE = {
   en: {
-    label: "Each part broke the next thing",
-    title: "Two years, one chain",
-    gainedLabel: "Gained",
-    missingLabel: "Still broken",
+    label: "The transfer of responsibility",
+    title: "Answer → Execute → Operate",
+    gainedLabel: "The system",
+    missingLabel: "The human still",
     entries: [
       {
-        when: "Mar 2024",
-        what: "Agentic workflows",
-        who: "Andrew Ng",
-        gained:
-          "It stopped answering and started working: plan, call a tool, read the result, try again.",
+        when: "2023",
+        what: "Answer",
+        who: "Prompt + chat",
+        gained: "Writes, summarizes, analyzes, and recommends.",
         missing:
-          "Every step it took showed it knew nothing about your business.",
+          "Finds the work, carries the context, acts, and checks the result.",
       },
       {
-        when: "Nov 2024",
-        what: "MCP",
-        who: "Anthropic",
+        when: "2024–25",
+        what: "Execute",
+        who: "Tools + agents",
         gained:
-          "One way to plug an agent into any system, instead of a custom integration per data source.",
+          "Plans, uses tools, reads the result, corrects itself, and acts again.",
+        missing: "Finds the task and decides what deserves attention next.",
+      },
+      {
+        when: "Now",
+        what: "Operate",
+        who: "Software factory",
+        gained:
+          "Watches signals, chooses work against a goal, acts, measures, and remembers.",
         missing:
-          "It could reach your systems and still had no idea what mattered inside them.",
-      },
-      {
-        when: "Feb 2025",
-        what: "Vibe coding",
-        who: "Karpathy",
-        gained:
-          "Output volume stopped being the constraint. A quarter of YC's winter batch shipped code 95% written this way.",
-        missing: "Nobody was reading the volume.",
-      },
-      {
-        when: "Jun 2025",
-        what: "Context engineering",
-        who: "Tobi Lütke",
-        gained:
-          "Your catalog rules, your postmortems, your one weird checkout exception — now the agent could see them.",
-        missing: "It could tell you what to do. It could not do it.",
-      },
-      {
-        when: "Nov 2025",
-        what: "Harness",
-        who: "Anthropic",
-        gained:
-          "Terminal, repo, admin API, credentials. Now it could act, and MCP made that access standard.",
-        missing: "Every run started from zero and re-learned the same things.",
-      },
-      {
-        when: "Dec 2025",
-        what: "Memory",
-        who: "sold as “context graphs”",
-        gained:
-          "Keep what worked. An agent that accumulates its own playbook goes from 42 to 59 on AppWorld and costs 75% less to adapt.",
-        missing: "It still waited to be told what to work on.",
-      },
-      {
-        when: "Feb 2026",
-        what: "The factory",
-        who: "the parts, assembled",
-        gained:
-          "Hand over the goal instead of the task. It finds its own work in the signals and keeps the answers.",
-        missing: "Someone still has to say what the goal is.",
+          "Sets the goal, the constraints, and the boundaries of accountability.",
       },
     ],
     caption:
-      "Nothing here was optional. Each part was worth roughly nothing until the one after it arrived.",
+      "More of the job moved from the person in front of the screen into the system behind it.",
   },
   pt: {
-    label: "Cada peça quebrava a próxima",
-    title: "Dois anos, uma corrente",
-    gainedLabel: "Ganhou",
-    missingLabel: "Ainda quebrado",
+    label: "A transferência de responsabilidade",
+    title: "Responder → Executar → Operar",
+    gainedLabel: "O sistema",
+    missingLabel: "O humano ainda",
     entries: [
       {
-        when: "mar 2024",
-        what: "Agentic workflows",
-        who: "Andrew Ng",
-        gained:
-          "Parou de responder e começou a trabalhar: planeja, chama ferramenta, lê o resultado, tenta de novo.",
-        missing: "Cada passo mostrava que ele não sabia nada do seu negócio.",
-      },
-      {
-        when: "nov 2024",
-        what: "MCP",
-        who: "Anthropic",
-        gained:
-          "Um jeito só de plugar agente em qualquer sistema, em vez de uma integração sob medida por fonte de dado.",
+        when: "2023",
+        what: "Responder",
+        who: "Prompt + chat",
+        gained: "Escreve, resume, analisa e recomenda.",
         missing:
-          "Alcançava seus sistemas e continuava sem saber o que importava dentro deles.",
+          "Encontra o trabalho, carrega o contexto, age e confere o resultado.",
       },
       {
-        when: "fev 2025",
-        what: "Vibe coding",
-        who: "Karpathy",
+        when: "2024–25",
+        what: "Executar",
+        who: "Ferramentas + agentes",
         gained:
-          "Volume de código deixou de ser o limite. Um quarto do batch da YC subiu código 95% escrito assim.",
-        missing: "Ninguém estava lendo esse volume.",
+          "Planeja, usa ferramentas, lê o resultado, se corrige e age de novo.",
+        missing: "Encontra a tarefa e decide o que merece atenção em seguida.",
       },
       {
-        when: "jun 2025",
-        what: "Context engineering",
-        who: "Tobi Lütke",
+        when: "Agora",
+        what: "Operar",
+        who: "Fábrica de software",
         gained:
-          "Suas regras de catálogo, seus post-mortems, aquela exceção do checkout — agora o agente enxergava.",
-        missing: "Ele sabia dizer o que fazer. Não sabia fazer.",
-      },
-      {
-        when: "nov 2025",
-        what: "Harness",
-        who: "Anthropic",
-        gained:
-          "Terminal, repositório, admin API, credencial. Agora ele agia, e o MCP padronizou esse acesso.",
-        missing: "Toda execução começava do zero e reaprendia a mesma coisa.",
-      },
-      {
-        when: "dez 2025",
-        what: "Memória",
-        who: "vendida como “context graph”",
-        gained:
-          "Guardar o que funcionou. Um agente que acumula o próprio manual vai de 42 para 59 no AppWorld e custa 75% menos pra adaptar.",
-        missing: "Ele ainda esperava alguém dizer no que trabalhar.",
-      },
-      {
-        when: "fev 2026",
-        what: "A fábrica",
-        who: "as peças, montadas",
-        gained:
-          "Entrega a meta em vez da tarefa. Ele acha o próprio trabalho nos sinais e guarda as respostas.",
-        missing: "Alguém ainda tem que dizer qual é a meta.",
+          "Observa sinais, escolhe trabalho contra uma meta, age, mede e lembra.",
+        missing:
+          "Define a meta, as restrições e os limites da responsabilidade.",
       },
     ],
     caption:
-      "Nada aqui era opcional. Cada peça valia quase nada até a seguinte chegar.",
+      "Mais partes do trabalho saíram da pessoa na frente da tela e foram para o sistema por trás dela.",
   },
 } as const;
 
@@ -931,162 +866,92 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
   );
 }
 
-const GAP = {
-  en: {
-    label: "Best open model vs best closed model, August 2026",
-    title: "Tied on smarts. Not close on doing the job.",
-    rows: [
-      {
-        name: "How smart it is",
-        sub: "Artificial Analysis intelligence index",
-        open: 60,
-        closed: 63,
-        max: 100,
-      },
-      {
-        name: "Doing a real job",
-        sub: "Terminal-Bench: multi-step work in a terminal",
-        open: 58.7,
-        closed: 83.8,
-        max: 100,
-      },
-    ],
-    openLabel: "Open",
-    closedLabel: "Closed",
-    caption:
-      "Same models in both rows. The closed labs ship the machine around the model. Open weights arrive as just a model.",
-  },
-  pt: {
-    label: "Melhor modelo aberto vs melhor fechado, agosto de 2026",
-    title: "Empatados em inteligência. Longe disso no trabalho.",
-    rows: [
-      {
-        name: "Quão inteligente é",
-        sub: "Índice de inteligência da Artificial Analysis",
-        open: 60,
-        closed: 63,
-        max: 100,
-      },
-      {
-        name: "Fazendo trabalho de verdade",
-        sub: "Terminal-Bench: várias etapas num terminal",
-        open: 58.7,
-        closed: 83.8,
-        max: 100,
-      },
-    ],
-    openLabel: "Aberto",
-    closedLabel: "Fechado",
-    caption:
-      "Os mesmos modelos nas duas linhas. Os labs fechados entregam a máquina em volta do modelo. O peso aberto chega só como modelo.",
-  },
-} as const;
-
-export function FactoryGap({ locale = "en" }: LocaleProp) {
-  const c = GAP[locale];
-  const fmt = (n: number) =>
-    locale === "pt" ? String(n).replace(".", ",") : String(n);
-  return (
-    <figure
-      className="story-factory"
-      aria-labelledby={`factory-gap-cap-${locale}`}
-    >
-      <span className="story-factory-label">{c.label}</span>
-      <strong className="story-factory-title">{c.title}</strong>
-      <ul className="story-factory-versus">
-        {c.rows.map((r) => (
-          <li key={r.name}>
-            <b>{r.name}</b>
-            <small>{r.sub}</small>
-            <div className="story-factory-versus-pair">
-              <span className="story-factory-versus-side">
-                <i>{c.openLabel}</i>
-                <span className="story-factory-versus-track">
-                  <em
-                    className="story-factory-versus-open"
-                    style={{ width: `${(r.open / r.max) * 100}%` }}
-                  />
-                </span>
-                <strong>{fmt(r.open)}</strong>
-              </span>
-              <span className="story-factory-versus-side">
-                <i>{c.closedLabel}</i>
-                <span className="story-factory-versus-track">
-                  <em
-                    className="story-factory-versus-closed"
-                    style={{ width: `${(r.closed / r.max) * 100}%` }}
-                  />
-                </span>
-                <strong>{fmt(r.closed)}</strong>
-              </span>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <figcaption id={`factory-gap-cap-${locale}`}>{c.caption}</figcaption>
-    </figure>
-  );
-}
-
 const PLANT = {
   en: {
     label: "The software factory",
-    title: "Five names, one machine",
+    title: "The system closes the loop around a business result",
     goal: {
-      head: "Goal and constraints",
-      body: "written by a human, argued in a room",
+      head: "Goal, constraints, accountable human",
+      body: "Improve conversion without breaking brand, margin, security, or trust",
     },
     inputs: {
-      head: "Inputs",
-      body: "Signals, not tickets",
-      items: ["Conversion", "Catalog", "Vitals", "Competitors", "Incidents"],
+      head: "Signals",
+      body: "Work appears before a ticket exists",
+      items: [
+        "Conversion changes",
+        "Catalog drift",
+        "Vitals and incidents",
+        "Competitor moves",
+        "Customer behavior",
+      ],
     },
     inside: {
-      head: "Inside",
+      head: "Internal loops",
       items: [
-        { k: "Loops", v: "the process that runs unattended" },
-        { k: "Context graph", v: "the memory it decides from" },
-        { k: "Agents", v: "the workers, each with a harness" },
+        { k: "Observe", v: "combine evidence across systems" },
+        { k: "Decide", v: "rank work against the goal" },
+        { k: "Execute", v: "agents act within tools and permissions" },
+        { k: "Verify", v: "test the result and escalate exceptions" },
       ],
     },
     outputs: {
-      head: "Outputs",
-      body: "Actions in the world",
-      items: ["Pull request", "Deploy", "Price", "Page"],
+      head: "Actions",
+      body: "Work lands in the business",
+      items: [
+        "Pull request",
+        "Deploy",
+        "Page or price",
+        "Campaign",
+        "Escalation",
+      ],
     },
     feedback:
-      "Watches what the action did to the numbers, keeps the answer, goes again",
+      "Measure the outcome · keep what worked · feed it into the next decision",
     caption:
-      "The parts were being discovered one at a time. This is what they were parts of.",
+      "People set direction and handle exceptions. The factory keeps the operation moving between those decisions.",
   },
   pt: {
     label: "A fábrica de software",
-    title: "Cinco nomes, uma máquina",
+    title: "O sistema fecha o loop em torno de um resultado de negócio",
     goal: {
-      head: "Meta e restrições",
-      body: "escritas por gente, discutidas numa sala",
+      head: "Meta, restrições e humano responsável",
+      body: "Melhorar conversão sem quebrar marca, margem, segurança ou confiança",
     },
     inputs: {
-      head: "Entradas",
-      body: "Sinais, não cards",
-      items: ["Conversão", "Catálogo", "Vitals", "Concorrente", "Incidente"],
+      head: "Sinais",
+      body: "O trabalho aparece antes de existir um card",
+      items: [
+        "Mudanças na conversão",
+        "Desvio de catálogo",
+        "Vitals e incidentes",
+        "Movimentos de concorrentes",
+        "Comportamento do cliente",
+      ],
     },
     inside: {
-      head: "Dentro",
+      head: "Loops internos",
       items: [
-        { k: "Loops", v: "o processo que roda sozinho" },
-        { k: "Context graph", v: "a memória de onde ele decide" },
-        { k: "Agentes", v: "os trabalhadores, cada um com seu harness" },
+        { k: "Observar", v: "combinar evidências de vários sistemas" },
+        { k: "Decidir", v: "priorizar trabalho contra a meta" },
+        { k: "Executar", v: "agentes agem dentro de ferramentas e permissões" },
+        { k: "Verificar", v: "testar o resultado e escalar exceções" },
       ],
     },
     outputs: {
-      head: "Saídas",
-      body: "Ações no mundo",
-      items: ["Pull request", "Deploy", "Preço", "Página"],
+      head: "Ações",
+      body: "O trabalho chega ao negócio",
+      items: [
+        "Pull request",
+        "Deploy",
+        "Página ou preço",
+        "Campanha",
+        "Escalação",
+      ],
     },
-    feedback: "Olha o que a ação fez com o número, guarda a resposta, recomeça",
+    feedback:
+      "Medir o resultado · guardar o que funcionou · usar na próxima decisão",
     caption:
-      "As peças foram sendo descobertas uma por uma. Isso aqui é do que elas eram peça.",
+      "Pessoas definem a direção e cuidam das exceções. A fábrica mantém a operação andando entre essas decisões.",
   },
 } as const;
 
