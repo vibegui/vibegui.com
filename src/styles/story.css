@@ -2745,7 +2745,7 @@
   content: none;
 }
 
-.story-factory-timeline time {
+.story-factory-when {
   color: #625d57;
   font-family: var(--font-mono);
   font-size: 0.6875rem;

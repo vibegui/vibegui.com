@@ -845,7 +845,7 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
       <ol className="story-factory-timeline">
         {c.entries.map((e) => (
           <li key={e.what}>
-            <time>{e.when}</time>
+            <span className="story-factory-when">{e.when}</span>
             <div className="story-factory-term">
               <b>{e.what}</b>
               <small>{e.who}</small>
