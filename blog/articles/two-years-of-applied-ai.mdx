@@ -1,0 +1,101 @@
+---
+slug: two-years-of-applied-ai
+title: 'AI Learned to Work. Now We Need to Build the Factory.'
+description: 'Prompts, agents, context, harnesses, and memory were not separate waves. They were the parts of a software factory arriving one at a time.'
+date: 2026-08-13
+status: published
+locale: "en"
+translationKey: "article:two-years-of-applied-ai"
+coverImage: /images/articles/two-years-of-applied-ai.png
+layout: story
+tags:
+  - agents
+  - ai
+  - ecommerce
+  - product
+  - startup
+---
+AI learned to work. Most companies still use it to talk.
+
+That is the simplest way I know to explain what changed over the last two years.
+
+At deco, we spent a long time making AI understand a business: better prompts, company data, tools, permissions, all the context a model needed to give a useful answer. The answers became extraordinary. Then they landed in a chat window and waited for a person to turn them into work.
+
+The parade of new terms made the industry look more confused than it was. Prompt engineering, tools, agents, MCP, context engineering, harnesses, memory. Each one transferred another piece of the job from the person in front of the screen to the system behind it.
+
+<FactoryTimeline locale="en" />
+
+## First, it answered
+
+The first useful version of generative AI was a brilliant person with no access to anything.
+
+You copied a product description into a chat, explained the brand, asked for a better version, judged the answer, opened the CMS, made the edit, published it, and checked the numbers later. Prompt engineering improved one step in that sequence. You still carried the other six.
+
+This is where most AI use remains today. The model writes, summarizes, analyzes, and recommends. A human finds the work, assembles the context, moves the answer into the real world, and discovers whether it helped.
+
+A better answer is useful. It is not ownership.
+
+<FactoryStage phase="answer" locale="en" />
+
+## Then, it executed
+
+Tools changed the relationship. When OpenAI introduced [function calling](https://openai.com/index/function-calling-and-other-api-updates/) in 2023, a model could stop writing and ask software to do something: fetch an order, query analytics, update a record. The model still did not have hands. It had learned how to request them.
+
+Agentic loops chained those requests. Plan, call a tool, read the result, adjust, call another. An agent could inspect a repository, change the code, run a test, notice the test failed, fix the mistake, and open a pull request without asking a person what to do after every step.
+
+The remaining terms solved the practical problems that appeared next. [MCP](https://www.anthropic.com/news/model-context-protocol) gave systems a common way to connect. Context engineering supplied the rules, history, and exceptions that make a business different from a demo. A harness defined the environment, credentials, tools, and limits inside which the agent could act.
+
+Put those pieces around a model and it can complete real work. Give it the catalog rules, analytics, repository, and deployment preview for a store, and it can investigate why a PDP is slow, propose a fix, and show you the result.
+
+That is a large jump from answering a question. But the agent still began with a task somebody had already found.
+
+<FactoryStage phase="execute" locale="en" />
+
+## Execution is not operation
+
+A coding agent can work for hours and still be unemployed the moment it closes the pull request. It completed the ticket. It does not know which ticket should exist tomorrow.
+
+That distinction explains the strange state of enterprise AI. The [2026 Stanford AI Index](https://hai.stanford.edu/ai-index/2026-ai-index-report/economy) found that 88% of surveyed organizations use AI, while agent deployment remains in the single digits across almost every business function. Companies adopted the answer. Very few rebuilt the work.
+
+Stanford's Digital Economy Lab studied [51 successful enterprise deployments](https://digitaleconomy.stanford.edu/publication/enterprise-ai-playbook/) and found that 77% of the hardest problems were not technical. They were process redesign, data quality, and change management. Technology was consistently described as the easiest part.
+
+The successful agentic systems also had something in common. They handled work that happened often, had a clear definition of success, and could recover when the system was wrong. They could reach the data required to decide and the systems required to act.
+
+That gives you a much better way to choose an AI project than asking where a chatbot would look impressive:
+
+- Does this work happen often enough to deserve a loop?
+- Can the system see whether the outcome was good?
+- Can a mistake be reversed or escalated safely?
+- Can it reach everything required to finish the job?
+
+When the answer is yes, you can stop building a better ticket taker. You can build a software factory.
+
+## The software factory
+
+A factory starts with a goal and constraints, both written by people. Improve conversion. Protect margin. Do not violate the brand. Never publish a price without approval. Roll back if the error rate crosses this line.
+
+Without that, an agent can produce an enormous amount of activity and still make the business worse.
+
+The inputs are signals, not tickets. Conversion moves. The catalog drifts. Core Web Vitals degrade. A competitor changes a price. Customers start abandoning a step in checkout. Nobody should have to notice each one, explain it in a meeting, and create a card before the system begins to work.
+
+Inside the factory, loops turn those signals into decisions. Agents observe what changed, combine evidence from different systems, decide what matters against the goal, plan an action, execute within their permissions, and verify the result. Context tells them how this particular business works. The harness tells them what they may touch. Humans receive the exceptions, not every intermediate step.
+
+The outputs are actions in the world: a pull request, a deploy, a new page, a price recommendation, a campaign, or an escalation with enough evidence for someone to make the hard decision. A paragraph in a chat may explain the work. It is not the work.
+
+Then the loop closes. The factory watches what the action did to conversion, revenue, errors, or customer behavior. It keeps the result. A successful fix becomes part of the playbook; a failed experiment becomes something the system knows not to repeat. Memory is what makes the thousandth run different from the first.
+
+<FactoryPlant locale="en" />
+
+Imagine a deploy on Tuesday makes the mobile PDP slower. By Thursday, conversion has fallen.
+
+In the old operation, somebody eventually notices the dashboard, asks what changed, opens a ticket, finds an engineer, waits for a deploy, and remembers to look at GMV next week.
+
+In the factory, the conversion change is the signal. The system connects it to the deploy, inspects the page and its telemetry, ranks the issue against the goal, and opens a branch. It runs the tests, produces a preview, and asks for help only if the fix crosses a limit a human defined. Once the change ships, it watches conversion. If the number recovers, the relationship between symptom and fix stays in memory. If it gets worse, the system rolls back and keeps that answer too.
+
+The factory does not remove leadership. Someone still chooses the goal, sets the constraints, funds the work, and owns the consequences. Irreversible decisions still deserve a person. What disappears is the need for that person to carry every piece of context between every step.
+
+The last two years gave us more than better models. They gave us the parts of a system that can keep operating between human decisions: connections, context, tools, permissions, loops, and memory.
+
+We are building that software factory for digital experience at [decocms.com](https://decocms.com/?utm_source=vibegui.com&utm_medium=article&utm_campaign=two-years-of-applied-ai).
+
+The model can already work. Our job now is to build the place where the work keeps happening.

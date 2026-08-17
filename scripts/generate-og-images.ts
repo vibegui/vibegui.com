@@ -78,6 +78,7 @@ async function main(): Promise<void> {
   const images: Record<string, string> = {};
   const currentPaths = new Set<string>();
   const sizes: number[] = [];
+  const hashes = new Map<string, string>();
 
   mkdirSync(OG_DIR, { recursive: true });
 
@@ -113,6 +114,21 @@ async function main(): Promise<void> {
     }
 
     const hash = createHash("sha256").update(data).digest("hex").slice(0, 8);
+
+    // Every article renders a different title, so identical pixels mean the
+    // text never made it onto the canvas — usually sharp/librsvg finding no
+    // usable font. Dimensions and file size still look fine in that case, so
+    // this is the only guard that catches it before blank cards get committed.
+    const twin = hashes.get(hash);
+    if (twin) {
+      throw new Error(
+        `${article.slug}: renders identical pixels to ${twin}. ` +
+          `Text is missing from the OG cards (check that fonts resolve for sharp), ` +
+          `or these two articles share a title, locale, date and tag.`,
+      );
+    }
+    hashes.set(hash, article.slug);
+
     const localeFolder = article.locale === "pt-BR" ? "pt" : "en";
     const webPath = `/images/og/${localeFolder}/${article.slug}.${hash}.png`;
     const outputPath = join(ROOT, "public", webPath);

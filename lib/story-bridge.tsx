@@ -755,3 +755,393 @@ export function StoryCompound({ locale = "en" }: LocaleProp) {
     </figure>
   );
 }
+
+/* ─── "AI Learned to Work": responsibility timeline and factory ─── */
+
+const TIMELINE = {
+  en: {
+    label: "The transfer of responsibility",
+    title: "Answer → Execute → Operate",
+    gainedLabel: "The system",
+    missingLabel: "The human still",
+    entries: [
+      {
+        when: "2023",
+        what: "Answer",
+        who: "Prompt + chat",
+        gained: "Writes, summarizes, analyzes, and recommends.",
+        missing:
+          "Finds the work, carries the context, acts, and checks the result.",
+      },
+      {
+        when: "2024–25",
+        what: "Execute",
+        who: "Tools + agents",
+        gained:
+          "Plans, uses tools, reads the result, corrects itself, and acts again.",
+        missing: "Finds the task and decides what deserves attention next.",
+      },
+      {
+        when: "Now",
+        what: "Operate",
+        who: "Software factory",
+        gained:
+          "Watches signals, chooses work against a goal, acts, measures, and remembers.",
+        missing:
+          "Sets the goal, the constraints, and the boundaries of accountability.",
+      },
+    ],
+  },
+  pt: {
+    label: "A transferência de responsabilidade",
+    title: "Responder → Executar → Operar",
+    gainedLabel: "O sistema",
+    missingLabel: "O humano ainda",
+    entries: [
+      {
+        when: "2023",
+        what: "Responder",
+        who: "Prompt + chat",
+        gained: "Escreve, resume, analisa e recomenda.",
+        missing:
+          "Encontra o trabalho, carrega o contexto, age e confere o resultado.",
+      },
+      {
+        when: "2024–25",
+        what: "Executar",
+        who: "Ferramentas + agentes",
+        gained:
+          "Planeja, usa ferramentas, lê o resultado, se corrige e age de novo.",
+        missing: "Encontra a tarefa e decide o que merece atenção em seguida.",
+      },
+      {
+        when: "Agora",
+        what: "Operar",
+        who: "Fábrica de software",
+        gained:
+          "Observa sinais, escolhe trabalho contra uma meta, age, mede e lembra.",
+        missing:
+          "Define a meta, as restrições e os limites da responsabilidade.",
+      },
+    ],
+  },
+} as const;
+
+export function FactoryTimeline({ locale = "en" }: LocaleProp) {
+  const c = TIMELINE[locale];
+  return (
+    // The visible title names the figure now that the redundant footer is gone.
+    <figure
+      className="story-factory"
+      aria-labelledby={`factory-timeline-title-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong
+        className="story-factory-title"
+        id={`factory-timeline-title-${locale}`}
+      >
+        {c.title}
+      </strong>
+      <ol className="story-factory-timeline">
+        {c.entries.map((e) => (
+          <li key={e.what}>
+            <span className="story-factory-when">{e.when}</span>
+            <div className="story-factory-term">
+              <b>{e.what}</b>
+              <small>{e.who}</small>
+            </div>
+            <div className="story-factory-chain">
+              <p className="story-factory-gained">
+                <i>{c.gainedLabel}</i>
+                {e.gained}
+              </p>
+              <p className="story-factory-missing">
+                <i>{c.missingLabel}</i>
+                {e.missing}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </figure>
+  );
+}
+
+const STAGES = {
+  en: {
+    answer: {
+      label: "The answer phase",
+      title: "The human carried the work around the model",
+      nodes: [
+        {
+          owner: "Human",
+          body: "Find the task · assemble the context",
+        },
+        {
+          owner: "AI",
+          body: "Write · analyze · recommend",
+        },
+        {
+          owner: "Human",
+          body: "Act · publish · check the result",
+        },
+      ],
+    },
+    execute: {
+      label: "The execution phase",
+      title: "The agent carried the task, not the operation",
+      nodes: [
+        {
+          owner: "Human",
+          body: "Find and assign the task",
+        },
+        {
+          owner: "Agent loop",
+          body: "Plan → use tools → inspect → correct",
+        },
+        {
+          owner: "Human",
+          body: "Review · choose what comes next",
+        },
+      ],
+    },
+  },
+  pt: {
+    answer: {
+      label: "A fase da resposta",
+      title: "O humano carregava o trabalho ao redor do modelo",
+      nodes: [
+        {
+          owner: "Humano",
+          body: "Encontrar a tarefa · montar o contexto",
+        },
+        {
+          owner: "IA",
+          body: "Escrever · analisar · recomendar",
+        },
+        {
+          owner: "Humano",
+          body: "Agir · publicar · conferir o resultado",
+        },
+      ],
+    },
+    execute: {
+      label: "A fase da execução",
+      title: "O agente carregava a tarefa, não a operação",
+      nodes: [
+        {
+          owner: "Humano",
+          body: "Encontrar e atribuir a tarefa",
+        },
+        {
+          owner: "Loop do agente",
+          body: "Planejar → usar tools → inspecionar → corrigir",
+        },
+        {
+          owner: "Humano",
+          body: "Revisar · escolher o próximo trabalho",
+        },
+      ],
+    },
+  },
+} as const;
+
+type FactoryStageProps = LocaleProp & {
+  phase: "answer" | "execute";
+};
+
+export function FactoryStage({ locale = "en", phase }: FactoryStageProps) {
+  const c = STAGES[locale][phase];
+
+  return (
+    <figure
+      className={`story-factory story-factory-stage story-factory-stage-${phase}`}
+      aria-labelledby={`factory-stage-${phase}-title-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong
+        className="story-factory-title"
+        id={`factory-stage-${phase}-title-${locale}`}
+      >
+        {c.title}
+      </strong>
+
+      <div className="story-factory-stage-flow">
+        {c.nodes.map((node, index) => (
+          <div className="story-factory-stage-segment" key={node.body}>
+            {index > 0 && (
+              <b className="story-factory-stage-arrow" aria-hidden="true">
+                →
+              </b>
+            )}
+            <div
+              className={`story-factory-stage-node ${index === 1 ? "story-factory-stage-system" : "story-factory-stage-human"}`}
+            >
+              <span>{node.owner}</span>
+              <p>{node.body}</p>
+              {phase === "execute" && index === 1 && (
+                <i aria-hidden="true">↺</i>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
+const PLANT = {
+  en: {
+    label: "The software factory",
+    title: "The system closes the loop around a business result",
+    goal: {
+      head: "Goal, constraints, accountable human",
+      body: "Improve conversion without breaking brand, margin, security, or trust",
+    },
+    inputs: {
+      head: "Signals",
+      body: "Work appears before a ticket exists",
+      items: [
+        "Conversion changes",
+        "Catalog drift",
+        "Vitals and incidents",
+        "Competitor moves",
+        "Customer behavior",
+      ],
+    },
+    inside: {
+      head: "Internal loops",
+      items: [
+        { k: "Observe", v: "combine evidence across systems" },
+        { k: "Decide", v: "rank work against the goal" },
+        { k: "Execute", v: "agents act within tools and permissions" },
+        { k: "Verify", v: "test the result and escalate exceptions" },
+      ],
+    },
+    outputs: {
+      head: "Actions",
+      body: "Work lands in the business",
+      items: [
+        "Pull request",
+        "Deploy",
+        "Page or price",
+        "Campaign",
+        "Escalation",
+      ],
+    },
+    feedback:
+      "Measure the outcome · keep what worked · feed it into the next decision",
+    caption:
+      "People set direction and handle exceptions. The factory keeps the operation moving between those decisions.",
+  },
+  pt: {
+    label: "A fábrica de software",
+    title: "O sistema fecha o loop em torno de um resultado de negócio",
+    goal: {
+      head: "Meta, restrições e humano responsável",
+      body: "Melhorar conversão sem quebrar marca, margem, segurança ou confiança",
+    },
+    inputs: {
+      head: "Sinais",
+      body: "O trabalho aparece antes de existir um card",
+      items: [
+        "Mudanças na conversão",
+        "Desvio de catálogo",
+        "Vitals e incidentes",
+        "Movimentos de concorrentes",
+        "Comportamento do cliente",
+      ],
+    },
+    inside: {
+      head: "Loops internos",
+      items: [
+        { k: "Observar", v: "combinar evidências de vários sistemas" },
+        { k: "Decidir", v: "priorizar trabalho contra a meta" },
+        { k: "Executar", v: "agentes agem dentro de ferramentas e permissões" },
+        { k: "Verificar", v: "testar o resultado e escalar exceções" },
+      ],
+    },
+    outputs: {
+      head: "Ações",
+      body: "O trabalho chega ao negócio",
+      items: [
+        "Pull request",
+        "Deploy",
+        "Página ou preço",
+        "Campanha",
+        "Escalação",
+      ],
+    },
+    feedback:
+      "Medir o resultado · guardar o que funcionou · usar na próxima decisão",
+    caption:
+      "Pessoas definem a direção e cuidam das exceções. A fábrica mantém a operação andando entre essas decisões.",
+  },
+} as const;
+
+export function FactoryPlant({ locale = "en" }: LocaleProp) {
+  const c = PLANT[locale];
+  return (
+    <figure
+      className="story-factory story-factory-plant"
+      aria-labelledby={`factory-plant-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+
+      <div className="story-factory-goal">
+        <b>{c.goal.head}</b>
+        <small>{c.goal.body}</small>
+      </div>
+
+      <div className="story-factory-floor">
+        <div className="story-factory-col">
+          <span>{c.inputs.head}</span>
+          <small>{c.inputs.body}</small>
+          <ul>
+            {c.inputs.items.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+
+        <b className="story-factory-arrow" aria-hidden="true">
+          →
+        </b>
+
+        <div className="story-factory-col story-factory-inside">
+          <span>{c.inside.head}</span>
+          <dl>
+            {c.inside.items.map((i) => (
+              <div key={i.k}>
+                <dt>{i.k}</dt>
+                <dd>{i.v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        <b className="story-factory-arrow" aria-hidden="true">
+          →
+        </b>
+
+        <div className="story-factory-col">
+          <span>{c.outputs.head}</span>
+          <small>{c.outputs.body}</small>
+          <ul>
+            {c.outputs.items.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <div className="story-factory-feedback">
+        <span aria-hidden="true">↺</span>
+        {c.feedback}
+      </div>
+
+      <figcaption id={`factory-plant-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}

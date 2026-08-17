@@ -97,3 +97,36 @@ describe("Article Roundtrip Fidelity", () => {
     });
   }
 });
+
+describe("Drafts are never advertised", () => {
+  // A draft may be reachable at its own URL on a Cloudflare Pages branch
+  // preview. It must never be listed anywhere a crawler or a reader would
+  // find it, in any build mode — that is what makes the preview link safe
+  // to share.
+  const PUBLIC_DIR = join(import.meta.dir, "../../public");
+
+  const draftSlugs = readdirSync(ARTICLES_DIR)
+    .filter(
+      (f) => (f.endsWith(".md") || f.endsWith(".mdx")) && f !== "README.md",
+    )
+    .map((f) =>
+      matter(readFileSync(join(ARTICLES_DIR, f), "utf-8"), GRAY_MATTER_OPTIONS),
+    )
+    .filter((parsed) => parsed.data.status === "draft")
+    .map((parsed) => String(parsed.data.slug));
+
+  for (const listing of [
+    "sitemap.xml",
+    "_redirects",
+    "feed.xml",
+    "en/feed.xml",
+  ]) {
+    test(`${listing} contains no draft slug`, () => {
+      const content = readFileSync(join(PUBLIC_DIR, listing), "utf-8");
+      const leaked = draftSlugs.filter((slug) =>
+        content.includes(`/article/${slug}`),
+      );
+      expect(leaked).toEqual([]);
+    });
+  }
+});
