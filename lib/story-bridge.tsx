@@ -867,6 +867,129 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
   );
 }
 
+const STAGES = {
+  en: {
+    answer: {
+      label: "The answer phase",
+      title: "The human carried the work around the model",
+      nodes: [
+        {
+          owner: "Human",
+          body: "Find the task · assemble the context",
+        },
+        {
+          owner: "AI",
+          body: "Write · analyze · recommend",
+        },
+        {
+          owner: "Human",
+          body: "Act · publish · check the result",
+        },
+      ],
+    },
+    execute: {
+      label: "The execution phase",
+      title: "The agent carried the task, not the operation",
+      nodes: [
+        {
+          owner: "Human",
+          body: "Find and assign the task",
+        },
+        {
+          owner: "Agent loop",
+          body: "Plan → use tools → inspect → correct",
+        },
+        {
+          owner: "Human",
+          body: "Review · choose what comes next",
+        },
+      ],
+    },
+  },
+  pt: {
+    answer: {
+      label: "A fase da resposta",
+      title: "O humano carregava o trabalho ao redor do modelo",
+      nodes: [
+        {
+          owner: "Humano",
+          body: "Encontrar a tarefa · montar o contexto",
+        },
+        {
+          owner: "IA",
+          body: "Escrever · analisar · recomendar",
+        },
+        {
+          owner: "Humano",
+          body: "Agir · publicar · conferir o resultado",
+        },
+      ],
+    },
+    execute: {
+      label: "A fase da execução",
+      title: "O agente carregava a tarefa, não a operação",
+      nodes: [
+        {
+          owner: "Humano",
+          body: "Encontrar e atribuir a tarefa",
+        },
+        {
+          owner: "Loop do agente",
+          body: "Planejar → usar tools → inspecionar → corrigir",
+        },
+        {
+          owner: "Humano",
+          body: "Revisar · escolher o próximo trabalho",
+        },
+      ],
+    },
+  },
+} as const;
+
+type FactoryStageProps = LocaleProp & {
+  phase: "answer" | "execute";
+};
+
+export function FactoryStage({ locale = "en", phase }: FactoryStageProps) {
+  const c = STAGES[locale][phase];
+
+  return (
+    <figure
+      className={`story-factory story-factory-stage story-factory-stage-${phase}`}
+      aria-labelledby={`factory-stage-${phase}-title-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong
+        className="story-factory-title"
+        id={`factory-stage-${phase}-title-${locale}`}
+      >
+        {c.title}
+      </strong>
+
+      <div className="story-factory-stage-flow">
+        {c.nodes.map((node, index) => (
+          <div className="story-factory-stage-segment" key={node.body}>
+            {index > 0 && (
+              <b className="story-factory-stage-arrow" aria-hidden="true">
+                →
+              </b>
+            )}
+            <div
+              className={`story-factory-stage-node ${index === 1 ? "story-factory-stage-system" : "story-factory-stage-human"}`}
+            >
+              <span>{node.owner}</span>
+              <p>{node.body}</p>
+              {phase === "execute" && index === 1 && (
+                <i aria-hidden="true">↺</i>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
+
 const PLANT = {
   en: {
     label: "The software factory",

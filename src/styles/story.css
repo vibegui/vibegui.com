@@ -2828,6 +2828,108 @@
   }
 }
 
+/* Progressive phase diagrams */
+
+.story-factory-stage {
+  gap: 0.55rem;
+}
+
+.story-factory-stage-flow {
+  display: grid;
+  align-items: stretch;
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.55rem;
+}
+
+.story-factory-stage-execute .story-factory-stage-flow {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.5fr) minmax(0, 0.85fr);
+}
+
+.story-factory-stage-segment {
+  display: grid;
+  align-items: stretch;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.story-factory-stage-segment:first-child {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.story-factory-stage-node {
+  display: grid;
+  align-content: center;
+  min-height: 6.5rem;
+  gap: 0.35rem;
+  padding: 0.9rem;
+  border-radius: 0.6rem;
+  position: relative;
+  text-align: center;
+}
+
+.story-factory-stage-node > span {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.story-factory-stage-node p {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.story-factory-stage-human {
+  border: 1px solid color-mix(in srgb, #8a5a3b 20%, #e4e0d6);
+  background: color-mix(in srgb, #8a5a3b 6%, #fff);
+  color: #5f4432;
+}
+
+.story-factory-stage-system {
+  background: color-mix(in srgb, #d0ec1a 14%, #fff);
+  color: #07401a;
+}
+
+.story-factory-stage-system i {
+  position: absolute;
+  right: 0.55rem;
+  bottom: 0.35rem;
+  color: color-mix(in srgb, #07401a 50%, transparent);
+  font-size: 1rem;
+  font-style: normal;
+}
+
+.story-factory-stage-arrow {
+  align-self: center;
+  padding-inline: 0.45rem;
+  color: color-mix(in srgb, #07401a 42%, transparent);
+  font-size: 1rem;
+}
+
+@media (max-width: 680px) {
+  .story-factory-stage-flow,
+  .story-factory-stage-execute .story-factory-stage-flow {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story-factory-stage-segment {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .story-factory-stage-arrow {
+    justify-self: center;
+    padding-block: 0.35rem;
+    transform: rotate(90deg);
+  }
+
+  .story-factory-stage-node {
+    min-height: 0;
+  }
+}
+
 /* The plant */
 
 .story-factory-goal {

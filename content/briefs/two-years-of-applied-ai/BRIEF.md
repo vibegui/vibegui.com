@@ -31,6 +31,7 @@ It must work aloud without slides and remain useful as a standalone article afte
 ## Visuals
 
 - `<FactoryTimeline />`: a compact Answer → Execute → Operate progression. It explains the transfer of responsibility, not a history of buzzwords.
+- `<FactoryStage />`: two simple diagrams embedded in the Answer and Execute sections. The same human → system → human flow expands as the system takes on more of the work, preparing the reader for the full factory.
 - `<FactoryPlant />`: the main visual. Goal and constraints govern the system; signals enter; internal loops decide and act; actions leave; measured outcomes return as memory.
 - The former open-versus-closed model comparison is removed entirely.
 
