@@ -791,8 +791,6 @@ const TIMELINE = {
           "Sets the goal, the constraints, and the boundaries of accountability.",
       },
     ],
-    caption:
-      "More of the job moved from the person in front of the screen into the system behind it.",
   },
   pt: {
     label: "A transferência de responsabilidade",
@@ -826,8 +824,6 @@ const TIMELINE = {
           "Define a meta, as restrições e os limites da responsabilidade.",
       },
     ],
-    caption:
-      "Mais partes do trabalho saíram da pessoa na frente da tela e foram para o sistema por trás dela.",
   },
 } as const;
 
@@ -836,10 +832,15 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
   return (
     <figure
       className="story-factory"
-      aria-labelledby={`factory-timeline-cap-${locale}`}
+      aria-labelledby={`factory-timeline-title-${locale}`}
     >
       <span className="story-factory-label">{c.label}</span>
-      <strong className="story-factory-title">{c.title}</strong>
+      <strong
+        className="story-factory-title"
+        id={`factory-timeline-title-${locale}`}
+      >
+        {c.title}
+      </strong>
       <ol className="story-factory-timeline">
         {c.entries.map((e) => (
           <li key={e.what}>
@@ -861,7 +862,6 @@ export function FactoryTimeline({ locale = "en" }: LocaleProp) {
           </li>
         ))}
       </ol>
-      <figcaption id={`factory-timeline-cap-${locale}`}>{c.caption}</figcaption>
     </figure>
   );
 }

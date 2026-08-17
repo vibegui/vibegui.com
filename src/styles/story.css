@@ -2714,7 +2714,7 @@
 
 /* Timeline */
 
-.story-factory-timeline {
+.story-factory .story-factory-timeline {
   display: grid;
   gap: 0;
   margin: 0.5rem 0 0;
@@ -2735,6 +2735,10 @@
 
 .story-factory-timeline li:first-child {
   border-top-color: color-mix(in srgb, #07401a 42%, #e4e0d6);
+}
+
+.story-factory-timeline li:last-child {
+  padding-bottom: 0;
 }
 
 .story-factory-timeline li::marker {
