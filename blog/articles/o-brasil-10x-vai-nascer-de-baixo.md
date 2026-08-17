@@ -7,7 +7,7 @@ status: draft
 locale: pt-BR
 translationKey: article:o-brasil-10x-vai-nascer-de-baixo
 layout: prose
-coverImage: null
+coverImage: /images/articles/o-brasil-10x-vai-nascer-de-baixo.png
 tags:
   - ai
   - brazil
