@@ -77,6 +77,20 @@ Por isso não basta comemorar que brasileiros usam ChatGPT. Usar uma tecnologia 
 
 A oportunidade está em aplicar IA aos problemas que só quem vive aqui consegue enxergar.
 
+## A Grande Difusão
+
+Eu acho que estamos no começo do que poderíamos chamar de **A Grande Difusão**.
+
+A primeira onda da IA concentrou a atenção em quem constrói os modelos. A disputa mais importante para o Brasil será outra: quão rápido conseguimos espalhar pela base produtiva as práticas que hoje pertencem à vanguarda.
+
+Não estou falando de distribuir acesso a um chatbot. Estou falando de difundir a capacidade de experimentar em dias, automatizar rotinas, transformar conhecimento tácito em software, atender um mercado maior e corrigir o produto enquanto ele funciona.
+
+Na revolução digital, bilhões de pessoas consumiram produtos da vanguarda sem aprender a produzi-los. Com a IA, uma oficina, um escritório de contabilidade e um entregador podem adquirir parte da capacidade produtiva que antes exigia uma equipe de tecnologia.
+
+A IA não garante essa difusão. [A própria OCDE observa](https://www.oecd.org/en/topics/technology-diffusion.html) que sua adoção ainda se concentra nas empresas mais produtivas e pode ampliar a distância entre líderes e o restante da economia. Mas é a primeira tecnologia em muito tempo com distribuição, interface e custo compatíveis com uma aceleração em massa a partir da base.
+
+O Brasil 10x depende de transformar acesso simultâneo em difusão produtiva.
+
 ## O aplicativo que nenhuma big tech faria
 
 Eu estou mentorando um entregador que constrói um produto para outros entregadores. Quando ele aceita uma corrida, não sabe quanto tempo o restaurante vai demorar para liberar o pedido. Quinze minutos parado podem destruir a economia daquela entrega.
