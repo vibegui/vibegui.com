@@ -43,29 +43,27 @@ Então o primeiro request vai atrás disso. Duas sondagens saem ao mesmo tempo �
 
 Essa dança acontece uma vez por domínio, pra sempre. A resposta vai pro D1, o banco SQL da Cloudflare, e o caminho de leitura nunca paga por ela de novo. E isso tudo é um Worker só da Cloudflare: D1 pro registro de qual loja é o quê, KV pros documentos renderizados, e o Worker no meio fazendo a resolução.
 
-Resolvido isso, cada leitura é um recado curto: pega a URL, chama a API de catálogo do lojista, renderiza o que voltou. Crawl não entra em nenhum momento. Não tem fronteira, não tem fila, não tem "sua loja está sendo indexada, volte mais tarde". Você pede uma URL, aquela URL é respondida.
+Depois disso, cada leitura é uma chamada só: pega a URL, chama a API de catálogo do lojista, renderiza o que voltou. Nada é crawleado — você pede uma URL, aquela URL é respondida.
 
-As leituras são limitadas por construção: no máximo duas chamadas upstream por documento, seis segundos cada, rate limit no domínio do lojista, e todo erro fica em cache negativo — quem varre caminho aleatório bate no KV, não na loja. Os documentos vão pro KV sem TTL, e é aí que mora a diferença entre cache e índice: uma URL que alguém já pediu continua respondível.
+Cada leitura tem no máximo duas chamadas upstream, seis segundos cada, rate limit por domínio de lojista, e todo erro fica em cache negativo. Os documentos vão pro KV sem TTL, então o que já foi pedido uma vez é servido de lá e a loja não é tocada de novo.
 
 Busca e ordenação vieram depois, e as duas seguem a mesma regra: usar as convenções do próprio lojista. `/busca/{palavras}`, `/search?q=` e `/s/{palavras}` resolvem, via o parâmetro `ft=` da VTEX e o endpoint de busca preditiva da Shopify. A ordenação cai na ordenação da própria plataforma, então "mais barato primeiro" é respondido pela API de catálogo da loja e não por reordenar as 24 linhas que eu por acaso trouxe.
 
-A parte com que eu mais me importo é a que ninguém pediu: o decoindex é canal, não concorrente. Toda resposta leva `x-robots-tag: noindex` e um `rel=canonical` apontando pro lojista. Imagem nunca é re-hospedada. Link de saída leva `?ref=decoindex` pra loja enxergar o tráfego na analytics dela. E todo documento declara `live_commercial_data: false` com a hora em que foi observado, porque estoque da variante que você escolheu, preço final depois do cupom e prazo de entrega são promessas — promessas são do lojista, e o link vai pra lá.
+Uma coisa que vale dizer com todas as letras: o decoindex é um canal, não um concorrente. O objetivo é entregar a pessoa pra loja do próprio lojista. Toda resposta leva `x-robots-tag: noindex` e um `rel=canonical` apontando pro lojista. Imagem nunca é re-hospedada. Link de saída leva `?ref=decoindex` pra loja enxergar o tráfego na analytics dela. E todo documento declara `live_commercial_data: false` com a hora em que foi observado, porque estoque da variante que você escolheu, preço final depois do cupom e prazo de entrega são promessas — promessas são do lojista, e o link vai pra lá.
 
 ## Alguns números
 
-Eu tinha exatamente um exemplo, a Farm Rio, e ia botar ele na landing page como se uma loja provasse alguma coisa. Fiz o benchmark antes. `npm run bench` escreve um JSON e a [`/benchmark`](https://decoindex.com/benchmark) renderiza esse arquivo, então nada ali foi digitado na mão.
+Uma loja só não prova nada, então tem um benchmark. `npm run bench` escreve um JSON e a [`/benchmark`](https://decoindex.com/benchmark) renderiza esse arquivo, então nada ali foi digitado na mão.
 
-Baixar uma página de produto como HTML e depois o mesmo produto como documento, em quinze lojas:
+Baixar uma página de produto como HTML e depois o mesmo produto como documento, em quinze lojas. Seis delas:
 
 <TokenGap locale="pt" />
-
-Três dessas quinze linhas eu ganho pelo motivo errado, e elas continuam na tabela: a Technos entrega uma casca de JavaScript sem nenhum dado de produto, o Le Biscuit responde 403 pra um fetch simples, o HTML da Vivara nunca diz o preço. Um desafio de WAF é uma resposta pequena e um soft 404 também é, então só entra na conta a página que de fato serviu o produto.
 
 Depois a mesma pergunta de compra em cinco modelos, cada um com uma única ferramenta que devolve o corpo da resposta na íntegra — o loop que um dev escreveria por conta própria, em vez de uma CLI de código que resume a página no servidor antes do modelo ver qualquer coisa:
 
 <ModelCost locale="pt" />
 
-E o teste que interessa de verdade, porque ninguém começa a comprar já com a URL do produto na mão. O agente recebe a porta da frente da loja e a missão de achar um jogo de PlayStation 5: pela americanas.com.br, o Claude Code gastou 46 turnos e oito minutos, queimou US$ 1,01 e concluiu que a loja era ilegível. Pelo decoindex ele achou o *Marvel's Spider-Man: Miles Morales* a R$ 86,90 em 12 turnos e 19 centavos de dólar.
+E o teste que interessa de verdade, porque ninguém começa a comprar já com a URL do produto na mão: o agente recebe a porta da frente da loja e uma missão, achar um jogo de PlayStation 5. Esse rodou no Claude Code, não no loop acima. Pela americanas.com.br foram 46 turnos, oito minutos e US$ 1,01 até desistir. Pelo decoindex, o *Marvel's Spider-Man: Miles Morales* a R$ 86,90 em 12 turnos e 19 centavos de dólar.
 
 ## Teste na loja que você cuida
 

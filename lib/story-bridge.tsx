@@ -1156,7 +1156,15 @@ export function FactoryPlant({ locale = "en" }: LocaleProp) {
 
 /** Bars are drawn to at least a hairline, so a 1,110-token row stays visible. */
 const MIN_BAR = "0.35rem";
-const barWidth = (pct: number) => `max(${MIN_BAR}, ${pct.toFixed(2)}%)`;
+/**
+ * Bars never use the full row. The value label sits after the bar in the same
+ * flex line, so a 100% bar pushes it into the ratio column; capping the widest
+ * bar at 70% reserves room for the longest label ("625,5 mil tokens"). Every
+ * bar is scaled by the same factor, so the comparison is unchanged.
+ */
+const BAR_SPAN = 0.7;
+const barWidth = (pct: number) =>
+  `max(${MIN_BAR}, ${(pct * BAR_SPAN).toFixed(2)}%)`;
 
 const TOKEN_GAP = {
   en: {
@@ -1173,7 +1181,7 @@ const TOKEN_GAP = {
       { store: "Americanas", site: 39_236, index: 1_427 },
     ],
     caption:
-      "Each row is scaled to its own storefront, so the bars compare a page to itself and not to C&A. Tokens estimated at four bytes per token; the median across all fifteen stores is 110x.",
+      "Six of the fifteen storefronts. Each row is scaled to its own store, so the bars compare a page to itself and not to C&A. Tokens estimated at four bytes per token; only pages that actually served the product count, and the median across the fifteen is 110x.",
   },
   pt: {
     label: "Teste 1 · uma página de produto",
@@ -1189,7 +1197,7 @@ const TOKEN_GAP = {
       { store: "Americanas", site: 39_236, index: 1_427 },
     ],
     caption:
-      "Cada linha usa a escala da própria loja, então as barras comparam a página com ela mesma, não com a C&A. Tokens estimados a quatro bytes por token; a mediana das quinze lojas é 110x.",
+      "Seis das quinze lojas. Cada linha usa a escala da própria loja, então as barras comparam a página com ela mesma, não com a C&A. Tokens estimados a quatro bytes por token; só conta a página que de fato serviu o produto, e a mediana das quinze é 110x.",
   },
 } as const;
 
@@ -1220,7 +1228,7 @@ export function TokenGap({ locale = "en" }: LocaleProp) {
             <span className="story-bench-name">{r.store}</span>
             <div className="story-bench-pair">
               <div className="story-bench-bar story-bench-bar-site">
-                <i style={{ width: "100%" }} aria-hidden="true" />
+                <i style={{ width: barWidth(100) }} aria-hidden="true" />
                 <small>{compact(r.site, locale)} tokens</small>
               </div>
               <div className="story-bench-bar story-bench-bar-index">

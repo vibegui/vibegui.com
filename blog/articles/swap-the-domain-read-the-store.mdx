@@ -43,29 +43,27 @@ So the first request goes looking. Two probes fire at the same time — VTEX's c
 
 That whole dance happens once per domain, ever. The answer goes into D1 — Cloudflare's SQL database — and the read path never pays for it again. All of this is one Cloudflare Worker: D1 for the registry of which store is what, KV for the rendered documents, and the Worker itself doing the resolving in between.
 
-With that settled, a read is one small errand: take the URL, call the merchant's catalog API, render what comes back. No crawl anywhere in it. There is no frontier, no queue, no "your store is being indexed, check back later." You ask for a URL, that URL gets answered.
+After that, a read is one call: take the URL, hit the merchant's catalog API, render what comes back. Nothing is crawled — you ask for a URL, that URL gets answered.
 
-Reads are bounded by construction: at most two upstream calls per document, six seconds each, rate limited on the merchant's domain, and every failure negative-cached so someone scanning random paths hits KV instead of the store. The documents themselves go into KV with no TTL, which is the line between a cache and an index — a URL that was ever asked for stays answerable.
+Each read is capped at two upstream calls, six seconds each, rate limited per merchant domain, and every failure is negative-cached. Documents go into KV with no TTL, so anything asked for once is served from there and the store is not touched again.
 
 Search and sort came later and both follow the same rule: use the merchant's own conventions. `/busca/{words}`, `/search?q=`, `/s/{words}` all resolve, through VTEX's `ft=` parameter and Shopify's predictive search endpoint. Sorting maps onto the platform's own ordering, so "cheapest first" is answered by the store's catalog API and not by re-sorting the 24 rows I happened to fetch.
 
-The part I care most about is the part nobody asked for: decoindex is a channel, not a competitor. Every response carries `x-robots-tag: noindex` and a `rel=canonical` pointing at the merchant. Images are never rehosted. Outbound links carry `?ref=decoindex` so the store can see the traffic in its own analytics. And every document states `live_commercial_data: false` with the timestamp it was observed, because stock for the variant you picked, the final price after your coupon, and a delivery date are promises — those belong to the merchant, and the link goes there.
+One thing worth stating plainly: decoindex is a channel, not a competitor. The goal is to hand the shopper to the merchant's own store. Every response carries `x-robots-tag: noindex` and a `rel=canonical` pointing at the merchant. Images are never rehosted. Outbound links carry `?ref=decoindex` so the store can see the traffic in its own analytics. And every document states `live_commercial_data: false` with the timestamp it was observed, because stock for the variant you picked, the final price after your coupon, and a delivery date are promises — those belong to the merchant, and the link goes there.
 
 ## Some numbers
 
-I had exactly one example — Farm Rio — and was about to put it on the landing page as if one store proved anything. So I built the benchmark first. `npm run bench` writes a JSON file and [`/benchmark`](https://decoindex.com/benchmark) renders that file, so nothing on it is typed in by hand.
+One store proves nothing, so there is a benchmark. `npm run bench` writes a JSON file and [`/benchmark`](https://decoindex.com/benchmark) renders it, so nothing there is typed in by hand.
 
-Fetching one product page as HTML, then the same product as a document, across fifteen storefronts:
+Fetching one product page as HTML, then the same product as a document, across fifteen storefronts. Six of them:
 
 <TokenGap locale="en" />
-
-Three of those fifteen rows I win for the wrong reason and they stay in the table: Technos serves a JavaScript shell with no product facts, Le Biscuit returns 403 to a plain fetch, Vivara's HTML never states a price. A WAF challenge is a small response and so is a soft 404, so only pages that actually served the product enter the ratio.
 
 Then the same shopping question through five models, each one with a single tool that returns the response body verbatim — the loop a developer would write themselves, rather than a coding CLI that summarizes the page server-side before the model sees it:
 
 <ModelCost locale="en" />
 
-And the test that actually matters, because nobody starts shopping with the product URL already in hand. Give an agent the store's front door and ask for a PlayStation 5 game: through americanas.com.br, Claude Code spent 46 turns and eight minutes, burned $1.01, and reported the store unreadable. Through decoindex it found *Marvel's Spider-Man: Miles Morales* at R$86.90 in 12 turns and 19 cents.
+Then the test that actually matters, because nobody starts shopping with the product URL already in hand: the agent gets the store's front door and a job, find a PlayStation 5 game. This one ran in Claude Code rather than the loop above. Through americanas.com.br it spent 46 turns and eight minutes, burned $1.01, and gave up. Through decoindex it found *Marvel's Spider-Man: Miles Morales* at R$86.90 in 12 turns and 19 cents.
 
 ## Try it on your own store
 
