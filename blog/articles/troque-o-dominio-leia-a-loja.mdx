@@ -14,24 +14,24 @@ tags:
   - ecommerce
   - side-project
 ---
-Pegue a URL de um produto em qualquer loja VTEX ou Shopify e coloque `decoindex.com/` na frente do domínio.
+Pegue a URL de um produto em qualquer loja VTEX ou Shopify e coloque <a href="https://decoindex.com" target="_blank" rel="noopener noreferrer"><code>decoindex.com/</code></a> na frente do domínio.
 
-```
-https://www.farmrio.com.br/moda-feminina/acessorios
-https://decoindex.com/farmrio.com.br/moda-feminina/acessorios
-```
+<pre><code>
+  <a href="https://www.farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://www.farmrio.com.br/moda-feminina/acessorios</a>{"\n"}
+  <a href="https://decoindex.com/farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://decoindex.com/farmrio.com.br/moda-feminina/acessorios</a>
+</code></pre>
 
 A primeira responde com 1,9 MB de HTML. A segunda responde com 7 KB de Markdown, já com todo detalhe que importa — nome, preço, moeda, variantes, disponibilidade, cada produto daquela categoria — direto da API da própria loja. Funciona em qualquer loja VTEX ou Shopify pública. Basta trocar o domínio.
 
 ## Por que eu fiz
 
-Fim do mês passado eu estava olhando a loja da Farm Rio e me fiz uma pergunta que, em 14 anos de e-commerce, nunca tinha me feito. Quando o ChatGPT, o Claude ou o Perplexity cai numa página de produto, o que ele recebe de verdade?
+Fim do mês passado eu estava olhando a loja da Farm Rio e me fiz uma pergunta: quando o ChatGPT, o Claude ou o Perplexity cai numa página de produto, o que ele recebe de verdade?
 
 Aí eu medi. A página de produto da Farm Rio tem 917 KB de HTML. A home tem 556 KB. O `robots.txt` bloqueia `/buscar` e qualquer URL com `?q=`, ou seja, agentes que respeitam o arquivo não conseguem buscar nada dentro da loja. A única superfície pensada pra agente era um `llms.txt` de 30 linhas. Depois fui olhar a C&A: uma página de produto tem seis megabytes. Agentes que baixam essa página pra descobrir quanto custa a sandália pagam por mais ou menos 1,5 milhão de tokens de HTML, e a linha que foram buscar é `R$ 159,99`.
 
 Mas e o [WebMCP](https://github.com/webmachinelearning/webmcp)? Depois que a Shopify colocou dez tools WebMCP em toda loja Liquid, no dia 5 de agosto, fui olhar com atenção — parecia a indústria decidindo alguma coisa. Só que ele é feito pra agente rodando dentro do seu browser, com você olhando. A especificação diz isso na cara: automação headless não é objetivo. E headless é justamente onde vive todo agente que me interessa aqui, então essas tools são invisíveis pra eles.
 
-Nada disso está quebrado. Essas páginas ficam lindas no celular de uma pessoa. Elas só foram escritas pra um browser, e quem lê deixou de ser um browser.
+Nada disso está quebrado. Essas páginas ficam lindas no celular de uma pessoa. Elas só foram escritas pra um browser, e cada vez mais quem lê não é um browser.
 
 ## Como funciona
 

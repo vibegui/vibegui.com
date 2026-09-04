@@ -29,6 +29,28 @@
   margin-inline: auto;
 }
 
+/* Same for a link wrapping inline code: the code styling hides the link colour. */
+.story-prose > div > p a > code {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 0.2em;
+}
+
+.story-prose > div > p a:hover > code {
+  text-decoration-color: currentColor;
+}
+
+/* Nothing else inside a code block is clickable, so the links need to say so. */
+.story-prose > div > pre a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  text-underline-offset: 0.25em;
+}
+
+.story-prose > div > pre a:hover {
+  text-decoration-color: currentColor;
+}
+
 /* A URL is meant to be read, not scrolled sideways on a phone. */
 @media (max-width: 40rem) {
   .story-prose > div > pre {

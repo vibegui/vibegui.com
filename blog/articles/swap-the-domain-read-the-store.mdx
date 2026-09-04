@@ -14,24 +14,24 @@ tags:
   - ecommerce
   - side-project
 ---
-Take a product URL from any VTEX or Shopify store and put `decoindex.com/` in front of the domain.
+Take a product URL from any VTEX or Shopify store and put <a href="https://decoindex.com" target="_blank" rel="noopener noreferrer"><code>decoindex.com/</code></a> in front of the domain.
 
-```
-https://www.farmrio.com.br/moda-feminina/acessorios
-https://decoindex.com/farmrio.com.br/moda-feminina/acessorios
-```
+<pre><code>
+  <a href="https://www.farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://www.farmrio.com.br/moda-feminina/acessorios</a>{"\n"}
+  <a href="https://decoindex.com/farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://decoindex.com/farmrio.com.br/moda-feminina/acessorios</a>
+</code></pre>
 
 The first answers with 1.9 MB of HTML. The second answers with 7 KB of Markdown that already carries every detail that matters — name, price, currency, variants, availability, every product in that category — straight from the store's own API. It works on any public VTEX or Shopify storefront. Swapping the domain is all there is to it.
 
 ## Why I built it
 
-Late last month I was looking at Farm Rio's storefront and asked myself a question I had somehow never asked in 14 years of e-commerce. When ChatGPT or Claude or Perplexity lands on a product page, what does it actually receive?
+Late last month I was looking at Farm Rio's storefront and asked myself a question: when ChatGPT or Claude or Perplexity lands on a product page, what does it actually receive?
 
 So I measured. Farm Rio's product page is 917 KB of HTML. The homepage is 556 KB. The `robots.txt` disallows `/buscar` and any URL carrying `?q=`, which means an agent that respects the file cannot search the store at all. The only surface built for agents was a 30-line `llms.txt`. Then I checked C&A: a single product page is six megabytes. An agent that fetches it to find out what the sandal costs pays for roughly 1.5 million tokens of markup, and the line it came for is `R$159.99`.
 
 But what about [WebMCP](https://github.com/webmachinelearning/webmcp)? Shopify put ten WebMCP tools on every Liquid storefront on August 5, which looked like the industry deciding something, so I went and read it properly. It is built for an agent running inside your browser, with you watching. The spec says as much outright: headless automation is not a goal. Headless is exactly where every agent I care about here lives, so those tools are invisible to them.
 
-Nothing is broken. Those pages render beautifully for a person on a phone. They are just written for a browser, and the thing reading them stopped being a browser.
+Nothing is broken. Those pages render beautifully for a person on a phone. They are just written for a browser, and more and more, the thing reading them is not one.
 
 ## How it works
 
