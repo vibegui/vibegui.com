@@ -24,9 +24,17 @@
 }
 
 .story-prose > header,
-.story-prose > div > :where(p, h2, h3, ul, ol, blockquote) {
+.story-prose > div > :where(p, h2, h3, ul, ol, blockquote, pre) {
   max-width: var(--prose-width);
   margin-inline: auto;
+}
+
+/* A URL is meant to be read, not scrolled sideways on a phone. */
+@media (max-width: 40rem) {
+  .story-prose > div > pre {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
 }
 
 .story-prose > header h1 {
@@ -3061,5 +3069,133 @@
   .story-factory-arrow {
     justify-self: center;
     transform: rotate(90deg);
+  }
+}
+
+/* ─── "Six Megabytes to Read One Price": benchmark bars ─── */
+
+.story-bench-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.1rem;
+  margin-top: 0.35rem;
+  color: #625d57;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.story-bench-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.story-bench-key span::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: #07401a;
+}
+
+/* Needs the type selector to outrank `.story-bench-key span::before`. */
+.story-bench-key span.story-bench-key-index::before {
+  background: #a9c50f;
+}
+
+.story-bench .story-bench-rows {
+  display: grid;
+  margin: 0.35rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.story-bench-rows li {
+  display: grid;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  grid-template-columns: 8.5rem minmax(0, 1fr) 3.5rem;
+  margin: 0;
+  padding: 0.7rem 0;
+  border-top: 1px solid color-mix(in srgb, #07401a 18%, #e4e0d6);
+}
+
+.story-bench-rows li:first-child {
+  border-top-color: color-mix(in srgb, #07401a 42%, #e4e0d6);
+}
+
+.story-bench-name {
+  color: #121310;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.story-bench-pair {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.story-bench-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.story-bench-bar i {
+  flex: 0 0 auto;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #07401a;
+}
+
+.story-bench-bar-index i {
+  background: #a9c50f;
+}
+
+.story-bench-bar small {
+  color: #625d57;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.story-bench-bar small em {
+  margin-left: 0.4rem;
+  color: #8a857c;
+  font-style: normal;
+}
+
+.story-bench-bar small em.story-bench-miss {
+  color: #9a3412;
+  font-weight: 600;
+}
+
+.story-bench-ratio {
+  color: #121310;
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* No dark-theme overrides: the figure keeps its paper background in both themes,
+ * the same way .story-factory-feedback keeps its green. */
+
+@media (max-width: 640px) {
+  .story-bench-rows li {
+    grid-template-columns: minmax(0, 1fr) 3.5rem;
+  }
+
+  .story-bench-name {
+    grid-column: 1 / -1;
+  }
+
+  /* The bars keep the full row once the label moves above them. */
+  .story-bench-pair {
+    grid-column: 1;
   }
 }

@@ -1,0 +1,74 @@
+---
+slug: swap-the-domain-read-the-store
+title: 'Swap the Domain, Read the Store'
+description: 'I built decoindex — a read-through proxy that turns any VTEX or Shopify URL into Markdown an agent can use. Why it exists, how it works, and what it is doing in production.'
+date: 2026-09-03
+status: draft
+locale: "en"
+translationKey: "article:swap-the-domain-read-the-store"
+coverImage: null
+layout: story
+tags:
+  - agents
+  - ai
+  - ecommerce
+  - side-project
+---
+Take a product URL from any VTEX or Shopify store and put `decoindex.com/` in front of the domain.
+
+```
+https://www.farmrio.com.br/moda-feminina/acessorios
+https://decoindex.com/farmrio.com.br/moda-feminina/acessorios
+```
+
+The second one answers in Markdown. Name, price, currency, variants, availability, the products in that category, links to each one. Nothing to install and no key to ask for, because the URL you already have is the whole interface.
+
+## Why I built it
+
+Late last month I was looking at Farm Rio's storefront and asked myself a question I had somehow never asked in 14 years of e-commerce. When ChatGPT or Claude or Perplexity lands on a product page, what does it actually receive?
+
+So I measured. Farm Rio's product page is 917 KB of HTML. The homepage is 556 KB. The `robots.txt` disallows `/buscar` and any URL carrying `?q=`, which means an agent that respects the file cannot search the store at all. The only surface built for agents was a 30-line `llms.txt`. Then I checked C&A: a single product page is six megabytes. An agent that fetches it to find out what the sandal costs pays for roughly 1.5 million tokens of markup, and the line it came for is `R$159.99`.
+
+I looked at [WebMCP](https://github.com/webmachinelearning/webmcp) first, because Shopify shipped ten WebMCP tools on every Liquid storefront on August 5 and that felt like the industry deciding something. Then I read the spec: it targets local browser workflows and names headless automation as a non-goal. Every agent I care about here is headless, so those tools are invisible to all of them.
+
+Nothing is broken. Those pages render beautifully for a person on a phone. They are just written for a browser, and the thing reading them stopped being a browser.
+
+## How it works
+
+The rule is boring on purpose: strip the scheme and the `www.`, keep the path exactly as it was. Markdown is the default; add `.json` for the same document as structured data.
+
+On the first request for a domain, decoindex fires two probes at the same time — VTEX's catalog search endpoint and Shopify's `/products.json` — and decides by content type rather than status code, because VTEX answers a 404 with `200 text/html` and will happily lie to you about it. The platform goes into a D1 registry so nobody probes twice.
+
+Then it resolves that one URL against the merchant's own public catalog API, renders it, and stores it in KV. Not a crawl. There is no frontier, no queue, no "your store is being indexed, check back later." You ask for a URL, that URL gets answered.
+
+Reads are bounded by construction: at most two upstream calls per document, six seconds each, rate limited on the merchant's domain, and every failure negative-cached so someone scanning random paths hits KV instead of the store. The documents themselves go into KV with no TTL, which is the line between a cache and an index — a URL that was ever asked for stays answerable.
+
+Search and sort came later and both follow the same rule: use the merchant's own conventions. `/busca/{words}`, `/search?q=`, `/s/{words}` all resolve, through VTEX's `ft=` parameter and Shopify's predictive search endpoint. Sorting maps onto the platform's own ordering, so "cheapest first" is answered by the store's catalog API and not by re-sorting the 24 rows I happened to fetch.
+
+The part I care most about is the part nobody asked for: decoindex is a channel, not a competitor. Every response carries `x-robots-tag: noindex` and a `rel=canonical` pointing at the merchant. Images are never rehosted. Outbound links carry `?ref=decoindex` so the store can see the traffic in its own analytics. And every document states `live_commercial_data: false` with the timestamp it was observed, because stock for the variant you picked, the final price after your coupon, and a delivery date are promises — those belong to the merchant, and the link goes there.
+
+## Some numbers
+
+I had exactly one example — Farm Rio — and was about to put it on the landing page as if one store proved anything. So I built the benchmark first. `npm run bench` writes a JSON file and [`/benchmark`](https://decoindex.com/benchmark) renders that file, so nothing on it is typed in by hand.
+
+Fetching one product page as HTML, then the same product as a document, across fifteen storefronts:
+
+<TokenGap locale="en" />
+
+Three of those fifteen rows I win for the wrong reason and they stay in the table: Technos serves a JavaScript shell with no product facts, Le Biscuit returns 403 to a plain fetch, Vivara's HTML never states a price. A WAF challenge is a small response and so is a soft 404, so only pages that actually served the product enter the ratio.
+
+Then the same shopping question through five models, each one with a single tool that returns the response body verbatim — the loop a developer would write themselves, rather than a coding CLI that summarizes the page server-side before the model sees it:
+
+<ModelCost locale="en" />
+
+And the test that actually matters, because nobody starts shopping with the product URL already in hand. Give an agent the store's front door and ask for a PlayStation 5 game: through americanas.com.br, Claude Code spent 46 turns and eight minutes, burned $1.01, and reported the store unreadable. Through decoindex it found *Marvel's Spider-Man: Miles Morales* at R$86.90 in 12 turns and 19 cents.
+
+## Try it on your own store
+
+Take a URL from a store you work on, put `decoindex.com/` in front of the domain, and read what comes back. If it is wrong there is a feedback endpoint on every page and I read all of it.
+
+There is also a `/mcp` endpoint, a Claude Code skill and plugin, and a ChatGPT Custom GPT action, but those are conveniences. The URL is the product.
+
+The real work is one layer up, and it is what we do at [decocms.com](https://decocms.com/?utm_source=vibegui.com&utm_medium=article&utm_campaign=swap-the-domain-read-the-store): helping each brand make its own first-party experience good at agentic commerce, on its own domain, with its own data and its own checkout. That is where a store should be answering agents from.
+
+Until every storefront gets there, decoindex is the blanket underneath — something an agent can try when the store it landed on has not been optimized yet. The code is at [github.com/decocms/decoindex.com](https://github.com/decocms/decoindex.com) if you want to read it, run it, or point it at a platform we do not support.

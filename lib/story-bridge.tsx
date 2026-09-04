@@ -1145,3 +1145,205 @@ export function FactoryPlant({ locale = "en" }: LocaleProp) {
     </figure>
   );
 }
+
+/* ─── "Six Megabytes to Read One Price": the decoindex benchmark ───
+ *
+ * Numbers are transcribed from the committed benchmark output in the decoindex
+ * repository — bench/results/latest.json (one product page, 15 storefronts) and
+ * bench/results/models.json (the same question across five models). Nothing here
+ * is illustrative; if a figure changes, the source file is the one to re-read.
+ */
+
+/** Bars are drawn to at least a hairline, so a 1,110-token row stays visible. */
+const MIN_BAR = "0.35rem";
+const barWidth = (pct: number) => `max(${MIN_BAR}, ${pct.toFixed(2)}%)`;
+
+const TOKEN_GAP = {
+  en: {
+    label: "Test 1 · one product page",
+    title: "What the page weighs, and what the facts weigh",
+    siteHead: "Storefront HTML",
+    indexHead: "Same page, normalized",
+    rows: [
+      { store: "C&A", site: 1_505_155, index: 1_110 },
+      { store: "Pague Menos", site: 625_530, index: 1_166 },
+      { store: "Farm Rio", site: 335_809, index: 1_267 },
+      { store: "Lojas Torra", site: 346_419, index: 1_330 },
+      { store: "Allbirds", site: 172_580, index: 1_238 },
+      { store: "Americanas", site: 39_236, index: 1_427 },
+    ],
+    caption:
+      "Each row is scaled to its own storefront, so the bars compare a page to itself and not to C&A. Tokens estimated at four bytes per token; the median across all fifteen stores is 110x.",
+  },
+  pt: {
+    label: "Teste 1 · uma página de produto",
+    title: "Quanto pesa a página, quanto pesam os fatos",
+    siteHead: "HTML da loja",
+    indexHead: "Mesma página, normalizada",
+    rows: [
+      { store: "C&A", site: 1_505_155, index: 1_110 },
+      { store: "Pague Menos", site: 625_530, index: 1_166 },
+      { store: "Farm Rio", site: 335_809, index: 1_267 },
+      { store: "Lojas Torra", site: 346_419, index: 1_330 },
+      { store: "Allbirds", site: 172_580, index: 1_238 },
+      { store: "Americanas", site: 39_236, index: 1_427 },
+    ],
+    caption:
+      "Cada linha usa a escala da própria loja, então as barras comparam a página com ela mesma, não com a C&A. Tokens estimados a quatro bytes por token; a mediana das quinze lojas é 110x.",
+  },
+} as const;
+
+const compact = (n: number, locale: "en" | "pt") =>
+  new Intl.NumberFormat(locale === "pt" ? "pt-BR" : "en-US", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(n);
+
+export function TokenGap({ locale = "en" }: LocaleProp) {
+  const c = TOKEN_GAP[locale];
+  return (
+    <figure
+      className="story-factory story-bench"
+      aria-labelledby={`bench-tokens-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+
+      <div className="story-bench-key" aria-hidden="true">
+        <span className="story-bench-key-site">{c.siteHead}</span>
+        <span className="story-bench-key-index">{c.indexHead}</span>
+      </div>
+
+      <ul className="story-bench-rows">
+        {c.rows.map((r) => (
+          <li key={r.store}>
+            <span className="story-bench-name">{r.store}</span>
+            <div className="story-bench-pair">
+              <div className="story-bench-bar story-bench-bar-site">
+                <i style={{ width: "100%" }} aria-hidden="true" />
+                <small>{compact(r.site, locale)} tokens</small>
+              </div>
+              <div className="story-bench-bar story-bench-bar-index">
+                <i
+                  style={{ width: barWidth((r.index / r.site) * 100) }}
+                  aria-hidden="true"
+                />
+                <small>
+                  {r.index.toLocaleString(locale === "pt" ? "pt-BR" : "en-US")}
+                </small>
+              </div>
+            </div>
+            <b className="story-bench-ratio">
+              {Math.round(r.site / r.index)}&#215;
+            </b>
+          </li>
+        ))}
+      </ul>
+
+      <figcaption id={`bench-tokens-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}
+
+const MODEL_COST = {
+  en: {
+    label: "Test 2 · same question, five models",
+    title: "Price of reading one product page",
+    siteHead: "Through the storefront",
+    indexHead: "Through decoindex",
+    scoreHead: "Correct",
+    rows: [
+      { model: "Kimi K3", site: 0.4637, index: 0.0098, siteOk: "5/5" },
+      { model: "Claude Haiku 4.5", site: 0.1835, index: 0.0041, siteOk: "5/5" },
+      { model: "Gemini 2.5 Flash", site: 0.0574, index: 0.0009, siteOk: "5/5" },
+      { model: "GPT-5 mini", site: 0.0397, index: 0.0015, siteOk: "5/5" },
+      { model: "DeepSeek V3", site: 0.0001, index: 0.0008, siteOk: "0/5" },
+    ],
+    caption:
+      "Bars share one scale across models, so Kimi's storefront read is the widest thing here. DeepSeek is cheap because it never read a page: the truncated HTML was still 150,000 tokens and the provider rejected the request.",
+  },
+  pt: {
+    label: "Teste 2 · mesma pergunta, cinco modelos",
+    title: "Preço de ler uma página de produto",
+    siteHead: "Pela loja",
+    indexHead: "Pelo decoindex",
+    scoreHead: "Acertos",
+    rows: [
+      { model: "Kimi K3", site: 0.4637, index: 0.0098, siteOk: "5/5" },
+      { model: "Claude Haiku 4.5", site: 0.1835, index: 0.0041, siteOk: "5/5" },
+      { model: "Gemini 2.5 Flash", site: 0.0574, index: 0.0009, siteOk: "5/5" },
+      { model: "GPT-5 mini", site: 0.0397, index: 0.0015, siteOk: "5/5" },
+      { model: "DeepSeek V3", site: 0.0001, index: 0.0008, siteOk: "0/5" },
+    ],
+    caption:
+      "Todas as barras usam a mesma escala, e por isso a leitura da Kimi pela loja é a barra mais longa daqui. A DeepSeek sai barata porque nunca leu página nenhuma: mesmo truncado, o HTML tinha 150 mil tokens e o provedor recusou a chamada.",
+  },
+} as const;
+
+const MAX_COST = 0.4637;
+/** Cents-level rounding would print Gemini and GPT-5 mini as the same number. */
+const money = (n: number, locale: "en" | "pt") => {
+  const digits = n >= 0.1 ? 2 : 4;
+  return locale === "pt"
+    ? `US$ ${n.toFixed(digits).replace(".", ",")}`
+    : `$${n.toFixed(digits)}`;
+};
+
+export function ModelCost({ locale = "en" }: LocaleProp) {
+  const c = MODEL_COST[locale];
+  return (
+    <figure
+      className="story-factory story-bench"
+      aria-labelledby={`bench-cost-cap-${locale}`}
+    >
+      <span className="story-factory-label">{c.label}</span>
+      <strong className="story-factory-title">{c.title}</strong>
+
+      <div className="story-bench-key" aria-hidden="true">
+        <span className="story-bench-key-site">{c.siteHead}</span>
+        <span className="story-bench-key-index">{c.indexHead}</span>
+      </div>
+
+      <ul className="story-bench-rows">
+        {c.rows.map((r) => (
+          <li key={r.model}>
+            <span className="story-bench-name">{r.model}</span>
+            <div className="story-bench-pair">
+              <div className="story-bench-bar story-bench-bar-site">
+                <i
+                  style={{ width: barWidth((r.site / MAX_COST) * 100) }}
+                  aria-hidden="true"
+                />
+                <small>
+                  {money(r.site, locale)}
+                  <em
+                    className={
+                      r.siteOk === "0/5" ? "story-bench-miss" : undefined
+                    }
+                  >
+                    {r.siteOk}
+                  </em>
+                </small>
+              </div>
+              <div className="story-bench-bar story-bench-bar-index">
+                <i
+                  style={{ width: barWidth((r.index / MAX_COST) * 100) }}
+                  aria-hidden="true"
+                />
+                <small>
+                  {money(r.index, locale)}
+                  <em>5/5</em>
+                </small>
+              </div>
+            </div>
+            <b className="story-bench-ratio">
+              {r.siteOk === "0/5" ? "—" : `${Math.round(r.site / r.index)}×`}
+            </b>
+          </li>
+        ))}
+      </ul>
+
+      <figcaption id={`bench-cost-cap-${locale}`}>{c.caption}</figcaption>
+    </figure>
+  );
+}
