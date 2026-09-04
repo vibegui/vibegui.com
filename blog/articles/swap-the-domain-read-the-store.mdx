@@ -6,7 +6,7 @@ date: 2026-09-03
 status: draft
 locale: "en"
 translationKey: "article:swap-the-domain-read-the-store"
-coverImage: null
+coverImage: /images/articles/swap-the-domain-read-the-store.png
 layout: story
 tags:
   - agents
@@ -21,7 +21,7 @@ https://www.farmrio.com.br/moda-feminina/acessorios
 https://decoindex.com/farmrio.com.br/moda-feminina/acessorios
 ```
 
-The second one answers in Markdown. Name, price, currency, variants, availability, the products in that category, links to each one. Nothing to install and no key to ask for, because the URL you already have is the whole interface.
+The first answers with 1.9 MB of HTML. The second answers with 7 KB of Markdown that already carries every detail that matters — name, price, currency, variants, availability, every product in that category — straight from the store's own API. It works on any public VTEX or Shopify storefront. Swapping the domain is all there is to it.
 
 ## Why I built it
 
@@ -29,7 +29,7 @@ Late last month I was looking at Farm Rio's storefront and asked myself a questi
 
 So I measured. Farm Rio's product page is 917 KB of HTML. The homepage is 556 KB. The `robots.txt` disallows `/buscar` and any URL carrying `?q=`, which means an agent that respects the file cannot search the store at all. The only surface built for agents was a 30-line `llms.txt`. Then I checked C&A: a single product page is six megabytes. An agent that fetches it to find out what the sandal costs pays for roughly 1.5 million tokens of markup, and the line it came for is `R$159.99`.
 
-I looked at [WebMCP](https://github.com/webmachinelearning/webmcp) first, because Shopify shipped ten WebMCP tools on every Liquid storefront on August 5 and that felt like the industry deciding something. Then I read the spec: it targets local browser workflows and names headless automation as a non-goal. Every agent I care about here is headless, so those tools are invisible to all of them.
+But what about [WebMCP](https://github.com/webmachinelearning/webmcp)? Shopify put ten WebMCP tools on every Liquid storefront on August 5, which looked like the industry deciding something, so I went and read it properly. It is built for an agent running inside your browser, with you watching. The spec says as much outright: headless automation is not a goal. Headless is exactly where every agent I care about here lives, so those tools are invisible to them.
 
 Nothing is broken. Those pages render beautifully for a person on a phone. They are just written for a browser, and the thing reading them stopped being a browser.
 
@@ -37,9 +37,13 @@ Nothing is broken. Those pages render beautifully for a person on a phone. They 
 
 The rule is boring on purpose: strip the scheme and the `www.`, keep the path exactly as it was. Markdown is the default; add `.json` for the same document as structured data.
 
-On the first request for a domain, decoindex fires two probes at the same time — VTEX's catalog search endpoint and Shopify's `/products.json` — and decides by content type rather than status code, because VTEX answers a 404 with `200 text/html` and will happily lie to you about it. The platform goes into a D1 registry so nobody probes twice.
+The first time anyone asks for a domain, there are two things we do not know: which platform is behind it, and what its account name is. Both matter, because the catalog API lives at a different address on each platform and VTEX addresses a tenant by account name rather than by domain.
 
-Then it resolves that one URL against the merchant's own public catalog API, renders it, and stores it in KV. Not a crawl. There is no frontier, no queue, no "your store is being indexed, check back later." You ask for a URL, that URL gets answered.
+So the first request goes looking. Two probes fire at the same time — VTEX's catalog search endpoint and Shopify's `/products.json` — and whichever one answers with real JSON tells us the platform. The check is on the content type, not the status code: both platforms serve their own HTML page at unknown paths with a `200`, so a status check alone would call half of them Shopify. Finding the account name then differs by platform. Shopify publishes shop identity at `/meta.json`, so we ask for it. VTEX does not state the account anywhere in the catalog response, but every product image is served from `{account}.vtexassets.com`, so the first image URL in the payload gives it away.
+
+That whole dance happens once per domain, ever. The answer goes into D1 — Cloudflare's SQL database — and the read path never pays for it again. All of this is one Cloudflare Worker: D1 for the registry of which store is what, KV for the rendered documents, and the Worker itself doing the resolving in between.
+
+With that settled, a read is one small errand: take the URL, call the merchant's catalog API, render what comes back. No crawl anywhere in it. There is no frontier, no queue, no "your store is being indexed, check back later." You ask for a URL, that URL gets answered.
 
 Reads are bounded by construction: at most two upstream calls per document, six seconds each, rate limited on the merchant's domain, and every failure negative-cached so someone scanning random paths hits KV instead of the store. The documents themselves go into KV with no TTL, which is the line between a cache and an index — a URL that was ever asked for stays answerable.
 

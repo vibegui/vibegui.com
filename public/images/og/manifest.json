@@ -21,6 +21,7 @@
     "en:honey-i-shrunk-the-agency": "/images/og/en/honey-i-shrunk-the-agency.8518630a.png",
     "en:how-ai-agents-can-eliminate-production-bugs": "/images/og/en/how-ai-agents-can-eliminate-production-bugs.7f4d8009.png",
     "en:leadership-and-respecting-human-limitations": "/images/og/en/leadership-and-respecting-human-limitations.eaeb74d8.png",
+    "en:no-one-wants-your-ai-tools": "/images/og/en/no-one-wants-your-ai-tools.abd9e148.png",
     "en:nonviolent-communication-and-accepting-failure-in-entrepreneursh": "/images/og/en/nonviolent-communication-and-accepting-failure-in-entrepreneursh.7abceb93.png",
     "en:pessimism-vs-leadership-the-choice-to-make-the-unpredictable-hap": "/images/og/en/pessimism-vs-leadership-the-choice-to-make-the-unpredictable-hap.44bc887c.png",
     "en:protagonists-of-the-future-challenging-victimism-and-building-pr": "/images/og/en/protagonists-of-the-future-challenging-victimism-and-building-pr.01c71a9d.png",
@@ -31,6 +32,7 @@
     "en:skills-and-desires-finding-your-purpose-in-1958-and-2025": "/images/og/en/skills-and-desires-finding-your-purpose-in-1958-and-2025.a2010ca7.png",
     "en:software-gardening-era-of-agents": "/images/og/en/software-gardening-era-of-agents.d774c4e4.png",
     "en:startup-or-big-tech-it-s-not-a-binary-choice": "/images/og/en/startup-or-big-tech-it-s-not-a-binary-choice.e731aebc.png",
+    "en:swap-the-domain-read-the-store": "/images/og/en/swap-the-domain-read-the-store.dcae394c.png",
     "en:the-100-million-company-is-no-longer-a-lottery": "/images/og/en/the-100-million-company-is-no-longer-a-lottery.dc6c738e.png",
     "en:the-anime-generation-how-japanese-animation-shaped-values-of-fri": "/images/og/en/the-anime-generation-how-japanese-animation-shaped-values-of-fri.c6a9482d.png",
     "en:the-culture-of-recognition-our-friday-week-end-ritual": "/images/og/en/the-culture-of-recognition-our-friday-week-end-ritual.0b028a01.png",
@@ -42,7 +44,9 @@
     "en:the-gravest-mistake-in-ai-native-product-development": "/images/og/en/the-gravest-mistake-in-ai-native-product-development.87b8be72.png",
     "en:the-great-ssg-simplification-killing-json-fetches-one-page-at-a-": "/images/og/en/the-great-ssg-simplification-killing-json-fetches-one-page-at-a-.f13d8a27.png",
     "en:the-inferiority-complex-of-brazilian-software": "/images/og/en/the-inferiority-complex-of-brazilian-software.9fd634e2.png",
+    "en:the-inverted-maslow-pyramid": "/images/og/en/the-inverted-maslow-pyramid.e910bf99.png",
     "en:the-non-coder-s-advantage-why-ai-makes-it-easier-for-non-technic": "/images/og/en/the-non-coder-s-advantage-why-ai-makes-it-easier-for-non-technic.2eb16ea2.png",
+    "en:the-only-three-tech-team-sizes-after-ai": "/images/og/en/the-only-three-tech-team-sizes-after-ai.2c4bfa6c.png",
     "en:the-orchestration-epiphany-from-executor-to-orchestrator-of-ai-a": "/images/og/en/the-orchestration-epiphany-from-executor-to-orchestrator-of-ai-a.6a724028.png",
     "en:the-parable-of-the-house-why-we-must-build-our-own-future": "/images/og/en/the-parable-of-the-house-why-we-must-build-our-own-future.eacd1483.png",
     "en:the-pathology-of-apathy-why-companies-die-when-people-stop-belie": "/images/og/en/the-pathology-of-apathy-why-companies-die-when-people-stop-belie.6ff75a8e.png",
@@ -54,6 +58,7 @@
     "en:today-s-challenge-was-yesterday-s-wish": "/images/og/en/today-s-challenge-was-yesterday-s-wish.3c8e1d6c.png",
     "en:two-years-of-applied-ai": "/images/og/en/two-years-of-applied-ai.403d607b.png",
     "en:vibecoding-meets-publishing": "/images/og/en/vibecoding-meets-publishing.8d7cad7e.png",
+    "en:web-generation-as-human-expression": "/images/og/en/web-generation-as-human-expression.22778b1f.png",
     "en:why-i-will-never-move-to-s-o-paulo": "/images/og/en/why-i-will-never-move-to-s-o-paulo.d53f9669.png",
     "pt-BR:5-feedbacks-essenciais-para-criar-produtos-de-ia-vencedores": "/images/og/pt/5-feedbacks-essenciais-para-criar-produtos-de-ia-vencedores.93550d66.png",
     "pt-BR:a-cultura-do-reconhecimento-como-construimos-resultados-extraordinarios-na-deco-cx": "/images/og/pt/a-cultura-do-reconhecimento-como-construimos-resultados-extraordinarios-na-deco-cx.07991bd6.png",
@@ -90,6 +95,7 @@
     "pt-BR:querida-encolhi-a-agencia": "/images/og/pt/querida-encolhi-a-agencia.0991869d.png",
     "pt-BR:reconhecimento-fossil-vs-reconhecimento-renovavel-onde-voce-busca-validacao": "/images/og/pt/reconhecimento-fossil-vs-reconhecimento-renovavel-onde-voce-busca-validacao.9156af61.png",
     "pt-BR:roberto-mangabeira-unger-e-a-economia-do-conhecimento-um-futuro-poderoso-e-improvavel": "/images/og/pt/roberto-mangabeira-unger-e-a-economia-do-conhecimento-um-futuro-poderoso-e-improvavel.2b68607d.png",
-    "pt-BR:software-generativo-e-a-era-da-gestao-de-contexto": "/images/og/pt/software-generativo-e-a-era-da-gestao-de-contexto.115b09e4.png"
+    "pt-BR:software-generativo-e-a-era-da-gestao-de-contexto": "/images/og/pt/software-generativo-e-a-era-da-gestao-de-contexto.115b09e4.png",
+    "pt-BR:troque-o-dominio-leia-a-loja": "/images/og/pt/troque-o-dominio-leia-a-loja.6fa8af0b.png"
   }
 }
