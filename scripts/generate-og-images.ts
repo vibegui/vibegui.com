@@ -67,13 +67,14 @@ function removeStaleImages(
 }
 
 async function main(): Promise<void> {
-  const articles = readAllArticles(ARTICLES_DIR, true)
-    .filter((article) => article.status === "published")
-    .sort((a, b) =>
-      manifestKey(a.locale, a.slug).localeCompare(
-        manifestKey(b.locale, b.slug),
-      ),
-    );
+  // Drafts get an OG image too. This script never runs on Cloudflare Pages
+  // (pages:build skips it), so the committed manifest is the same set every
+  // time — and a draft shared by URL, which is how branch previews are read,
+  // needs a card like anything else. Drafts stay out of the sitemap and feeds;
+  // that is what keeps them unadvertised, not the absence of an image.
+  const articles = readAllArticles(ARTICLES_DIR, true).sort((a, b) =>
+    manifestKey(a.locale, a.slug).localeCompare(manifestKey(b.locale, b.slug)),
+  );
   const previous = readPreviousManifest();
   const images: Record<string, string> = {};
   const currentPaths = new Set<string>();

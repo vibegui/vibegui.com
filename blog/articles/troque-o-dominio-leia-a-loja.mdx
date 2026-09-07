@@ -1,0 +1,76 @@
+---
+slug: troque-o-dominio-leia-a-loja
+title: 'Troque o domínio, leia a loja'
+description: 'Fiz o decoindex: um proxy read-through que transforma qualquer URL de loja VTEX ou Shopify em Markdown que um agente consegue usar. Por que existe, como funciona e o que ele já faz em produção.'
+date: 2026-09-07
+status: published
+locale: pt-BR
+translationKey: "article:swap-the-domain-read-the-store"
+coverImage: /images/articles/swap-the-domain-read-the-store.png
+layout: story
+tags:
+  - agents
+  - ai
+  - ecommerce
+  - side-project
+---
+Pegue a URL de um produto em qualquer loja VTEX ou Shopify e coloque <a href="https://decoindex.com" target="_blank" rel="noopener noreferrer"><code>decoindex.com/</code></a> na frente do domínio.
+
+<pre><code>
+  <a href="https://www.farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://www.farmrio.com.br/moda-feminina/acessorios</a>{"\n"}
+  <a href="https://decoindex.com/farmrio.com.br/moda-feminina/acessorios" target="_blank" rel="noopener noreferrer">https://decoindex.com/farmrio.com.br/moda-feminina/acessorios</a>
+</code></pre>
+
+A primeira responde com 1,9 MB de HTML. A segunda responde com 7 KB de Markdown, já com todo detalhe que importa — nome, preço, moeda, variantes, disponibilidade, cada produto daquela categoria — direto da API da própria loja. Funciona em qualquer loja VTEX ou Shopify pública. Basta trocar o domínio.
+
+## Por que eu fiz
+
+Fim do mês passado eu estava olhando a loja da Farm Rio e me fiz uma pergunta: quando o ChatGPT, o Claude ou o Perplexity cai numa página de produto, o que ele recebe de verdade?
+
+Aí eu medi. A página de produto da Farm Rio tem 917 KB de HTML. A home tem 556 KB. O `robots.txt` bloqueia `/buscar` e qualquer URL com `?q=`, ou seja, agentes que respeitam o arquivo não conseguem buscar nada dentro da loja. A única superfície pensada pra agente era um `llms.txt` de 30 linhas. Depois fui olhar a C&A: uma página de produto tem seis megabytes. Agentes que baixam essa página pra descobrir quanto custa a sandália pagam por mais ou menos 1,5 milhão de tokens de HTML, e a linha que foram buscar é `R$ 159,99`.
+
+Mas e o [WebMCP](https://github.com/webmachinelearning/webmcp)? Depois que a Shopify colocou dez tools WebMCP em toda loja Liquid, no dia 5 de agosto, fui olhar com atenção — parecia a indústria decidindo alguma coisa. Só que ele é feito pra agente rodando dentro do seu browser, com você olhando. A especificação diz isso na cara: automação headless não é objetivo. E headless é justamente onde vive todo agente que me interessa aqui, então essas tools são invisíveis pra eles.
+
+Nada disso está quebrado. Essas páginas ficam lindas no celular de uma pessoa. Elas só foram escritas pra um browser, e cada vez mais quem lê não é um browser.
+
+## Como funciona
+
+A regra é sem graça de propósito: tira o esquema e o `www.`, mantém o path exatamente como estava. Markdown é o padrão; com `.json` você recebe o mesmo documento em dados estruturados.
+
+Na primeira vez que alguém pede um domínio, há duas coisas que a gente não sabe: qual plataforma está por trás e qual é o nome da conta. As duas importam, porque a API de catálogo fica em endereço diferente em cada plataforma, e na VTEX o inquilino é endereçado pelo nome da conta, não pelo domínio.
+
+Então o primeiro request vai atrás disso. Duas sondagens saem ao mesmo tempo — o endpoint de busca de catálogo da VTEX e o `/products.json` da Shopify — e a que responder com JSON de verdade diz qual é a plataforma. A verificação é no content type, não no status code: as duas plataformas servem a própria página HTML com `200` num path que não conhecem, então olhar só o status classificaria metade delas como Shopify. Achar o nome da conta muda de plataforma pra plataforma. A Shopify publica a identidade da loja no `/meta.json`, então basta pedir. A VTEX não diz a conta em nenhum lugar da resposta de catálogo, mas toda imagem de produto é servida de `{account}.vtexassets.com` — a primeira URL de imagem do payload entrega.
+
+Essa dança acontece uma vez por domínio, pra sempre. A resposta vai pro D1, o banco SQL da Cloudflare, e o caminho de leitura nunca paga por ela de novo. E isso tudo é um Worker só da Cloudflare: D1 pro registro de qual loja é o quê, KV pros documentos renderizados, e o Worker no meio fazendo a resolução.
+
+Depois disso, cada leitura é uma chamada só: pega a URL, chama a API de catálogo do lojista, renderiza o que voltou. Nada é crawleado — você pede uma URL, aquela URL é respondida.
+
+Cada leitura tem no máximo duas chamadas upstream, seis segundos cada, rate limit por domínio de lojista, e todo erro fica em cache negativo. Os documentos vão pro KV sem TTL, então o que já foi pedido uma vez é servido de lá e a loja não é tocada de novo.
+
+Busca e ordenação vieram depois, e as duas seguem a mesma regra: usar as convenções do próprio lojista. `/busca/{palavras}`, `/search?q=` e `/s/{palavras}` resolvem, via o parâmetro `ft=` da VTEX e o endpoint de busca preditiva da Shopify. A ordenação cai na ordenação da própria plataforma, então "mais barato primeiro" é respondido pela API de catálogo da loja e não por reordenar as 24 linhas que eu por acaso trouxe.
+
+Uma coisa que vale dizer com todas as letras: o decoindex é um canal, não um concorrente. O objetivo é entregar a pessoa pra loja do próprio lojista. Toda resposta leva `x-robots-tag: noindex` e um `rel=canonical` apontando pro lojista. Imagem nunca é re-hospedada. Link de saída leva `?ref=decoindex` pra loja enxergar o tráfego na analytics dela. E todo documento declara `live_commercial_data: false` com a hora em que foi observado, porque estoque da variante que você escolheu, preço final depois do cupom e prazo de entrega são promessas — promessas são do lojista, e o link vai pra lá.
+
+## Alguns números
+
+Uma loja só não prova nada, então tem um benchmark. `npm run bench` escreve um JSON e a [`/benchmark`](https://decoindex.com/benchmark) renderiza esse arquivo, então nada ali foi digitado na mão.
+
+Baixar uma página de produto como HTML e depois o mesmo produto como documento, em quinze lojas. Seis delas:
+
+<TokenGap locale="pt" />
+
+Depois a mesma pergunta de compra em cinco modelos, cada um com uma única ferramenta que devolve o corpo da resposta na íntegra — o loop que um dev escreveria por conta própria, em vez de uma CLI de código que resume a página no servidor antes do modelo ver qualquer coisa:
+
+<ModelCost locale="pt" />
+
+E o teste que interessa de verdade, porque ninguém começa a comprar já com a URL do produto na mão: o agente recebe a porta da frente da loja e uma missão, achar um jogo de PlayStation 5. Esse rodou no Claude Code, não no loop acima. Pela americanas.com.br foram 46 turnos, oito minutos e US$ 1,01 até desistir. Pelo decoindex, o *Marvel's Spider-Man: Miles Morales* a R$ 86,90 em 12 turnos e 19 centavos de dólar.
+
+## Teste na loja que você cuida
+
+Pegue uma URL de uma loja em que você trabalha, coloque `decoindex.com/` na frente do domínio e leia o que volta. Se estiver errado, tem um endpoint de feedback em toda página e eu leio tudo.
+
+Tem também um endpoint `/mcp`, uma skill e um plugin de Claude Code e uma action de Custom GPT no ChatGPT, mas isso é conveniência. O produto é a URL.
+
+O trabalho de verdade é uma camada acima, e é o que a gente faz na [decocms.com](https://decocms.com/?utm_source=vibegui.com&utm_medium=article&utm_campaign=troque-o-dominio-leia-a-loja): ajudar cada marca a deixar a própria experiência first-party boa em agentic commerce, no domínio dela, com os dados dela e o checkout dela. É de lá que uma loja deveria responder aos agentes.
+
+Enquanto nem toda loja chega lá, o decoindex é a rede embaixo — uma coisa que o agente pode tentar quando a loja onde ele caiu ainda não foi otimizada. O código está no [github.com/decocms/decoindex.com](https://github.com/decocms/decoindex.com), se você quiser ler, rodar ou apontar pra alguma plataforma que a gente ainda não suporta.

@@ -7,6 +7,13 @@
     <language>pt-BR</language>
     <atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="https://vibegui.com/feed.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Troque o domínio, leia a loja</title>
+      <link>https://vibegui.com/article/troque-o-dominio-leia-a-loja/</link>
+      <guid isPermaLink="true">https://vibegui.com/article/troque-o-dominio-leia-a-loja/</guid>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 GMT</pubDate>
+      <description>Fiz o decoindex: um proxy read-through que transforma qualquer URL de loja VTEX ou Shopify em Markdown que um agente consegue usar. Por que existe, como funciona e o que ele já faz em produção.</description>
+    </item>
+    <item>
       <title>Querida, Encolhi a Agência!</title>
       <link>https://vibegui.com/article/querida-encolhi-a-agencia/</link>
       <guid isPermaLink="true">https://vibegui.com/article/querida-encolhi-a-agencia/</guid>

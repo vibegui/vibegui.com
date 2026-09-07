@@ -8,10 +8,12 @@ import {
   FactoryPlant,
   FactoryStage,
   FactoryTimeline,
+  ModelCost,
   StoryCast,
   StoryCompound,
   StoryDecay,
   StoryRooms,
+  TokenGap,
 } from "./story-bridge.tsx";
 
 const mdxComponents = {
@@ -20,10 +22,12 @@ const mdxComponents = {
   FactoryPlant,
   FactoryStage,
   FactoryTimeline,
+  ModelCost,
   StoryCast,
   StoryCompound,
   StoryDecay,
   StoryRooms,
+  TokenGap,
 };
 
 /**

@@ -103,13 +103,13 @@ describe("Image Constraints", () => {
     }
   });
 
-  test("every published article has a generated 1200x630 OG image", () => {
+  // Drafts are covered too. They are shared by URL through branch previews, so
+  // they need a card, and generate-og-images.ts no longer skips them.
+  test("every article has a generated 1200x630 OG image", () => {
     const ogManifest = JSON.parse(
       readFileSync(OG_MANIFEST_PATH, "utf-8"),
     ) as OgManifest;
-    const articles = readAllArticles(ARTICLES_DIR, true).filter(
-      (article) => article.status === "published",
-    );
+    const articles = readAllArticles(ARTICLES_DIR, true);
 
     expect(ogManifest.version).toBe(1);
     expect(ogManifest.width).toBe(1200);
