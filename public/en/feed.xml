@@ -7,6 +7,13 @@
     <language>en</language>
     <atom:link xmlns:atom="http://www.w3.org/2005/Atom" href="https://vibegui.com/en/feed.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Swap the Domain, Read the Store</title>
+      <link>https://vibegui.com/en/article/swap-the-domain-read-the-store/</link>
+      <guid isPermaLink="true">https://vibegui.com/en/article/swap-the-domain-read-the-store/</guid>
+      <pubDate>Mon, 07 Sep 2026 00:00:00 GMT</pubDate>
+      <description>I built decoindex — a read-through proxy that turns any VTEX or Shopify URL into Markdown an agent can use. Why it exists, how it works, and what it is doing in production.</description>
+    </item>
+    <item>
       <title>AI Learned to Work. Now We Need to Build the Factory.</title>
       <link>https://vibegui.com/en/article/two-years-of-applied-ai/</link>
       <guid isPermaLink="true">https://vibegui.com/en/article/two-years-of-applied-ai/</guid>
