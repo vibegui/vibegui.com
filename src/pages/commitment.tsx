@@ -152,29 +152,6 @@ function BodyEn() {
         someone else's revenue, with governance, security, and scale.
       </p>
 
-      <h3>deco is based on principles I believe are fundamental:</h3>
-
-      <ul className="green-bullets">
-        <li>
-          <strong>Autopilot first.</strong> The agents monitor the channel and
-          auto-fix what a person should never have to touch — the broken link,
-          the slow page, the copy that stopped converting. Human attention is
-          too expensive to spend on what a loop can handle.
-        </li>
-        <li>
-          <strong>Inside your sprint.</strong> The agents plug into the team's
-          own Kanban and make a two-week sprint run in days, with people
-          approving what goes live. Ultra-senior engineers cover the edge cases
-          the agents shouldn't decide alone.
-        </li>
-        <li>
-          <strong>Paid for results.</strong> One contract instead of six
-          agencies: a low fixed fee plus a variable tied to the results we
-          produce. The upside is shared and the downside is ours — which is the
-          only honest way to promise a result.
-        </li>
-      </ul>
-
       <h2>The Game Worth Playing</h2>
 
       <p>
@@ -315,29 +292,6 @@ function BodyPt() {
         produção, em cima da receita de outra empresa, com governança, segurança
         e escala.
       </p>
-
-      <h3>A deco é baseada em princípios que considero fundamentais:</h3>
-
-      <ul className="green-bullets">
-        <li>
-          <strong>Autopilot primeiro.</strong> Os agentes monitoram o canal e
-          consertam sozinhos o que uma pessoa nem deveria precisar tocar — o
-          link quebrado, a página lenta, o texto que parou de converter. Atenção
-          humana é cara demais para gastar no que um loop resolve.
-        </li>
-        <li>
-          <strong>Dentro do seu sprint.</strong> Os agentes entram no Kanban do
-          próprio time e fazem um sprint de duas semanas rodar em dias, com
-          gente aprovando o que vai para o ar. Engenheiros ultra sênior cobrem
-          os edge cases que os agentes não devem decidir sozinhos.
-        </li>
-        <li>
-          <strong>Pago por resultado.</strong> Um contrato no lugar de seis
-          agências: um fixo baixo mais um variável atrelado ao resultado que a
-          gente produz. O ganho é dividido e o risco é nosso — que é o único
-          jeito honesto de prometer resultado.
-        </li>
-      </ul>
 
       <h2>O jogo que vale a pena jogar</h2>
 
