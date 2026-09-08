@@ -50,12 +50,7 @@
     "test": "bun test",
     "test:e2e": "playwright test",
     "test:constraints": "bun test tests/constraints/",
-    "mcp:build": "cd mcp && bun run build",
-    "mcp:check": "cd mcp && bun run check",
-    "mcp:test": "cd mcp && bun run test",
-    "mcp:dev": "cd mcp && bun run dev",
-    "mcp:corpus": "cd mcp && bun run corpus:upload:remote",
-    "precommit": "bun run fmt && bun run lint && bun run check && bun run mcp:check && bun run mcp:test && bun run build && bun run mcp:build && bun run test:constraints && bun run test:e2e",
+    "precommit": "bun run fmt && bun run lint && bun run check && bun run build && bun run test:constraints && bun run test:e2e",
     "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true",
     "optimize:images": "bun scripts/optimize-images.ts"
   },

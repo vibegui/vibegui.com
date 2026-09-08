@@ -29,23 +29,24 @@ bun run precommit
 
 ---
 
-## Personal AI OS
+## Worldview
 
-`mcp/` is a separate Cloudflare Worker with one public endpoint and two capability levels:
+This site's Personal AI OS used to live in `mcp/`. It moved to its own
+repository — [vibegui/worldview](https://github.com/vibegui/worldview) — and is
+served at `worldview.vibegui.com`.
 
-- Without authentication: published writing tools.
-- With the private Studio token: project map, goals, memory, decisions, captures, GitHub evidence, daily briefs, and the Personal AI OS MCP App.
+It was a subdirectory only because there was nowhere better to put it. Now the
+declaration, the projects, the two scores, and the MCP server have their own
+repo, their own deploy, and their own domain, and this repo is what it says on
+the tin: a blog.
 
-The implementation is public and copyable; personal state and credentials stay in D1 and Worker secrets. See [`mcp/README.md`](./mcp/README.md).
+The blog is one project *inside* that worldview. Nothing here renders from it,
+and it renders nothing here.
 
-The December 2026 project charter, outcomes, conditions of satisfaction, and scorecard live in [`DECLARATION.md`](./DECLARATION.md).
-
-```bash
-bun run mcp:check
-bun run mcp:test
-bun run mcp:build
-bun run mcp:dev
-```
+Three things on this site still call the worker over HTTP, and keep working
+unchanged: the bookmarks API (`lib/bookmarks-api.ts`), the analytics beacon
+(`functions/_middleware.ts`), and the popularity ranking
+(`scripts/generate-malvados.ts`).
 
 ---
 
@@ -205,12 +206,6 @@ vibegui.com/
 ├── context/                   # Reference material for AI writing
 │   ├── leadership/*.md        # Leadership summaries
 │   └── LINKEDIN_PROFILE.md    # Author context
-│
-├── mcp/                       # Personal AI OS Worker and MCP App
-│   ├── src/                   # Public/private tools, state, auth, GitHub sync
-│   ├── web/                   # Private Studio MCP App
-│   ├── migrations/            # Private D1 schema
-│   └── wrangler.jsonc         # Worker configuration
 │
 ├── src/                       # Frontend source
 │   ├── main.tsx               # Entry point
