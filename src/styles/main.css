@@ -180,11 +180,6 @@ a:hover {
   color: var(--color-accent);
 }
 
-/* Explicit class for non-prose contexts */
-.green-bullets li::marker {
-  color: var(--color-accent);
-}
-
 .prose img {
   max-width: 100%;
   height: auto;
