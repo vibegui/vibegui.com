@@ -1,0 +1,5 @@
+interface:
+  display_name: "Processar vídeo do LinkedIn"
+  short_description: "Transforma gravações em vídeos verticais legendados"
+  brand_color: "#C4E538"
+  default_prompt: "Use $process-linkedin-video para processar meu último vídeo com este transcript do Wispr."

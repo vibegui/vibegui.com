@@ -55,6 +55,10 @@
     "mcp:test": "cd mcp && bun run test",
     "mcp:dev": "cd mcp && bun run dev",
     "mcp:corpus": "cd mcp && bun run corpus:upload:remote",
+    "video:check": "bun .agents/skills/process-linkedin-video/scripts/check.ts",
+    "video:process": "bun .agents/skills/process-linkedin-video/scripts/process.ts",
+    "video:test": "bun test ./.agents/skills/process-linkedin-video/scripts/video-lib.test.ts",
+    "video:typecheck": "bun x --package typescript@5.7.2 tsc --noEmit -p .agents/skills/process-linkedin-video/tsconfig.json",
     "precommit": "bun run fmt && bun run lint && bun run check && bun run mcp:check && bun run mcp:test && bun run build && bun run mcp:build && bun run test:constraints && bun run test:e2e",
     "prepare": "command -v lefthook >/dev/null 2>&1 && lefthook install || true",
     "optimize:images": "bun scripts/optimize-images.ts"
