@@ -2,7 +2,11 @@
 
 ## Intenção
 
-Publicar três vídeos por semana para builders técnicos, sempre a partir de experiência real. Cada vídeo carrega uma distinção, uma situação concreta e uma consequência prática. A voz segue `blog/tone-of-voice.md`; a identidade segue `blog/visual-style.md`.
+Publicar três vídeos por semana para builders técnicos, sempre a partir de experiência real. O objetivo é tornar os fundamentos da liderança disponíveis para pessoas comuns: liberdade para não ser governado pelo automático, integridade para alinhar palavra e ação e compromisso para causar futuros improváveis.
+
+Software AI-native e AI Services são o laboratório concreto dessa tese. O futuro maior é um Brasil protagonista em tecnologia, com mais builders livres para empreender e gerar prosperidade. Alcance não é o objetivo; é infraestrutura para convidar essas pessoas para o campo.
+
+Cada vídeo carrega uma distinção, uma situação concreta e uma consequência prática. A voz segue `blog/tone-of-voice.md`; a identidade segue `blog/visual-style.md`. A arquitetura narrativa, as branches e a sequência de exploração vivem em [`ROADMAP.md`](./ROADMAP.md).
 
 ## Pilares e cadência
 
