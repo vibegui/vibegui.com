@@ -58,6 +58,12 @@ Os binários vivem em `~/Movies/vibegui-videos/`, nunca no Git.
 | 4 | [O oposto do pessimista é o líder](./04-o-oposto-do-pessimista-e-o-lider.md) | Liderança | 45–60s | scripted |
 | 5 | [Conversa suja cobra juros](./05-conversa-suja-cobra-juros.md) | Integridade | 50–65s | scripted |
 
+## Roteiros adicionais
+
+| # | Vídeo | Branch | Duração | Status |
+|---|---|---|---|---|
+| 6 | [Emprego não é natureza](./06-emprego-nao-e-natureza.md) | Brasil e empreendedorismo | 65–80s | scripted |
+
 ## Próximas ideias
 
 - A interface deixou de ser o centro do software.

@@ -211,6 +211,7 @@ O “algo maior” que dá energia a esta conversa é tornar o Brasil protagonis
 | F5 | Você não pode se tornar aquilo que despreza | Associar prosperidade a desvio moral pode funcionar como proteção contra o risco de tentar. |
 | F6 | Equity é uma declaração sobre prosperidade compartilhada | Sociedade e incentivos revelam se o fundador quer acelerar pessoas ou apenas extrair delas. |
 | F7 | O ecossistema nasce quando o sucesso se reproduz | A ambição não é uma empresa isolada, mas builders que vencem, investem, ensinam e fundam de novo. |
+| F8 | Emprego não é natureza | Trabalho assalariado é um arranjo histórico; IA abre a possibilidade de redesenhar como autonomia econômica é distribuída. |
 
 ### Convite recorrente
 
@@ -343,4 +344,3 @@ Uma ideia sai de `idea` para `scripted` quando responde “sim” a estas pergun
 - `~/Projects/context/01_declaration/references/future-declaration-guide.md`
 - `~/Projects/context/01_declaration/references/future-evolution-and-learnings.md`
 - `~/Projects/context/05_growth/narratives/workshop-comunicacao-deck.md`
-
